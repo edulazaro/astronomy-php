@@ -410,12 +410,16 @@ class NodesAndApsides
         $elements = MeanElements::of($body, $jdTT);
 
         if ($elements === null) {
+            /* It throws rather than falling back to the osculating elements, and the reason is
+               that the two are not interchangeable: for the outer planets they are eleven degrees
+               apart in Neptune's perihelion, which is a third of a sign. Another implementation of
+               this was measured returning the osculating ones here without saying so, and on Pluto
+               its mean and its osculating elements came out identical to the last decimal, which is
+               the answer that cannot be right and the only way to notice. */
             throw new LogicException(sprintf(
                 'There are no published mean elements for %s: the table by Simon and others (1994) carries the eight '
                 .'planets and nobody else, not Pluto, not the asteroids, not the fictitious ones. Its osculating orbit '
-                .'is there, in `of()`, and the Moon mean elements in `LunarPoints`. Careful: Swiss '
-                .'here returns the OSCULATING ones without warning instead of saying it has none: measured on '
-                .'Pluto, its mean and its osculating ones come out identical to the last decimal.',
+                .'is there, in `of()`, and the Moon mean elements in `LunarPoints`.',
                 $body->name()
             ));
         }

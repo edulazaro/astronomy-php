@@ -1,3 +1,7 @@
 /vendor/
 /composer.lock
 .phpunit.result.cache
+
+# Bodies fetched on demand. They are a cache, not source: whoever needs one
+# downloads it, and it must never be committed into the package.
+/resources/astro/downloads/
