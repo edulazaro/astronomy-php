@@ -3,8 +3,8 @@
 /*
  * VSOP87D · Jupiter
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:vsop87` in the Tarotian
- * application, from the original series of Bretagnon and Francou published at the CDS
+ * GENERATED. Do not edit by hand: written by `astronomy vsop87`
+ * in this package, from the original series of Bretagnon and Francou published at the CDS
  * in Strasbourg.
  *
  * Heliocentric spherical coordinates referred to the ecliptic and equinox of date. L and

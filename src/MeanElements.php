@@ -16,8 +16,8 @@ namespace Astronomy;
  * And it does not have to be typed in, which is what makes it acceptable here: **ERFA publishes
  * it**. `plan94.c` is the reference reimplementation of that same paper, BSD licensed, and it is the
  * same place the IAU 2000B nutation series is already downloaded from. So the table is written by
- * `astro:elementos-medios`, parsing the C source and checking the count, just like
- * `astro:nutacion`, and there is not a single hand-written coefficient here.
+ * `astronomy mean-elements`, parsing the C source and checking the count, just like
+ * `astronomy nutation`, and there is not a single hand-written coefficient here.
  *
  * ## What it brings and what it does not
  *

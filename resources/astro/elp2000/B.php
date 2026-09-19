@@ -3,8 +3,8 @@
 /*
  * ELP 2000-82B · latitude (arcseconds)
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:elp2000` in the Tarotian
- * application, from the original series of Chapront-Touzé and Chapront published at
+ * GENERATED. Do not edit by hand: written by `astronomy elp2000`
+ * in this package, from the original series of Chapront-Touzé and Chapront published at
  * the CDS in Strasbourg.
  *
  * Each term is [amplitude, c0, c1, c2, c3, c4, m] and equals amplitude·sin(c0 + c1·T +

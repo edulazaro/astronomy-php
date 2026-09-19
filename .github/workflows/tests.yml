@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -13,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        # composer.json pide php ^8.2, o sea toda la serie 8.x publicada desde 8.2.
+        # Las cuatro se corrieron contra esta batería antes de escribirlas aquí.
+        php: ['8.2', '8.3', '8.4', '8.5']
 
     name: PHP ${{ matrix.php }}
 
@@ -28,8 +32,142 @@ jobs:
           extensions: mbstring
           coverage: none
 
+      # composer.lock no se commitea, así que cada versión de PHP resuelve su propio
+      # juego de dependencias. Eso es el sentido de la matriz, no un efecto colateral.
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
+      # Sin red, sin base de datos y sin framework: la batería es el contrato entero.
+      # Se llama al binario y no a `composer test` para no depender de que el script
+      # siga declarado en composer.json.
       - name: Run tests
-        run: composer test
+        run: vendor/bin/phpunit
+
+  art:
+    runs-on: ubuntu-latest
+
+    name: Artwork
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The SIZE is checked and not the bytes. Rasterizing here and comparing against what
+      # is committed would go red every time the runner changed its librsvg or freetype,
+      # and a guard with false positives ends up switched off. The size does not depend on
+      # the renderer: 1200 x 630 is the Open Graph measurement, and a card exported at any
+      # other one gets cropped by the networks without a word, which is exactly the kind of
+      # failure you cannot see by looking at the file.
+      - name: The Open Graph card is 1200 x 630
+        run: |
+          python3 - <<'PY'
+          import struct, sys, pathlib
+
+          png = pathlib.Path('art/og.png')
+          svg = pathlib.Path('art/og.svg')
+
+          for f in (png, svg):
+              if not f.is_file():
+                  sys.exit(f'{f} is missing')
+
+          raw = png.read_bytes()
+          if raw[:8] != b'\x89PNG\r\n\x1a\n':
+              sys.exit('art/og.png is not a PNG')
+
+          width, height = struct.unpack('>II', raw[16:24])
+          if (width, height) != (1200, 630):
+              sys.exit(f'art/og.png is {width} x {height}, expected 1200 x 630')
+
+          head = svg.read_text()[:400]
+          for attr in ('width="1200"', 'height="630"'):
+              if attr not in head:
+                  sys.exit(f'art/og.svg does not declare {attr}')
+
+          print(f'art/og.png is {width} x {height}, and art/og.svg declares the same')
+          PY
+
+  engine:
+    runs-on: ubuntu-latest
+
+    name: The engine is what it says it is
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The package's whole argument for existing is that it is an astronomical engine with
+      # no framework under it. One class that reaches for Illuminate and that stops being
+      # true, and nothing else in the build would notice: the tests pass either way, because
+      # they run inside a checkout that has it installed.
+      # The backslash is not decoration: `Illuminate` on its own also matches
+      # `percentIlluminated`, which is an English word this engine legitimately uses. What is
+      # being looked for is the NAMESPACE, and a namespace always carries its separator.
+      - name: No class of the engine names Illuminate
+        run: |
+          if grep -rn 'Illuminate\\' src/ bin/; then
+            echo '::error::The engine must not depend on a framework.'
+            exit 1
+          fi
+          echo 'No class of the engine names Illuminate.'
+
+      # And it is written entirely in English, which is not a preference: it was extracted
+      # from a Spanish application and the words keep coming back one commit at a time, in
+      # a comment, in a local variable, in the text a generator writes into a data file.
+      # Whole words only, so that an English word carrying one of these inside (`unbodied`,
+      # `stable`, `postponed`) cannot fire it. This came out clean against src/ before it
+      # was written: a step that is red on its first run is a step somebody deletes.
+      - name: The engine is written in English
+        shell: bash
+        run: |
+          # `umbral` is not on the list and cannot be: in English it is the adjective of the
+          # umbra, and this engine says «umbral limb» and «umbral cone» all over the eclipses.
+          # `artisan` is out for the same reason, because three comments say «an Artisan
+          # command» while explaining what this package stopped being. A guard that fires on
+          # correct code is a guard somebody deletes, so every word below was measured against
+          # src/, bin/ and resources/ before being added, and every one of them is at zero.
+          #
+          # One list, singular only: the three spellings are derived from it, so there is a
+          # single place to edit, and the optional -s covers the Spanish plural.
+          words=(carpeta fichero cuerpo dias estrella nombre posicion tiempo velocidad
+                 ajuste residuo terminos descartados bloques datos tarotian)
+
+          # Whole-word matching is NOT enough here, and that is the whole reason this is a
+          # regex and not `grep -w`. An underscore is a word character, so `\btabla\b` walks
+          # straight past `'tabla_desde_1973'`, which is a real key this package writes into
+          # its own data file; and a camelCase hump (`getNombre`, `tiempoDeLuz`) has no word
+          # boundary in front of it either. So three shapes instead:
+          #
+          #   lower    must OPEN a token, and may take the Spanish plural -s, but may not run
+          #            on into an English tail. Keeps diaspora, diastole and degradation clean.
+          #   Capital  matches anywhere, which is what catches the camelCase hump and the
+          #            class name (Cuerpo, Estrella, GenerarTablaEfemerides).
+          #   UPPER    must open a token AND not continue into another letter, which is what
+          #            keeps the English ANION clean without losing DIAS_POR_SIGLO.
+          #
+          # Checked against anion, ANION, diaspora, diastole, companion, degradation,
+          # Illuminated, Retrogrades, tablature, Diameter and Indias: none of them fires it.
+          lower=$(IFS='|'; echo "${words[*]}")
+          capital=$(IFS='|'; echo "${words[*]^}")
+          upper=$(IFS='|'; echo "${words[*]^^}")
+
+          if grep -rnP --include='*.php' --include='astronomy' \
+              "(?<![A-Za-z])($lower)s?(?![a-z])|($capital)s?(?![a-z])|(?<![A-Za-z])($upper)S?(?![A-Za-z])" \
+              src/ bin/ resources/; then
+            echo '::error::The package is written in English. Those are leftovers from the application it came out of.'
+            exit 1
+          fi
+          echo 'No Spanish left in src/, bin/ or resources/.'
+
+          # Four more words belong on that list and are NOT on it yet, because they are still
+          # in the tree and a step that is red on its first run is a step somebody switches
+          # off. Add each one here as its file is cleared, and this comment shrinks to nothing:
+          #
+          #   tabla   src/DeltaTTable.php and resources/astro/deltat.php both write the keys
+          #           'tabla_1955_1973' and 'tabla_desde_1973'. Same key on both sides, so the
+          #           file and the class that reads it have to move together.
+          #           Also `GenerarTablaEfemerides`, cited in Horizons, SatelliteList and Body.
+          #   grado   src/Nakshatra.php, twice: `@param float $siderealLongitude Grados.`
+          #   anio    src/Time.php, the @return shape of checkedJulianDay()
+          #   valida  src/Time.php, the same line. That docblock is also STALE, which is the
+          #           worse half: the method really returns valid/year/month/day in English,
+          #           so the annotation documents an API that does not exist.

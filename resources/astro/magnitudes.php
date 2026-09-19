@@ -3,8 +3,8 @@
 /*
  * Visual magnitudes, fitted against JPL Horizons
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:magnitudes` in the
- * Tarotian application.
+ * GENERATED. Do not edit by hand: written by `astronomy magnitudes`
+ * in this package.
  *
  * The model is V = 5·log10(r·Δ) + f(α). Only f is stored here, as Chebyshev
  * coefficients over the phase angle normalized to [-1, 1] within its range.

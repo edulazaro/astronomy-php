@@ -9,7 +9,7 @@ namespace Astronomy;
  * `A·cos(B + C·tau)` terms, and the total for that power is multiplied by tau raised to
  * it. That is all this class does.
  *
- * The tables are written by `astro:vsop87` from the original series. Here they
+ * The tables are written by `astronomy vsop87` from the original series. Here they
  * are only read, and they are read once per process: there are five thousand terms and a
  * birth chart asks for ten positions, so re-reading the file for each one multiplies by ten
  * the only expensive work there is.

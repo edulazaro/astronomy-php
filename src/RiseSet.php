@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Rise, set and meridian passes of a body on one day and at one place.
@@ -48,6 +49,32 @@ readonly class RiseSet
 
     /** Step of the scan over the interpolated altitude, in days: ten minutes. */
     private const TRACKING_STEP = 10 / 1440;
+
+    /**
+     * When a solved pass is taken as converged, in days: when the last correction drops below one
+     * second. What is left after that is the correction times the convergence ratio, which is the
+     * ratio between how fast the body runs in right ascension and how fast the Earth turns: a
+     * tenth for the Moon and a hundredth for a planet, so a tenth of a second in the worst case.
+     */
+    private const SOLVE_TOLERANCE = 1.0 / 86400.0;
+
+    /**
+     * How many rounds the fixed point is given before it is called a failure. Two or three are
+     * enough for a planet and four for the Moon; this is far past any of them, and reaching it
+     * would take a body whose right ascension ran as fast as the Earth turns.
+     */
+    private const SOLVE_ROUNDS = 12;
+
+    /**
+     * How near an instant a solved pass has to land to be read as being AT it rather than on one
+     * side or the other, in days: a tenth of a second.
+     *
+     * It is the accuracy of the answer rounded up, not a number chosen for comfort: measured
+     * against the tracker over 360 passes the worst is 0.038 seconds, so anything inside a tenth
+     * is the same instant twice. Below that there is nothing to separate, and asking for the pass
+     * before a rise would step back a whole sidereal day over a rounding.
+     */
+    private const PASS_SEAM = 0.1 / 86400.0;
 
     /**
      * @param string $name What it is that rises and sets, written out: «Sun», «Antares».
@@ -186,6 +213,326 @@ readonly class RiseSet
         }
 
         return self::first($events, $pass, $place->timeZone());
+    }
+
+    /**
+     * The four passes of a civil day, SOLVED instead of tracked. Same answer as `ofTheDay()` and
+     * the same shape, by a road that costs a tenth of the ephemerides.
+     *
+     * ### Which of the two is the right one
+     *
+     * `ofTheDay()` TRACKS the day: it samples the geocentric position every hour, interpolates,
+     * and walks the altitude at ten minute steps looking for sign changes, refining the maxima
+     * and minima between samples. That is what an almanac publishes and it handles the awkward
+     * day, which is a real thing and not a corner: near the polar circle the Sun can peek above
+     * the horizon and hide again inside one step, and a day with two passes of the same kind, or
+     * with none, comes out right because the whole day was looked at.
+     *
+     * This one SOLVES instead. For a point with no disc and no refraction the rise sits at the
+     * hour angle `H0 = arccos(-tan φ · tan δ)` and the culminations at zero and one hundred and
+     * eighty, and putting a disc and an atmosphere in only changes the altitude the crossing
+     * happens at. That gives the local sidereal time of the pass straight away, and from there
+     * the instant, because over a day the Earth turns linearly. The catch is that δ belongs to
+     * the position at the instant being looked for, so it is a fixed point: evaluate at noon,
+     * solve, evaluate there, solve again. **It converges as the ratio between how fast the body
+     * runs in right ascension and how fast the Earth turns**, which for the Moon, the worst, is
+     * thirteen degrees a day against three hundred and sixty one. Two or three rounds for a
+     * planet, four for the Moon, one ephemeris each.
+     *
+     * So: the tracker when the day itself is the question, and this when thousands of passes are
+     * needed and the geometry is enough. It is the second case that put it here, in
+     * `Houses::gauquelinSectorByRiseAndSet`, which needs three passes for every sector it places.
+     *
+     * ### What it costs and what it agrees with
+     *
+     * Measured against `ofTheDay()` under the same options, the ten classical bodies from three
+     * places (Madrid, Oslo, Ushuaia) on three days, which is 360 passes: **the worst disagreement
+     * is 0.038 seconds of clock time**, and it is the Moon setting in Oslo, which is the fastest
+     * declination in the set. Where the tracker finds no pass this finds none either, in all of
+     * them, the five days of that stretch on which the Moon does not rise included.
+     *
+     * And it costs about a third: the ten bodies for one day come to **113 milliseconds here
+     * against 357** there. Per body, Mars 11.4 against 37.0 and the Moon 17.8 against 37.6. The
+     * saving is not the algorithm, it is the ephemeris count: a tracked day is twenty nine
+     * samples plus the walk over them and a solved one is a dozen positions with no walk at all.
+     * It pays better where fewer than four passes are wanted, which is the Gauquelin case: three
+     * passes there would be two whole tracked days.
+     *
+     * ### What it gives up, said plainly
+     *
+     * - **A day with two passes of the same kind gets one**, like `ofTheDay()`, because a
+     *   `RiseSet` has one slot per kind. That is the shape of `swe_rise_trans` too.
+     * - **The twilights are not filled in.** They are the same closed form with a fixed altitude
+     *   and they could be; they are left out because nothing that wants speed wants them.
+     * - **A body that does not converge throws** instead of falling back quietly. No real body
+     *   does; what would is one running in right ascension as fast as the planet turns.
+     *
+     * @param Body|Star|callable(float): Equatorial $target
+     * @param Place $place
+     * @param DateTimeInterface $day Only the date counts; the time is ignored.
+     * @param Limb $limb
+     * @param bool $refraction
+     * @param float $heightMetres Height of the observer above sea level.
+     * @param float $horizonAltitude Degrees above the astronomical horizon.
+     * @return self
+     */
+    public static function solvedOfTheDay(
+        Body|Star|callable $target,
+        Place $place,
+        DateTimeInterface $day,
+        Limb $limb = Limb::Superior,
+        bool $refraction = true,
+        float $heightMetres = 0.0,
+        float $horizonAltitude = 0.0,
+    ): self {
+        $timezone = $place->timeZone();
+        $dayStart = new DateTimeImmutable($day->format('Y-m-d').' 00:00:00', $timezone);
+
+        $from = Time::julianDay($dayStart);
+        $to = Time::julianDay($dayStart->modify('+1 day'));
+
+        $first = function (Pass $pass) use ($target, $place, $from, $to, $limb, $refraction, $heightMetres, $horizonAltitude): ?UtInstant {
+            $instant = self::solvedPass($target, $place, $from, $pass, $limb, $refraction, $heightMetres, $horizonAltitude);
+
+            return $instant !== null && $instant->jdUt < $to ? $instant : null;
+        };
+
+        return new self(
+            name: Horizon::nameOf($target),
+            target: $target instanceof Body || $target instanceof Star ? $target : Horizon::track($target),
+            rise: $first(Pass::Rise),
+            set: $first(Pass::Set),
+            upperCulmination: $first(Pass::UpperCulmination),
+            lowerCulmination: $first(Pass::LowerCulmination),
+        );
+    }
+
+    /**
+     * One pass, solved by fixed point: the first of its kind at or after an instant, or the last
+     * at or before it. See `solvedOfTheDay()` for what separates this from the tracker.
+     *
+     * Null when that pass does not exist from that place: a circumpolar body never sets and one
+     * below the horizon all day never rises, and in both cases the cosine of the hour angle falls
+     * outside [-1, 1] and there is nothing to return. The culminations always exist, so for those
+     * two it is never null.
+     *
+     * **It is bracketed on the instant and not on the day**, which is what makes it useful for
+     * the Gauquelin sectors: asking for the last rise and the last set before an instant says
+     * which arc the body is in without going anywhere near its altitude.
+     *
+     * @param Body|Star|callable(float): Equatorial $target
+     * @param Place $place
+     * @param float $jdUt
+     * @param Pass $pass
+     * @param Limb $limb
+     * @param bool $refraction
+     * @param float $heightMetres
+     * @param float $horizonAltitude
+     * @param bool $backwards Looking back from the instant instead of forward from it.
+     * @return UtInstant|null
+     */
+    public static function solvedPass(
+        Body|Star|callable $target,
+        Place $place,
+        float $jdUt,
+        Pass $pass,
+        Limb $limb = Limb::Superior,
+        bool $refraction = true,
+        float $heightMetres = 0.0,
+        float $horizonAltitude = 0.0,
+        bool $backwards = false,
+    ): ?UtInstant {
+        self::requireHorizonPossible($horizonAltitude, $refraction);
+
+        $horizon = new Horizon($place, $heightMetres);
+        $radius = Horizon::radiusKm($target);
+        $track = Horizon::track($target);
+        $reference = self::referenceAltitude($radius, $limb, $refraction, $horizonAltitude);
+
+        $position = fn (float $jd): Equatorial => $horizon->topocentric($track(Time::tt($jd)), $jd);
+
+        $sidereal = self::siderealTimeOfPass($position($jdUt), $pass, $place->latitude, $reference, $radius);
+
+        if ($sidereal === null) {
+            return null;
+        }
+
+        /* How far to the first crossing of that sidereal time on the side asked for, counted
+           forwards in both cases so that an instant already ON the pass returns itself.
+           `almostNothing` is what makes that true in practice and not only in algebra: at the
+           instant of a rise the two sidereal times differ by however accurate that instant is,
+           and folded into [0, 360) a difference BELOW zero comes back as 359.99, which sends the
+           search a whole sidereal day away. That is the case the Gauquelin sectors land on at
+           every rise, and it came out as sector 36.99999 instead of 1. */
+        $here = $horizon->localSiderealTime($jdUt);
+        $offset = self::almostNothing(self::turn($backwards ? $here - $sidereal : $sidereal - $here));
+
+        $jd = $jdUt + ($backwards ? -$offset : $offset) / Time::ROTATION_PER_DAY;
+
+        $jd = self::converge($position, $pass, $horizon, $reference, $radius, $jd);
+
+        /* The estimate was made with the position of the starting instant and the body has moved
+           since, so the converged pass can land on the wrong side of it: by a few minutes when
+           the estimate was a real distance, and by whatever the snap above was worth when it was
+           not. A whole sidereal day either way puts it back, and there is no third try, because
+           the pass is periodic. */
+        if ($jd !== null && $backwards && $jd > $jdUt + self::PASS_SEAM) {
+            $jd = self::converge($position, $pass, $horizon, $reference, $radius, $jd - self::siderealDay());
+        } elseif ($jd !== null && ! $backwards && $jd < $jdUt - self::PASS_SEAM) {
+            $jd = self::converge($position, $pass, $horizon, $reference, $radius, $jd + self::siderealDay());
+        }
+
+        return $jd === null ? null : UtInstant::fromJd($jd, $place->timeZone());
+    }
+
+    /**
+     * The local sidereal time at which a body sits on the pass, in degrees, or null when from that
+     * latitude it does not do it.
+     *
+     * The culminations are the right ascension and the right ascension plus half a turn. For the
+     * rise and the set it is the hour angle at which the altitude of the CENTRE is worth the
+     * reference: `sin h = sin φ sin δ + cos φ cos δ cos H`. That reference is where the disc and
+     * the atmosphere come in, and it is the same closure the tracker crosses, so the two cannot
+     * mean different things by «rise».
+     *
+     * The position is the TOPOCENTRIC one, as in the tracker and as in Swiss: the parallax of the
+     * Moon in right ascension reaches a degree, which is four minutes of clock time in the pass.
+     *
+     * @param Equatorial $topocentric
+     * @param Pass $pass
+     * @param float $latitude
+     * @param Closure(float): float $reference
+     * @param float $radiusKm
+     * @return float|null
+     */
+    private static function siderealTimeOfPass(
+        Equatorial $topocentric,
+        Pass $pass,
+        float $latitude,
+        Closure $reference,
+        float $radiusKm
+    ): ?float {
+        if ($pass->isMeridianPass()) {
+            return self::turn($topocentric->rightAscension + ($pass === Pass::LowerCulmination ? 180.0 : 0.0));
+        }
+
+        $phi = deg2rad($latitude);
+        $delta = deg2rad($topocentric->declination);
+        $denominator = cos($phi) * cos($delta);
+
+        // At the geographic pole, or with the body over one of the celestial poles, nothing rises
+        // and nothing sets: every point keeps the altitude it has.
+        if (abs($denominator) < 1e-12) {
+            return null;
+        }
+
+        $altitude = deg2rad($reference(Horizon::semidiameter($topocentric, $radiusKm)));
+        $cosine = (sin($altitude) - sin($phi) * sin($delta)) / $denominator;
+
+        if ($cosine < -1.0 || $cosine > 1.0) {
+            return null;
+        }
+
+        $hourAngle = rad2deg(acos($cosine));
+
+        return self::turn($topocentric->rightAscension + ($pass === Pass::Rise ? -$hourAngle : $hourAngle));
+    }
+
+    /**
+     * The fixed point: the position at the instant, the sidereal time its pass would happen at,
+     * and the instant moved so that local sidereal time is worth exactly that. The correction is
+     * folded to half a turn so as not to jump a cycle, and a pass that stops existing on some
+     * round (a declination crossing the circumpolar limit) returns null.
+     *
+     * @param Closure(float): Equatorial $position
+     * @param Pass $pass
+     * @param Horizon $horizon
+     * @param Closure(float): float $reference
+     * @param float $radiusKm
+     * @param float $jd
+     * @return float|null
+     */
+    private static function converge(
+        Closure $position,
+        Pass $pass,
+        Horizon $horizon,
+        Closure $reference,
+        float $radiusKm,
+        float $jd
+    ): ?float {
+        for ($round = 0; $round < self::SOLVE_ROUNDS; $round++) {
+            $sidereal = self::siderealTimeOfPass($position($jd), $pass, $horizon->place->latitude, $reference, $radiusKm);
+
+            if ($sidereal === null) {
+                return null;
+            }
+
+            $jump = self::fold($sidereal - $horizon->localSiderealTime($jd)) / Time::ROTATION_PER_DAY;
+            $jd += $jump;
+
+            if (abs($jump) < self::SOLVE_TOLERANCE) {
+                return $jd;
+            }
+        }
+
+        throw new RuntimeException(sprintf(
+            'The %s does not converge: after %d rounds the instant is still moving by more than a second, which takes a body running in right ascension about as fast as the Earth turns. Use RiseSet::ofTheDay, which tracks the sky instead of solving for it.',
+            $pass->name(),
+            self::SOLVE_ROUNDS
+        ));
+    }
+
+    /**
+     * A sidereal day in days: how long the same sidereal time takes to come round again.
+     *
+     * @return float
+     */
+    private static function siderealDay(): float
+    {
+        return 360.0 / Time::ROTATION_PER_DAY;
+    }
+
+    /**
+     * Degrees folded into [0, 360).
+     *
+     * @param float $degrees
+     * @return float
+     */
+    private static function turn(float $degrees): float
+    {
+        return fmod(fmod($degrees, 360.0) + 360.0, 360.0);
+    }
+
+    /**
+     * Degrees folded into [-180, 180): a displacement, not a place.
+     *
+     * @param float $degrees
+     * @return float
+     */
+    private static function fold(float $degrees): float
+    {
+        return self::turn($degrees + 180.0) - 180.0;
+    }
+
+    /**
+     * A turn that falls a hair short of a whole turn, read as no turn at all.
+     *
+     * The tolerance is `PASS_SEAM` turned into degrees of rotation, which is what it has to be and
+     * not something smaller: the difference this is folding is worth however accurate the instant
+     * it was measured at is, and that is four hundredths of a second, not a rounding. Set to
+     * float noise instead, asking for the rise before a rise stepped a whole sidereal day back,
+     * which is how it was found.
+     *
+     * Erring on the generous side costs nothing, and that is the other half of why it can be a
+     * blunt number: a pass snapped to the instant and then found to be on the wrong side of it
+     * gets its sidereal day back from the correction in `solvedPass`.
+     *
+     * @param float $degrees In [0, 360).
+     * @return float
+     */
+    private static function almostNothing(float $degrees): float
+    {
+        return $degrees > 360.0 - self::PASS_SEAM * Time::ROTATION_PER_DAY ? 0.0 : $degrees;
     }
 
     /**
@@ -519,7 +866,7 @@ readonly class RiseSet
 
         $key = match (true) {
             $target instanceof Body => sprintf('%s:%.6f:%.6f', $target->value, $from, $to),
-            $target instanceof Star => sprintf('estrella-%s:%.6f:%.6f', $target->key, $from, $to),
+            $target instanceof Star => sprintf('star-%s:%.6f:%.6f', $target->key, $from, $to),
             default => null,
         };
 

@@ -33,6 +33,36 @@ use RuntimeException;
 readonly class Houses
 {
     /**
+     * The step the speeds are differenced over, in degrees of ARMC. A thousandth of a degree is
+     * a quarter of a second of clock time.
+     *
+     * **It is measured and it is the floor of the curve, not a round number picked by eye.** The
+     * ascendant is one of the few things here with a derivative in closed form, so the difference
+     * can be compared against the truth and not against another difference. Worst error over a
+     * whole ARMC sweep, in degrees per day:
+     *
+     * | | 1e-1 | 1e-2 | 1e-3 | 1e-4 | 1e-5 | 1e-6 |
+     * |---|---|---|---|---|---|---|
+     * | equator | 7.5e-5 | 7.5e-7 | **4.4e-8** | 3.1e-7 | 3.5e-6 | 2.1e-5 |
+     * | Madrid | 7.0e-4 | 7.0e-6 | **1.1e-7** | 4.3e-7 | 3.2e-6 | 2.7e-5 |
+     * | Oslo | 2.1e-2 | 2.1e-4 | 2.2e-6 | **9.7e-7** | 6.6e-6 | 3.7e-5 |
+     * | Tromsø | | 1.2e-3 | 1.2e-5 | **1.7e-6** | 9.2e-6 | 5.9e-5 |
+     *
+     * Truncation falls as the square of the step down to about 1e-3, and rounding takes over
+     * below it. The bottom of the curve is between 1e-3 and 1e-4 and moves with how fast the
+     * cusps run; 1e-3 is the one taken because **it is also the bottom for the systems that
+     * iterate**, which the ascendant cannot show. Placidus converges its cusps to 1e-11 degrees,
+     * and that floor divided by the step is what limits its difference: measured against a five
+     * point reference, its cusp eleven scatters by 7e-10 at Oslo with this step and by 2e-8 with
+     * 1e-4, thirty times worse. The worst this costs anywhere in the sweep is 1.2e-5 degrees per
+     * day, against cusps that are read to hundredths.
+     *
+     * A smaller step also narrows the window in which the step straddles the flip of the polar
+     * convention, which `bracket()` then has to work around.
+     */
+    private const SPEED_STEP = 1e-3;
+
+    /**
      * @param array<int, float> $cusps All twelve, from 1 to 12, in ecliptic degrees.
      * @param float|null $kochCoAscendant Walter Koch's co-ascendant: the ascendant there would
      *                                     be with the imum coeli on the meridian, seen from the
@@ -318,6 +348,263 @@ readonly class Houses
     }
 
     /**
+     * How fast the twelve cusps and the eight points are moving, in degrees per day. It is
+     * `swe_houses_ex2` and `swe_houses_armc_ex2`.
+     *
+     * **It is a derivative and there is nothing else it could be.** Swiss publishes no formula
+     * for this and cites nobody: its documentation says only that it «also provides the speeds
+     * ("daily motions") of the house cusps and additional points». So it is computed as what it
+     * means: the cusps a fraction of a second earlier and a fraction later, differenced, times
+     * the rotation of the Earth. `fromArmc` makes that exact rather than approximate, because a
+     * set of houses is a pure function of the ARMC and **the date comes in through no other
+     * door**: there is no hidden term to miss.
+     *
+     * That rotation is `Time::ROTATION_PER_DAY`, and it is the same one Swiss uses: what Swiss
+     * returns as the speed of the ARMC itself agrees with it to 3e-8 degrees per day. What the
+     * constant leaves out, and how little it is, is written up beside it.
+     *
+     * ### Why it is worth having even with no third party to agree with
+     *
+     * **Differentiating the cusps is a sharper check of the cusp formulas than comparing cusp
+     * values is**, and that is the reason this method earns its place independently of Swiss. Two
+     * formulations can agree at every point they are sampled at and still be different functions;
+     * the derivative is what tells them apart, because it amplifies exactly what the sampling
+     * hides. Measured: these speeds reproduce the numerical derivative of **Swiss's own cusps** to
+     * 1.2e-5 degrees per day over twenty two of the twenty three systems and 21,600 cusps each, so
+     * the two constructions agree in slope and not only at the point. The twenty third is
+     * Azimuthal, where the cusps themselves deliberately differ; see below.
+     *
+     * ### Where it disagrees with Swiss, and who is wrong
+     *
+     * Measured over the twenty three systems at five latitudes (Madrid, Oslo, Ushuaia, Singapore
+     * and Tromsø), sweeping the ARMC right round the clock at one degree steps, which is 21,600
+     * cusps per system. Three quantities at once: the speed Swiss publishes, the numerical
+     * derivative of the cusps Swiss ITSELF returns, and this.
+     *
+     * **Sixteen of the twenty three agree with the speed Swiss publishes to 5.3e-5 degrees per
+     * day outside the polar circle.** Inside it, three of those sixteen (APC, Pullen SR and
+     * Sunshine) part company by up to 0.88, at ARMCs where their own cusps have a kink: those
+     * three saturate an arc that has stopped existing, and at a kink the two one sided
+     * derivatives are genuinely different numbers.
+     *
+     * In the other seven the disagreement is structural, and in six of the seven it is Swiss
+     * that parts company with its own cusps:
+     *
+     * | System | Swiss against its own cusp | at Madrid | this against the same |
+     * |---|---|---|---|
+     * | Porphyry | 2662 | 292 | 1e-7 |
+     * | Whole sign, Equal from Aries | 2331 | 624 | 0 |
+     * | Krusinski | 2243 | 572 | 1e-7 |
+     * | Koch | 586 | 136 | 1e-7 |
+     * | Placidus | 424 | 161 | 1.2e-5 |
+     *
+     * The maxima scale with how fast the cusps are running, which past the polar circle is fast;
+     * the Madrid column is the same thing on an ordinary chart. What does not scale is the shape
+     * of it:
+     *
+     * - **Krusinski, Whole sign and Equal from Aries fill four of their twelve.** Measured on
+     *   every one of the 1,800 charts of the sweep, and it is the same four every time: cusps 1,
+     *   4, 7 and 10 come back carrying the speeds of the ascendant and the midheaven, and the
+     *   eight intermediate ones come back exactly 0.0. In Krusinski those eight are real moving
+     *   cusps running at three or four hundred degrees a day. In Whole sign and Equal from Aries
+     *   it is the other way round and the zeros are the right half: their cusps are nailed to the
+     *   sign boundaries and do not move at all, so what is wrong is the four angle speeds on 1,
+     *   4, 7 and 10. Here all twelve are zero, which is what `restsOnTheSigns()` is asked.
+     * - **Porphyry has the anchor the wrong way round, and it is exactly diagnosable.** Its cusp
+     *   eleven is the midheaven plus a third of the quadrant, so its derivative has to be
+     *   `MC' + (ASC' - MC')/3`. Swiss publishes `ASC' + (ASC' - MC')/3`, the same correction hung
+     *   on the other angle. That is not a guess: it comes out in **1,800 charts out of 1,800**.
+     * - **Placidus is the one that proves the gap is not in the cusps.** Its cusps agree with
+     *   Swiss's to 0.0004 arcseconds over the same sweep while the speeds differ by up to 424
+     *   degrees per day, so whatever separates the two speeds it cannot be a difference in where
+     *   the cusp is. The thirty six Gauquelin sectors, which are Placidus in ninths, carry the
+     *   same thing: sector cusps to 0.0005 arcseconds and published speeds out by up to 814.
+     * - **Azimuthal is the seventh, and there the difference is OURS**, which is worth saying
+     *   plainly because it is the only one of the seven that is. Swiss agrees with its own
+     *   azimuthal cusps to 0.0 over all 21,600 of them; what our speed differs from is its cusps,
+     *   by up to 1331 degrees a day, and only at Singapore. It is the divergence already written
+     *   up in `azimuthalOrientation`: Swiss orients that frame by the hemisphere and this orients
+     *   it by which side of the zenith the midheaven falls on, so in the tropics, at the hours
+     *   when the midheaven passes north of the zenith, its cusps and ours are half a turn apart
+     *   and the speeds go with them. At Madrid, Oslo, Ushuaia and Tromsø the two speeds agree to
+     *   the last digit.
+     *
+     * Taking the derivative and not Swiss's number is the same call this engine has already made
+     * five times with its reasons written down next to it: the 1976 precession over Vondrák,
+     * Simon's mean elements over Swiss's table, Swiss's Sripati `house_pos` writing 1.0 over the
+     * whole of house twelve, its azimuthal position in the southern hemisphere, and the
+     * barycentric elements it returns without saying they are heliocentric.
+     *
+     * The eight points are not in that argument: all eight agree with what Swiss publishes to
+     * 1.2e-5 degrees per day across the whole sweep, and with the derivative of Swiss's own
+     * points to 8e-8.
+     *
+     * ### The two decisions that come with it
+     *
+     * - **The Sun of Sunshine is held still.** It is the one system that needs an ephemeris, and
+     *   through this door its declination is a parameter and not a function of the date. Holding
+     *   it agrees with Swiss to 0.0002 degrees per day; letting it move over the step departs by
+     *   up to 0.98 at Tromsø and 0.12 at Madrid. It is also the only reading that keeps the two
+     *   doors one path: a rate that depended on the Sun could not be computed from `fromArmc` at
+     *   all.
+     * - **Whole sign and Equal from Aries are zero**, as above, and not the speed of the angle
+     *   they hang from. Their cusps do not move: that is what makes them those systems.
+     *
+     * ### The polar convention, which is a jump and not a speed
+     *
+     * Past the polar circle there are two instants a day when the midheaven crosses the horizon
+     * and the whole wheel flips half a turn (see `midheavenBelowHorizon`). That is a jump in the
+     * convention, not motion in the sky, and differencing straight across it returns 32 million
+     * degrees a day. When the step straddles it, the difference is taken on the side the chart is
+     * on, with the three point one sided formula so as not to lose an order: at the flip in
+     * Tromsø that gives -0.0046 and -0.0096 degrees a day where Swiss gives -0.005 and -0.010,
+     * and the naive difference gives 32,488,708.
+     *
+     * ### What a cusp really does, measured
+     *
+     * The ascendant at Madrid runs between 283 and 624 degrees a day. At Tromsø, between -2331
+     * and +181: past the polar circle it goes backwards for part of the day, which is the
+     * clockwise wheel of that same convention. Just inside the circle, at latitude 66, it reaches
+     * **14,937**, and at 66.56 exactly it is not finite at all: there the horizon is tangent to
+     * the ecliptic and the ascendant has a genuine pole. No finite difference survives that one
+     * and none can.
+     *
+     * It costs two more calls to `fromArmc` and nothing else: 0.015 milliseconds in Regiomontanus
+     * and 0.104 in Placidus, which is the one that iterates. Against the forty odd milliseconds a
+     * whole birth chart costs, it is free.
+     *
+     * A sidereal copy answers with the speeds of its tropical one. What that leaves out is the
+     * motion of the ayanamsa itself, some fifty arcseconds a year, that is 0.00014 degrees a day
+     * against cusps running at three hundred: `sidereal()` shifts longitudes and has no date, so
+     * a rate of ayanamsa is not something a set of houses knows.
+     *
+     * @return HouseSpeeds
+     */
+    public function speeds(): HouseSpeeds
+    {
+        if ($this->tropical !== null) {
+            return $this->tropical->speeds();
+        }
+
+        [$nodes, $weights, $divisor] = $this->bracket();
+
+        $cusps = [];
+
+        for ($house = 1; $house <= 12; $house++) {
+            $cusps[$house] = $this->system->restsOnTheSigns()
+                ? 0.0
+                : self::slopeOf(array_map(fn (self $h): float => $h->cusps[$house], $nodes), $weights, $divisor);
+        }
+
+        $of = fn (string $point): ?float => self::slopeOf(
+            array_map(fn (self $h): ?float => $h->{$point}, $nodes),
+            $weights,
+            $divisor
+        );
+
+        return new HouseSpeeds(
+            cusps: $cusps,
+            ascendant: $of('ascendant'),
+            midheaven: $of('midheaven'),
+            armc: Time::ROTATION_PER_DAY,
+            vertex: $of('vertex'),
+            eastPoint: $of('eastPoint'),
+            kochCoAscendant: $of('kochCoAscendant'),
+            munkaseyCoAscendant: $of('munkaseyCoAscendant'),
+            polarAscendant: $of('polarAscendant'),
+        );
+    }
+
+    /**
+     * The two or three sets of houses the speeds are differenced between, the weight of each one
+     * and what to divide by. Degrees of ARMC on the way in, so `slopeOf` turns the result into
+     * degrees per day.
+     *
+     * The usual answer is the central difference, which is one evaluation either side. The other
+     * one is for the flip of the polar convention: when the step straddles the instant the
+     * midheaven crosses the horizon, the two sides are half a turn apart by convention and their
+     * difference means nothing, so all three nodes are put on the side the chart itself is on.
+     * That costs an order of accuracy, which the three point formula `(-3f0 + 4f1 - f2) / 2h`
+     * gives back.
+     *
+     * The centre is asked of `fromArmc` and not read off `$this`, so that the whole bracket comes
+     * from one path: a `Houses` built by hand through the constructor can carry cusps that are
+     * not the ones this ARMC gives, and differencing one against the other two would return the
+     * discrepancy as if it were motion.
+     *
+     * @return array{0: list<self>, 1: list<float>, 2: float}
+     */
+    private function bracket(): array
+    {
+        if ($this->geographicLatitude === null || $this->obliquity === null) {
+            throw new RuntimeException('These houses were built with no latitude and no obliquity, and without those the cusps cannot be moved to know how fast they run. Use Houses::calculate or Houses::fromArmc.');
+        }
+
+        $latitude = $this->geographicLatitude;
+        $obliquity = $this->obliquity;
+        $step = self::SPEED_STEP;
+
+        $at = fn (float $offset): self => self::fromArmc(
+            $this->system,
+            $this->siderealTime + $offset,
+            $latitude,
+            $obliquity,
+            $this->sunDeclination
+        );
+
+        $eps = deg2rad($obliquity);
+        $here = self::midheavenBelowHorizon($this->siderealTime, $latitude, $eps);
+        $sameSide = fn (float $offset): bool => self::midheavenBelowHorizon($this->siderealTime + $offset, $latitude, $eps) === $here;
+
+        if ($sameSide(-$step) && $sameSide($step)) {
+            return [[$at(-$step), $at($step)], [-1.0, 1.0], 2 * $step];
+        }
+
+        $side = $sameSide(2 * $step) ? 1.0 : -1.0;
+
+        return [
+            [$at(0.0), $at($side * $step), $at($side * 2 * $step)],
+            [-3.0, 4.0, -1.0],
+            $side * 2 * $step,
+        ];
+    }
+
+    /**
+     * A weighted difference of angles turned into degrees per day.
+     *
+     * Every value is folded against the FIRST node before being weighted, and not used as it
+     * stands: a cusp at 359.9998 and the same cusp at 0.0002 are four thousandths of a degree
+     * apart and not three hundred and sixty. The weights add up to zero, so folding against a
+     * common reference changes nothing else.
+     *
+     * Null in, null out: the vertex does not exist at the equator and something that is not there
+     * has no motion.
+     *
+     * @param list<float|null> $values One per node, in the same order.
+     * @param list<float> $weights
+     * @param float $divisor Degrees of ARMC.
+     * @return float|null Degrees per day.
+     */
+    private static function slopeOf(array $values, array $weights, float $divisor): ?float
+    {
+        if ($values[0] === null) {
+            return null;
+        }
+
+        $sum = 0.0;
+
+        foreach ($values as $i => $value) {
+            if ($value === null) {
+                return null;
+            }
+
+            $sum += $weights[$i] * self::fold($value - $values[0]);
+        }
+
+        return $sum / $divisor * Time::ROTATION_PER_DAY;
+    }
+
+    /**
      * The thirty six cusps of the Gauquelin sectors.
      *
      * It is Placidus with the semiarc cut in nine instead of in three, and counted in the
@@ -398,6 +685,158 @@ readonly class Houses
         $placidus = self::placidusDegrees($ra, $dec, $this->siderealTime, $geographicLatitude);
 
         return self::normalise(360 - $placidus) / 10 + 1;
+    }
+
+    /**
+     * The Gauquelin sector of a body taken from its own RISING AND SETTING instead of from where
+     * it is in the zodiac. It is methods 2 to 5 of `swe_gauquelin_sector`.
+     *
+     * **It is a different definition and not a different way in.** The other one
+     * (`gauquelinSector`) places the body by its position, dividing the semiarc of its degree;
+     * this one finds the two instants when the body itself crosses the horizon and asks what
+     * fraction of that arc has gone by. The diurnal arc, from the rise to the set, is the
+     * eighteen sectors from 1 to 18, and the nocturnal one, from the set to the next rise, the
+     * eighteen from 19 to 36, which is Swiss's numbering and the Gauquelins'.
+     *
+     * **The two readings part company by half a sector**, and that spread is the reason these are
+     * worth having rather than a rounding to argue about. Measured over 384 cases, eight bodies
+     * from six places on two dates at four hours of the day, against `gauquelinSector()`:
+     *
+     * | | worst departure from method 0 |
+     * |---|---|
+     * | 2, disc centre | 0.511 sectors, 20 minutes of the Earth's turn |
+     * | 3, with refraction | 0.388 |
+     * | 4, disc edge | 0.408 |
+     * | 5, disc edge with refraction | 0.461 |
+     * | 1, position without latitude | **2.940** |
+     *
+     * Against Swiss, given the same atmosphere, all four come out at **0.00019 sectors** over
+     * those 384 cases, and the 24 of them where there is no arc are the same 24 Swiss refuses.
+     * Giving them a different atmosphere is what moves them: with Swiss's 0 °C against the 10 °C
+     * of `Horizon::TEMPERATURE`, methods 3 and 5 shift by up to 0.12 sectors at Tromsø, 0.027 at
+     * Oslo and 0.004 at the equator, which is six hundred times the whole rest of the computation.
+     * A refracted sector carries the air of that morning, and the higher the latitude the more of
+     * it, because there the body crosses the horizon at a shallower angle.
+     *
+     * **Which of the four it is comes from the two parameters and not from a number**, because
+     * the two are already the vocabulary `RiseSet` speaks and a second way of saying the same
+     * thing is a second way of saying it wrong:
+     *
+     * | Swiss | here |
+     * |---|---|
+     * | 2, disc centre | `Limb::Center`, `refraction: false` |
+     * | 3, disc centre with refraction | `Limb::Center`, `refraction: true` |
+     * | 4, disc edge | `Limb::Superior`, `refraction: false` |
+     * | 5, disc edge with refraction | `Limb::Superior`, `refraction: true` |
+     *
+     * **Whether the body is up is not asked of its altitude**: the two passes before the instant
+     * are solved, and the later of the two says which arc it is in. That way the answer cannot
+     * disagree with the arc it is measured against, whatever disc and refraction were asked for,
+     * and it is exactly 1 at the rise and exactly 19 at the set with nothing to round.
+     *
+     * **It is not free and it is not seventy thousand times anything.** Measured: 8.6
+     * milliseconds for Mars by method 2 and 14.1 for the Moon by method 5, against 0.89 for
+     * method 0 counted honestly, with the ephemeris position it also needs. Ten to sixteen times,
+     * and the whole of it is the three ephemeris solutions. Counting method 0 as its 0.061
+     * milliseconds of sector arithmetic and leaving out the position it is computed from is where
+     * the frightening ratios come from.
+     *
+     * The passes come from `RiseSet::solvedPass`, which iterates rather than tracking the day, and
+     * that is what keeps it at those milliseconds: three solved passes instead of the two whole
+     * tracked days a bracketing rise and set would need, which is 70. What it gives up is the
+     * awkward day, and there is none here: a body that does not both rise and set has no arc
+     * either, and this throws for it, which is what Swiss documents doing.
+     *
+     * @param Body|Star|callable(float): Equatorial $target
+     * @param Place $place
+     * @param float $jdUt
+     * @param Limb $limb
+     * @param bool $refraction
+     * @param float $heightMetres Height of the observer above sea level.
+     * @return float In [1, 37).
+     */
+    public static function gauquelinSectorByRiseAndSet(
+        Body|Star|callable $target,
+        Place $place,
+        float $jdUt,
+        Limb $limb = Limb::Center,
+        bool $refraction = false,
+        float $heightMetres = 0.0,
+    ): float {
+        $pass = fn (Pass $which, bool $backwards): ?UtInstant => RiseSet::solvedPass(
+            target: $target,
+            place: $place,
+            jdUt: $jdUt,
+            pass: $which,
+            limb: $limb,
+            refraction: $refraction,
+            heightMetres: $heightMetres,
+            backwards: $backwards,
+        );
+
+        $lastRise = $pass(Pass::Rise, true);
+        $lastSet = $pass(Pass::Set, true);
+
+        if ($lastRise === null || $lastSet === null) {
+            throw new RuntimeException(sprintf(
+                'The Gauquelin sector of %s cannot be taken from its rising and setting at latitude %.1f: from there it does not do both, so there is no arc to divide. Use Houses::gauquelinSector, which divides the semiarc of its degree.',
+                Horizon::nameOf($target),
+                $place->latitude
+            ));
+        }
+
+        $up = $lastRise->jdUt > $lastSet->jdUt;
+
+        $from = $up ? $lastRise : $lastSet;
+        $to = $pass($up ? Pass::Set : Pass::Rise, false);
+
+        if ($to === null || $to->jdUt <= $from->jdUt) {
+            throw new RuntimeException(sprintf(
+                'The arc of %s that contains this instant does not close: it %s and does not %s again.',
+                Horizon::nameOf($target),
+                $up ? 'rises' : 'sets',
+                $up ? 'set' : 'rise'
+            ));
+        }
+
+        return ($up ? 1.0 : 19.0) + 18.0 * ($jdUt - $from->jdUt) / ($to->jdUt - $from->jdUt);
+    }
+
+    /**
+     * How fast each of the thirty six Gauquelin sectors is moving, in degrees per day.
+     *
+     * It falls out of `speeds()` for free: the sectors are a pure function of the ARMC like
+     * everything else here, so the same bracket serves, and the only extra cost is computing the
+     * thirty six cusps at each end instead of twelve. That is 0.49 milliseconds against the 0.10
+     * of Placidus, because each intermediate sector iterates its own semiarc.
+     *
+     * It fails past the polar circle for the same reason `gauquelinSectors()` does, and it is
+     * that method that says so.
+     *
+     * Against Swiss's `G`, over the same ARMC sweep as `speeds()` and its 51,840 sectors: our
+     * sector cusps agree with its to 0.0005 arcseconds and our speeds reproduce the numerical
+     * derivative of its own sectors to 1.8e-5 degrees per day, while the speeds Swiss publishes
+     * for them depart from its own sectors by up to 814. It is the same disagreement Placidus
+     * has, which is what the sectors are.
+     *
+     * @return array<int, float> From 1 to 36.
+     */
+    public function gauquelinSectorSpeeds(): array
+    {
+        if ($this->tropical !== null) {
+            return $this->tropical->gauquelinSectorSpeeds();
+        }
+
+        [$nodes, $weights, $divisor] = $this->bracket();
+
+        $sectors = array_map(fn (self $h): array => $h->gauquelinSectors(), $nodes);
+        $speeds = [];
+
+        for ($sector = 1; $sector <= 36; $sector++) {
+            $speeds[$sector] = self::slopeOf(array_column($sectors, $sector), $weights, $divisor);
+        }
+
+        return $speeds;
     }
 
     /**
@@ -2127,8 +2566,8 @@ readonly class Houses
 
         // The hour circle of the body is the plane through the poles and its right ascension; its
         // cut with the circle of the system is solved in declination. Of the two
-        // opposite ones the one taken is that of the half plane of that right ascension, the one with
-        // positivo.
+        // opposite ones the one taken is that of the half plane of that right ascension, the one
+        // whose cosine is positive.
         $a = deg2rad($ra);
         $declination = atan2(-($normal[0] * cos($a) + $normal[1] * sin($a)), $normal[2]);
 
@@ -2211,7 +2650,7 @@ readonly class Houses
 
     /*
      |--------------------------------------------------------------------------
-     | Vectores
+     | Vectors
      |--------------------------------------------------------------------------
      */
 
@@ -2335,9 +2774,20 @@ readonly class Houses
      */
     private static function meridianDistance(float $ascension, float $lst): float
     {
-        $distance = self::normalise($ascension - $lst);
+        return self::fold($ascension - $lst);
+    }
 
-        return $distance >= 180 ? $distance - 360 : $distance;
+    /**
+     * The same angle read as a displacement rather than as a place: folded into [-180, 180).
+     *
+     * @param float $degrees
+     * @return float
+     */
+    private static function fold(float $degrees): float
+    {
+        $folded = self::normalise($degrees);
+
+        return $folded >= 180 ? $folded - 360 : $folded;
     }
 
     /**

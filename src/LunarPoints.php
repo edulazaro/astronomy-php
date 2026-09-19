@@ -477,7 +477,7 @@ class LunarPoints
                     if (! isset($term[6])) {
                         throw new RuntimeException(sprintf(
                             'Term %d of the ELP series %s does not carry the Moon multiplier: '
-                            .'regenerate the series with `astro:elp2000 --umbral=1e-8`.',
+                            .'regenerate the series with `astronomy elp2000 --umbral=1e-8`.',
                             $index, $variable
                         ));
                     }

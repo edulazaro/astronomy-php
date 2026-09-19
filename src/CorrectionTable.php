@@ -57,7 +57,7 @@ final class CorrectionTable
 
     private const HEADER = 32;
 
-    /** @var array<string, array{jd: float, dias: float, bloques: int, grado: int, bytes: int, datos: string}|false> */
+    /** @var array<string, array{jd: float, days: float, blocks: int, degree: int, bytes: int, data: string}|false> */
     private static array $tables = [];
 
     /**
@@ -192,7 +192,7 @@ final class CorrectionTable
 
     /**
      * @param string $body
-     * @return array{jd: float, dias: float, bloques: int, grado: int, bytes: int, datos: string}|false
+     * @return array{jd: float, days: float, blocks: int, degree: int, bytes: int, data: string}|false
      */
     private static function table(string $body)
     {

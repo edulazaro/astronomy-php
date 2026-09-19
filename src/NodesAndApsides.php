@@ -1075,7 +1075,7 @@ class NodesAndApsides
      * Saturn 0.20**, and all of them with a perfectly believable sign and value. It is also what
      * Horizons does, which prints the sum in the header of its elements ("Keplerian GM").
      *
-     * The masses are the DE440 ones `astro:masas` downloads, the same ones `Ephemeris` computes
+     * The masses are the DE440 ones `astronomy masses` downloads, the same ones `Ephemeris` computes
      * the barycentre with. Of Chiron, Pholus and the four asteroids there is no mass in that
      * header and none is needed either: the one of Ceres, which is the largest of the six, is five
      * ten-billionths of the one of the Sun. Horizons does the same with them, and its "Keplerian

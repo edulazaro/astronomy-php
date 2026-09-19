@@ -3,8 +3,8 @@
 /*
  * Nutation IAU 2000B
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:nutacion` in the
- * Tarotian application from ERFA's source (nut00b.c for the series and the biases;
+ * GENERATED. Do not edit by hand: written by `astronomy nutation`
+ * in this package from ERFA's source (nut00b.c for the series and the biases;
  * fal03.c, falp03.c, faf03.c, fad03.c and faom03.c for the arguments), the IAU's
  * reference implementation.
  *

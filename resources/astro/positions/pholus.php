@@ -3,8 +3,8 @@
 /*
  * Pholus · heliocentric tabulated positions
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:tabla folo` in the
- * Tarotian application, requesting them from JPL Horizons (object 5145;).
+ * GENERATED. Do not edit by hand: written by `astronomy tables pholus` in this
+ * in this package, requesting them from JPL Horizons (object 5145;).
  *
  * Rectangular coordinates on the J2000 ecliptic, in astronomical units. Only x, y, z:
  * each point's date comes from the first Julian day and the step, which is constant.

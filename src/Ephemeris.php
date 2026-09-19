@@ -170,7 +170,7 @@ class Ephemeris
      * It is the heliocentric one plus the barycentric Sun, and the barycentric Sun is the
      * definition of barycentre turned into arithmetic: the heliocentric positions the engine
      * already gives, weighted by the DE440 masses (`barycentricSun`, with the masses downloaded
-     * by `astro:masas`). Same criterion as the heliocentric one, with the origin at the
+     * by `astronomy masses`). Same criterion as the heliocentric one, with the origin at the
      * barycentre (`SEFLG_BARYCTR`): light time from there, without aberration and with nutation.
      *
      * Careful with the reference: Swiss with the Moshier ephemerides **does not give barycentric
@@ -1282,7 +1282,7 @@ class Ephemeris
      * It is the definition of barycentre turned into arithmetic: minus the sum of the
      * heliocentric positions weighted by their mass, divided by the total mass with the Sun
      * included. The masses are those of DE440 (`resources/astro/masses.php`, downloaded by
-     * `astro:masas`) and the positions the same ones the rest of the engine uses.
+     * `astronomy masses`) and the positions the same ones the rest of the engine uses.
      *
      * It used to come from the E series of VSOP87, and that series puts the Sun a thousand
      * kilometres from where DE440 puts the barycentre, measured against the JPL vectors from

@@ -3,8 +3,8 @@
 /*
  * Juno · heliocentric tabulated positions
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:tabla juno` in the
- * Tarotian application, requesting them from JPL Horizons (object 3;).
+ * GENERATED. Do not edit by hand: written by `astronomy tables juno` in this
+ * in this package, requesting them from JPL Horizons (object 3;).
  *
  * Rectangular coordinates on the J2000 ecliptic, in astronomical units. Only x, y, z:
  * each point's date comes from the first Julian day and the step, which is constant.

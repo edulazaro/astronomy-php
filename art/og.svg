@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#11182e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(975 300) scale(470)">
+      <stop offset="0" stop-color="#7FB4D4" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#7FB4D4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Sin esquinas redondeadas: una tarjeta OG se sirve a sangre y un rx dejaria
+       cuatro esquinas transparentes que cada red pinta de un color distinto. -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Orrery: circulos concentricos con un cuerpo en cada uno. Centro (975 300),
+       radio mayor 210, asi que queda dentro del lienzo por los cuatro lados. -->
+  <g transform="translate(975 300)">
+    <circle r="66" fill="none" stroke="#7FB4D4" stroke-opacity="0.34" stroke-width="1.5"/>
+    <circle r="114" fill="none" stroke="#7FB4D4" stroke-opacity="0.26" stroke-width="1.5"/>
+    <circle r="162" fill="none" stroke="#7FB4D4" stroke-opacity="0.18" stroke-width="1.5"/>
+    <circle r="210" fill="none" stroke="#7FB4D4" stroke-opacity="0.12" stroke-width="1.5"/>
+
+    <circle r="13" fill="#7FB4D4"/>
+    <circle r="26" fill="none" stroke="#7FB4D4" stroke-opacity="0.45" stroke-width="1.5"/>
+
+    <circle cx="57" cy="-33" r="6" fill="#cdd3e0"/>
+    <circle cx="-88" cy="72" r="8" fill="#7FB4D4"/>
+    <circle cx="106" cy="122" r="5.5" fill="#aeb6c9"/>
+    <circle cx="-150" cy="-147" r="7" fill="#7FB4D4" fill-opacity="0.75"/>
+  </g>
+
+  <text x="88" y="152" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="96" font-weight="800" fill="#ffffff" letter-spacing="-1">Astronomy</text>
+  <rect x="92" y="176" width="72" height="7" rx="3.5" fill="#7FB4D4"/>
+
+  <text x="88" y="240" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="34" font-weight="400" fill="#aeb6c9">A pure PHP astronomical engine</text>
+  <text x="88" y="288" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">Verified against JPL Horizons and Swiss Ephemeris</text>
+  <text x="88" y="322" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">No framework. No extensions. No network at runtime.</text>
+
+  <!-- Ancho del chip = 36 caracteres a 21px de DejaVu Sans Mono (avance 0.60205em,
+       o sea 455px) mas 28 de aire a cada lado. Escrito asi y no a ojo porque en un
+       monoespaciado el ancho del texto SE SABE, y a ojo el aire sale distinto a cada lado. -->
+  <rect x="88" y="366" width="512" height="58" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7FB4D4" stroke-opacity="0.22" stroke-width="1"/>
+  <text x="116" y="403" font-family="'DejaVu Sans Mono', 'Noto Sans Mono', monospace" font-size="21" font-weight="400" fill="#cdd3e0">composer require <tspan fill="#7FB4D4">edulazaro/astronomy</tspan></text>
+
+  <!-- pie: izquierda = icono GitHub + handle | derecha = dominio -->
+  <g transform="translate(88 522)">
+    <path transform="scale(1.16)" fill="#cdd3e0" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+    <text x="42" y="22" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="24" font-weight="600" fill="#cdd3e0">edulazaro <tspan fill="#6b7488">/</tspan> <tspan fill="#7FB4D4">astronomy</tspan></text>
+  </g>
+  <text x="1112" y="544" text-anchor="end" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="24" font-weight="600" fill="#7FB4D4" letter-spacing="0.5">edulazaro.com</text>
+</svg>

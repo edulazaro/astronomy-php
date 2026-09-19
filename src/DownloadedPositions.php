@@ -49,10 +49,10 @@ final class DownloadedPositions
     /** How many tables are remembered at once. A centuries-long sweep of a satellite opens one file per year. */
     private const REMEMBERED = 64;
 
-    /** @var array<string, array{jd: float, paso: float, puntos: int, inicio: int, datos: string}> By path. */
+    /** @var array<string, array{jd: float, step: float, points: int, start: int, data: string}> By path. */
     private static array $tables = [];
 
-    /** @var array<string, array{jd: float, paso: float, puntos: int, inicio: int, datos: string}> The latest one of each body. */
+    /** @var array<string, array{jd: float, step: float, points: int, start: int, data: string}> The latest one of each body. */
     private static array $latest = [];
 
     /**
@@ -201,7 +201,7 @@ final class DownloadedPositions
     /**
      * @param DownloadableBody $body
      * @param float $jdTT
-     * @return array{jd: float, paso: float, puntos: int, inicio: int, datos: string}
+     * @return array{jd: float, step: float, points: int, start: int, data: string}
      */
     private static function find(DownloadableBody $body, float $jdTT): array
     {
@@ -248,7 +248,7 @@ final class DownloadedPositions
     }
 
     /**
-     * @param array{jd: float, paso: float, puntos: int, inicio: int, datos: string} $table
+     * @param array{jd: float, step: float, points: int, start: int, data: string} $table
      * @param float $jdTT
      * @return bool
      */
@@ -265,7 +265,7 @@ final class DownloadedPositions
      * the header.
      *
      * @param string $path
-     * @return array{jd: float, paso: float, puntos: int, inicio: int, datos: string}
+     * @return array{jd: float, step: float, points: int, start: int, data: string}
      */
     private static function load(string $path): array
     {

@@ -322,6 +322,263 @@ class HeliacalPhenomena
     }
 
     /**
+     * Everything that is measured at ONE instant in order to decide whether an object can be
+     * seen: this is `swe_heliacal_pheno_ut`, and what it gives back is in `HeliacalDetails`.
+     *
+     * **The instant is chosen by whoever calls, and that is the whole shape of this method.**
+     * Nothing is searched for and no day is decided: the caller says when, and this says what
+     * the sky was doing then. It is the counterpart of `find()`, which answers «on what day».
+     * A caller after Yallop's own numbers reads `bestTime` from a first call and asks again
+     * there, because his q is defined at the best time and not at any instant.
+     *
+     * **The Moon is allowed here and it is not allowed in `find()`**, and that is not an
+     * oversight in either place. `find()` looks for a heliacal date, and the Moon's first
+     * visibility is the crescent's, which is decided by the width of the crescent and not by
+     * the depression of the Sun, so there it throws. Here the crescent IS the subject: Yallop's
+     * W' and his q-test only exist for the Moon, and for everything else they come back null.
+     *
+     * The event kind that Swiss takes as an argument is not taken here: which side of the Sun
+     * the object is on is read off its longitude, and `HeliacalDetails::$pass` says which side
+     * came out. See that field.
+     *
+     * **Where the time goes, measured, because it is not where one would guess**: a call for the
+     * Moon costs 77 milliseconds and the geometry is 3 of them. The other 40-odd are Yallop's two
+     * horizon crossings, 28 for the Moon's and 12 for the Sun's, because a crossing is found by
+     * sampling the ephemeris every hour across two days while everything else here is a single
+     * instant. A planet costs 41 and a star 16, for the same reason and in the same proportion.
+     * Whoever means to sweep a whole evening minute by minute should read `bestTime` once and ask
+     * again there, which is two calls, rather than asking a hundred times for a pair of crossings
+     * that do not move.
+     *
+     * @param Body|Star $object The Moon included. The Sun is not: the arc is measured against
+     *        it.
+     * @param Place $place
+     * @param float $jdUt The instant, in Universal Time.
+     * @param float $heightMetres Height of the observer above sea level.
+     * @return HeliacalDetails
+     */
+    public static function detailsAt(
+        Body|Star $object,
+        Place $place,
+        float $jdUt,
+        float $heightMetres = 0.0,
+    ): HeliacalDetails {
+        self::checkVisible($object);
+
+        $jdTT = Time::tt($jdUt);
+        $timezone = $place->timeZone();
+        $horizon = new Horizon($place, $heightMetres);
+
+        $geocentric = Horizon::equatorialOf($object, $jdTT);
+        $sunGeocentric = Horizon::equatorialOf(Body::Sun, $jdTT);
+
+        $fromTheCentre = $horizon->horizontal($geocentric, $jdUt);
+        $fromTheGround = $horizon->horizontal($horizon->topocentric($geocentric, $jdUt), $jdUt);
+
+        /* The Sun goes in GEOCENTRIC, which is how Yallop defines ARCV: «the geocentric
+           difference in altitude between the centre of the Sun and the centre of the Moon».
+           Its parallax in altitude is 8.6 arcseconds, measured at Madrid, so the choice is
+           worth 0.0002 in a q whose class boundaries are spaced between 0.05 and 0.2. It is
+           also what Swiss does, whatever its own label says: see `HeliacalDetails::$sunAltitude`. */
+        $sunView = $horizon->horizontal($sunGeocentric, $jdUt);
+
+        $arcOfVision = $fromTheCentre->altitude - $sunView->altitude;
+        $azimuthDifference = self::wrap($sunView->azimuth - $fromTheGround->azimuth);
+
+        /* Yallop (2.1): cos ARCL = cos ARCV · cos DAZ. It is his definition of the arc of
+           light and not the true separation of the two directions, and the whole calibration
+           of his q-test rests on it. See the class docblock of `HeliacalDetails`. */
+        $arcOfLight = HeliacalDetails::arcOfLightOf($arcOfVision, $azimuthDifference);
+
+        /* Which side of the Sun the object is on, off the geometry instead of off a parameter:
+           east of the Sun in longitude it sets after it, so it is an evening object and the
+           crossing that counts is the setting. */
+        $ahead = self::normalize(
+            Horizon::eclipticOf($geocentric, $jdTT)[0] - Horizon::eclipticOf($sunGeocentric, $jdTT)[0]
+        );
+        $pass = $ahead < 180.0 ? Pass::Set : Pass::Rise;
+
+        [$objectPass, $sunPass, $lag, $bestTime] = self::yallopTiming($object, $place, $jdUt, $pass, $heightMetres, $timezone);
+        [$crescentWidth, $yallopQ] = self::crescent($object, $geocentric, $fromTheCentre->altitude, $arcOfVision, $arcOfLight);
+
+        $brightness = $object instanceof Star
+            ? ['magnitude' => $object->magnitude, 'illuminated' => null]
+            : self::brightness($object, $jdTT);
+
+        return new HeliacalDetails(
+            name: Horizon::nameOf($object),
+            target: $object,
+            instant: UtInstant::fromJd($jdUt, $timezone),
+            pass: $pass,
+            topocentricAltitude: $fromTheGround->altitude,
+            apparentAltitude: $fromTheGround->apparentAltitude,
+            geocentricAltitude: $fromTheCentre->altitude,
+            azimuth: $fromTheGround->azimuth,
+            sunAltitude: $sunView->altitude,
+            sunAzimuth: $sunView->azimuth,
+            topocentricArcOfVision: $fromTheGround->altitude - $sunView->altitude,
+            arcOfVision: $arcOfVision,
+            azimuthDifference: $azimuthDifference,
+            arcOfLight: $arcOfLight,
+            parallax: $fromTheCentre->altitude - $fromTheGround->altitude,
+            objectPass: $objectPass,
+            sunPass: $sunPass,
+            lag: $lag,
+            bestTime: $bestTime,
+            crescentWidth: $crescentWidth,
+            yallopQ: $yallopQ,
+            yallopClass: $yallopQ === null ? null : HeliacalDetails::classOf($yallopQ),
+            magnitude: $brightness['magnitude'],
+            illuminatedPercent: $brightness['illuminated'],
+        );
+    }
+
+    /**
+     * Yallop's Ts, Tm, Lag and Tb: the two crossings of the horizon that bracket the
+     * observation, and the best moment between them.
+     *
+     * **The crossings are the almanac's, the upper limb and with refraction**, which is what
+     * `RiseSet` gives by default and what «sunset» and «moonset» mean in Yallop's Table 4.
+     * Swiss's heliacal code takes the CENTRE of the disc instead; the difference and what it
+     * costs are written in `HeliacalDetails::$objectPass`.
+     *
+     * **And they are the crossings that bracket the instant, not the ones that share its civil
+     * date**, which is the one place where this parts from the day-by-day doctrine of the rest
+     * of the class. An observation is made between sunset and the object's setting, and that
+     * pair straddles midnight as often as not: Saturn near opposition sets at three in the
+     * morning, and that setting belongs to the evening before, not to the calendar day it
+     * happens to fall on. Both are therefore looked for forward from half a day before the
+     * instant, which is the window that holds one of each and exactly one. Measured on Saturn
+     * from Babylon on 2010-05-20: by civil date the setting came out 24 hours away from the
+     * one Swiss pairs with that sunset, and with this it comes out the same one.
+     *
+     * If either crossing is missing, all four come back null rather than one of them being
+     * invented: a best time between a sunset and a moonset that did not happen is not a time.
+     * That is the polar day and night, a circumpolar object, and whatever never rises from
+     * there.
+     *
+     * @param Body|Star $object
+     * @param Place $place
+     * @param float $jdUt
+     * @param Pass $pass
+     * @param float $heightMetres
+     * @param DateTimeZone $timezone
+     * @return array{0: UtInstant|null, 1: UtInstant|null, 2: float|null, 3: UtInstant|null}
+     */
+    private static function yallopTiming(
+        Body|Star $object,
+        Place $place,
+        float $jdUt,
+        Pass $pass,
+        float $heightMetres,
+        DateTimeZone $timezone,
+    ): array {
+        $from = $jdUt - 0.5;
+
+        $objectPass = RiseSet::next($object, $place, $from, $pass, heightMetres: $heightMetres);
+        $sunPass = RiseSet::next(Body::Sun, $place, $from, $pass, heightMetres: $heightMetres);
+
+        if ($objectPass === null || $sunPass === null) {
+            return [$objectPass, $sunPass, null, null];
+        }
+
+        $lag = $objectPass->jdUt - $sunPass->jdUt;
+
+        // Yallop (4.1): Tb = Ts + (4/9) Lag. The four ninths come off Bruin's curves; see
+        // `HeliacalDetails::$bestTime`.
+        return [
+            $objectPass,
+            $sunPass,
+            $lag * 1440.0,
+            UtInstant::fromJd($sunPass->jdUt + 4.0 / 9.0 * $lag, $timezone),
+        ];
+    }
+
+    /**
+     * Yallop's topocentric crescent width W', in arcminutes, and his q, for the Moon; two nulls
+     * for anything else, because a crescent is what this measures.
+     *
+     * The equations themselves live in `HeliacalDetails`, next to the docblocks that cite them,
+     * so that a test can check them against Yallop's own Table 4 without going through an
+     * ephemeris. What is decided here is the one thing they need from this side: **the
+     * HORIZONTAL parallax**, which is what (3.8) is written for and the one place where this
+     * parts from Swiss.
+     *
+     * @param Body|Star $object
+     * @param Equatorial $geocentric
+     * @param float $geocentricAltitude Yallop's h, in degrees.
+     * @param float $arcOfVision
+     * @param float $arcOfLight
+     * @return array{0: float|null, 1: float|null}
+     */
+    private static function crescent(
+        Body|Star $object,
+        Equatorial $geocentric,
+        float $geocentricAltitude,
+        float $arcOfVision,
+        float $arcOfLight,
+    ): array {
+        if ($object !== Body::Moon || $geocentric->distanceKm === null) {
+            return [null, null];
+        }
+
+        $parallax = rad2deg(asin(Horizon::EQUATORIAL_RADIUS_KM / $geocentric->distanceKm));
+        $width = HeliacalDetails::crescentWidthOf($parallax, $geocentricAltitude, $arcOfLight);
+
+        return [$width, HeliacalDetails::qOf($arcOfVision, $width)];
+    }
+
+    /**
+     * Visual magnitude and illuminated percentage of a body, which come out of the same
+     * `Phenomena` call and are therefore asked for once.
+     *
+     * The magnitude carries the phase, which for this is the whole point: the Moon at a
+     * two-per-cent crescent is four magnitudes fainter than the full one, and it is the
+     * crescent that is hard to see. Null where `Magnitudes` has no fitted model for that body,
+     * which is what already happens to Uranus and Neptune outside the range of phase angles
+     * they were fitted with.
+     *
+     * @param Body $body
+     * @param float $jdTT
+     * @return array{magnitude: float|null, illuminated: float}
+     */
+    private static function brightness(Body $body, float $jdTT): array
+    {
+        $phenomenon = Phenomena::of($body, $jdTT);
+
+        return [
+            'magnitude' => $phenomenon->magnitude,
+            'illuminated' => $phenomenon->illuminatedFraction * 100.0,
+        ];
+    }
+
+    /**
+     * What has no phenomenon to measure at all, and why. It throws instead of returning null
+     * because it is an error of whoever calls, not a case the reckoning fails to find.
+     *
+     * **It is `check()` with the Moon let through**, and the two differ on exactly that one
+     * case: there the Moon has no heliacal DATE to look for, here its crescent is the subject.
+     * Everything else is rejected for the same reasons in both.
+     *
+     * @param Body|Star $object
+     * @return void
+     */
+    private static function checkVisible(Body|Star $object): void
+    {
+        if (! $object instanceof Body) {
+            return;
+        }
+
+        if ($object === Body::Sun) {
+            throw new InvalidArgumentException('The Sun is what the arc is measured against: it has no arcus visionis of its own.');
+        }
+
+        if ($object->isLunarPoint() || $object === Body::Earth || $object->isFictitious()) {
+            throw new InvalidArgumentException(sprintf('%s is not a body that can be seen.', $object->name()));
+        }
+    }
+
+    /**
      * The phenomena of a kind there are in a window of days, in order.
      *
      * @param Body|Star $object

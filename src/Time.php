@@ -43,6 +43,24 @@ class Time
     public const MILLENNIUM = 365250.0;
 
     /**
+     * How far sidereal time advances in one day of universal time, in degrees. It is the linear
+     * term of `meanSiderealUnwrapped`, and it is a little over 360 because in one day the Earth
+     * has to turn its own full turn plus the degree it has moved along its orbit.
+     *
+     * It has a name because two other classes need it and neither of them has a date to ask for
+     * it with: `Houses::speeds()` turns a rate per degree of ARMC into a rate per day, and
+     * `RiseSet::solvedPass()` turns a difference of sidereal time into a jump in clock time.
+     * Written out in each of them it would be the same number in three places.
+     *
+     * What it does not carry, measured by differencing `apparentSiderealTime` itself over 1600 to
+     * 2400: against the MEAN sidereal time the real daily advance departs from this by 1e-7
+     * degrees, which is the quadratic and cubic terms of the polynomial, and against the APPARENT
+     * one by between -4.0e-5 and +6.2e-5, which is the equation of the equinoxes and is dominated
+     * by the nutation term of thirteen and a half days. Two parts in ten million.
+     */
+    public const ROTATION_PER_DAY = 360.98564736629;
+
+    /**
      * What separates Terrestrial Time from International Atomic Time, in seconds. It is not
      * measured: it is the definition of TT, chosen so that it would join up with the ephemeris
      * scale that existed before atomic clocks.
@@ -56,7 +74,7 @@ class Time
     private const REMEMBERED_NUTATIONS = 8;
 
     /**
-     * The nutation series, read once per process. Written by `astro:nutacion`.
+     * The nutation series, read once per process. Written by `astronomy nutation`.
      *
      * @var array{model: string, arguments: array<string, list<float>>, bias: array{0: float, 1: float}, terms: list<list<float>>}|null
      */
@@ -88,7 +106,7 @@ class Time
 
     /**
      * The historical spline and the delta T observation table, read once per process and with
-     * both joins already computed. Written by `astro:deltat`.
+     * both joins already computed. Written by `astronomy delta-t`.
      *
      * @var array{spline: list<array{0: float, 1: float, 2: float, 3: float, 4: float, 5: float}>, table: list<array{0: float, 1: float}>, observedUntil: float, offset: float, leap: float}|null
      */
@@ -253,7 +271,7 @@ class Time
      * those six seconds were a systematic shift of every rising, every eclipse and every
      * ascendant that comes out of the engine; in 1605 they were 32 seconds away from Swiss.
      *
-     * The three stretches, and where each one comes from (all of it downloaded by `astro:deltat`,
+     * The three stretches, and where each one comes from (all of it downloaded by `astronomy delta-t`,
      * nothing written by hand):
      *
      * - **Before 1 January 1955**: the cubic spline of Stephenson, Morrison and Hohenkerk (2016),
@@ -486,7 +504,7 @@ class Time
         // it would leave `taiMinusUtc()` returning null always, that is, every date treated as
         // earlier than 1972, which is 37 seconds too many with nothing warning about it.
         if (! isset($raw['leapSeconds']) || $raw['leapSeconds'] === []) {
-            throw new RuntimeException('deltat.php does not carry the leap seconds table: run `astro:deltat` again.');
+            throw new RuntimeException('deltat.php does not carry the leap seconds table: run `astronomy delta-t` again.');
         }
 
         $spline = [];
@@ -651,12 +669,13 @@ class Time
      * leap seconds by 2035 and to let UT1-UTC grow, so assuming there will be no more is today
      * the published assumption. Below 2034 the two paths agree exactly.
      *
-     * **`swe_utc_time_zone` is not here, and that is on purpose.** That function receives the
-     * time offset in hours and adds it: it does not know about time zones, so whoever calls it
-     * has to know already whether summer time was running in Ourense on that 10 June. PHP's
-     * `DateTimeZone` does know, with the historical clock changes inside it, and it is what the
-     * project has used from the start so that the time comes in with its zone and not in UTC.
-     * Duplicating it here would be offering the worse of the two.
+     * **`swe_utc_time_zone` is `utcToLocal()` and `localToUtc()`**, and it stood here for a
+     * while saying it was not worth having, on a reason aimed at the wrong thing: it was read as
+     * a worse time zone resolver than `DateTimeZone`, and it does not resolve anything. It
+     * shifts a clock LABEL by an offset somebody else already worked out, and it carries the
+     * 60th second across the shift, which is the one thing PHP cannot do because
+     * `DateTimeImmutable` has no way to hold 23:59:60. Resolving the zone is still
+     * `DateTimeZone`'s job and that has not changed.
      *
      * @param int $year
      * @param int $month
@@ -671,19 +690,13 @@ class Time
      */
     public static function utcToJulianDay(int $year, int $month, int $day, int $hour, int $minute, float $second, bool $gregorian = true): array
     {
-        if ($hour < 0 || $hour > 23 || $minute < 0 || $minute > 59 || $second < 0 || $second >= 61) {
-            throw new InvalidArgumentException(sprintf('The time %02d:%02d:%06.3f does not exist.', $hour, $minute, $second));
-        }
+        self::checkClockTime($hour, $minute, $second);
 
         $jd0 = self::civilJulianDay($year, $month, $day, $gregorian);
         $tai = self::taiMinusUtc($jd0);
 
-        // A minute of 61 seconds only happens at the end of a day on which the counter goes up.
-        if ($second >= 60 && ($hour !== 23 || $minute !== 59 || $tai === null || self::taiMinusUtc($jd0 + 1) !== $tai + 1)) {
-            throw new InvalidArgumentException(sprintf(
-                '%04d-%02d-%02d carries no leap second, so %02d:%02d:%06.3f does not exist.',
-                $year, $month, $day, $hour, $minute, $second
-            ));
+        if ($second >= 60 && ! self::carriesLeapSecond($year, $month, $day, $hour, $minute, $gregorian)) {
+            throw self::noLeapSecond($year, $month, $day, $hour, $minute, $second);
         }
 
         $jdUtc = $jd0 + ($hour * 3600 + $minute * 60 + $second) / 86400;
@@ -777,6 +790,309 @@ class Time
     public static function ut1ToUtc(float $jdUT1, bool $gregorian = true): array
     {
         return self::ttToUtc(self::tt($jdUT1), $gregorian);
+    }
+
+    /**
+     * A UTC clock label written in a zone that is `$offsetMinutes` east of Greenwich, the same
+     * instant with the numbers moved: it returns ['year', 'month', 'day', 'hour', 'minute',
+     * 'second'], keyed like `checkedJulianDay()`.
+     *
+     * It is half of `swe_utc_time_zone`, and **it is not a time zone resolver**. Which offset was
+     * in force in Ourense on that 10 June, with its summer time and its historical clock changes,
+     * is `DateTimeZone`'s job and stays `DateTimeZone`'s job; this takes the offset already worked
+     * out and moves the label. What it buys over doing the same thing with a `DateTimeImmutable`
+     * is the only thing PHP cannot do: **it carries the 60th second across the shift**, because
+     * `DateTimeImmutable` has no way of holding 23:59:60. Measured: it reads
+     * "2016-12-31 23:59:60" as the 00:00:00 of 1 January 2017, which is the same answer it gives
+     * for 23:59:59 plus one second, so the leap second and the instant after it become the same
+     * number and one of the two is lost.
+     *
+     * **The 61-second minute moves as a block**, which is why the 60th second is still the 60th
+     * on the other side. That holds because the offset is a whole number of minutes, and that is
+     * not an assumption: measured over the IANA database, the 51 distinct offsets any zone has
+     * used since the first leap second of 30 June 1972 are all whole minutes, and 37 of them are
+     * in force today. Before leap seconds existed there were 271 distinct sub-minute offsets in
+     * use between 1900 and 1972, every one of them a local mean time or a local mean time with a
+     * clock change on top; with one of those the 61-second minute would be cut in two and the
+     * 60th second would have no label on the far side, so it would not be a question with an
+     * answer.
+     *
+     * **The offset goes in minutes and not in hours**, which is what Swiss takes, so that the
+     * whole computation is integer seconds of the day and nothing rounds. Hours as a float would
+     * be exact for the offsets that are a multiple of a quarter of an hour, which is all of
+     * today's; it is Pacific/Kiritimati at -10:40 until 1979 that is not one, and -38400/3600
+     * only comes back to -38400 by luck of the rounding. Working in minutes there is no luck to
+     * rely on.
+     *
+     * **And going in the other direction is `localToUtc()`, not a negative sign.** Swiss
+     * documents one function for the two ways round ("for conversion from local time to UTC, use
+     * +(offset)"), which is a parameter whose SIGN changes what the function does, and this engine
+     * already has that written down as a place to get it wrong without noticing: it is why
+     * `Horizon::equatorialWithSpeed()` says the direction in its name instead of in the sign of
+     * the obliquity. Here the offset always means the same thing, minutes east of Greenwich, and
+     * the name says which way it is being applied.
+     *
+     * Measured against `swe_utc_time_zone` of pyswisseph 2.10.03 over 50,000 random instants
+     * between 1600 and 2400 across the 51 offsets, with a fraction of a second on each: the same
+     * label in all 50,000, and the second agreeing to 2.5e-11 seconds, which is Swiss's noise and
+     * not ours.
+     *
+     * **And on whole seconds it is not noise, it is a whole minute.** Over 200,000 conversions
+     * with the second an exact number, 1,556 of them, 0.78%, come back from Swiss with the minute
+     * one lower and the second at 59.99999999999. Every one of them had the second at exactly 0,
+     * so the rate of the mixed sample says nothing; swept exhaustively instead, over the 1,440
+     * minutes of a day and the 51 offsets, **33,756 of 73,440 on-the-minute labels, 45.96%, come
+     * back one minute lower**, and it is the same 45.96% on 1600, 1700, 1800, 1900, 2000, 2026,
+     * 2100, 2250 and 2400, so it does not depend on the size of the Julian day either. The
+     * shortfall is at most 1.7e-11 seconds and it moves the printed label by sixty of them. It is
+     * the same ulp of a Julian day that `ttToUtc()` already has written down for the leaps, and
+     * it bites where it matters most, because a wall clock time is almost always typed on the
+     * minute.
+     *
+     * This does not have it because it never builds a Julian day out of a time of day: the
+     * seconds of the day are integers and the fraction of a second is carried alongside, so it
+     * comes back bit for bit as it went in, measured on all 250,000. The labels themselves are
+     * checked against a path that touches none of this arithmetic, PHP's own calendar shifting
+     * the same instant by the same offset in seconds: 250,000 of 250,000 identical.
+     *
+     * The DATE is not checked, just as `utcToJulianDay()` does not check it: a 31 February goes
+     * in and normalises to 3 March through the round trip, which is the correction
+     * `checkedJulianDay()` reads off. Whoever brings a date in from outside checks it there
+     * first.
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     * @param int $hour
+     * @param int $minute
+     * @param float $second From 0 to 60.999...: the 60 only in the minute of a jump.
+     * @param int $offsetMinutes Minutes east of Greenwich: +330 is India, -210 Newfoundland.
+     * @param bool $gregorian
+     * @return array{year: int, month: int, day: int, hour: int, minute: int, second: float}
+     *
+     * @throws InvalidArgumentException If the UTC time does not exist.
+     */
+    public static function utcToLocal(
+        int $year,
+        int $month,
+        int $day,
+        int $hour,
+        int $minute,
+        float $second,
+        int $offsetMinutes,
+        bool $gregorian = true,
+    ): array {
+        self::checkClockTime($hour, $minute, $second);
+
+        if ($second >= 60 && ! self::carriesLeapSecond($year, $month, $day, $hour, $minute, $gregorian)) {
+            throw self::noLeapSecond($year, $month, $day, $hour, $minute, $second);
+        }
+
+        return self::shiftedClock($year, $month, $day, $hour, $minute, $second, $offsetMinutes, $gregorian);
+    }
+
+    /**
+     * The way back: a clock label from a zone `$offsetMinutes` east of Greenwich, written in UTC.
+     * Same shape and same rules as `utcToLocal()`, and the offset still means minutes east.
+     *
+     * **The leap second is checked on the UTC side, which is the only side it exists on.** A leap
+     * second belongs to a UTC day, so which label may carry a 60 depends on where the offset puts
+     * it: 00:59:60 on 1 January 2017 in Madrid is the 23:59:60 of 31 December 2016 UTC and is
+     * real, while 23:59:60 on that same 31 December in Madrid would be 22:59:60 UTC, which is a
+     * minute like any other and is rejected. Swiss checks neither: measured, `swe_utc_time_zone`
+     * takes 23:59:60 on 30 June 2020, a day with no jump, and hands back a 60th second with a
+     * straight face; and a 12:00:60 in the middle of a day comes back either as
+     * 12:00:59.999999999999 or, in the year 2400, as a 12:00:60 that does not exist, depending on
+     * which side of the rounding the day fraction falls.
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     * @param int $hour
+     * @param int $minute
+     * @param float $second From 0 to 60.999...: the 60 only where it lands on a jump in UTC.
+     * @param int $offsetMinutes Minutes east of Greenwich: +330 is India, -210 Newfoundland.
+     * @param bool $gregorian
+     * @return array{year: int, month: int, day: int, hour: int, minute: int, second: float}
+     *
+     * @throws InvalidArgumentException If the time does not exist, there or in UTC.
+     */
+    public static function localToUtc(
+        int $year,
+        int $month,
+        int $day,
+        int $hour,
+        int $minute,
+        float $second,
+        int $offsetMinutes,
+        bool $gregorian = true,
+    ): array {
+        self::checkClockTime($hour, $minute, $second);
+
+        $utc = self::shiftedClock($year, $month, $day, $hour, $minute, $second, -$offsetMinutes, $gregorian);
+
+        if ($second >= 60 && ! self::carriesLeapSecond(
+            $utc['year'], $utc['month'], $utc['day'], $utc['hour'], $utc['minute'], $gregorian
+        )) {
+            throw new InvalidArgumentException(sprintf(
+                '%04d-%02d-%02d %02d:%02d:%06.3f at %s is %04d-%02d-%02d %02d:%02d:%06.3f UTC, '
+                .'and no leap second was inserted into that minute.',
+                $year, $month, $day, $hour, $minute, $second,
+                self::writtenOffset($offsetMinutes),
+                $utc['year'], $utc['month'], $utc['day'], $utc['hour'], $utc['minute'], $utc['second']
+            ));
+        }
+
+        return $utc;
+    }
+
+    /**
+     * Moving the label, which is the whole of the two methods above.
+     *
+     * The 61st second is parked before the arithmetic and put back afterwards, so what is added
+     * up is a clock time of at most 23:59:59 and a whole number of minutes. The seconds of the
+     * day are integers, the day rolls with an integer division, and the fraction of a second
+     * never takes part in any sum: it is set aside and added back at the end, which is why it
+     * comes back exactly as it went in instead of as a Julian day's worth of noise.
+     *
+     * `intdiv` truncates towards zero, so a negative offset that rolls the date backwards needs
+     * the remainder brought back into [0, 86400) by hand. That is the case of a 00:30 in Madrid
+     * on a 1 January, which is the 23:30 of the previous 31 December in UTC.
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     * @param int $hour
+     * @param int $minute
+     * @param float $second
+     * @param int $offsetMinutes
+     * @param bool $gregorian
+     * @return array{year: int, month: int, day: int, hour: int, minute: int, second: float}
+     */
+    private static function shiftedClock(
+        int $year,
+        int $month,
+        int $day,
+        int $hour,
+        int $minute,
+        float $second,
+        int $offsetMinutes,
+        bool $gregorian,
+    ): array {
+        $leap = $second >= 60.0;
+        $parked = $leap ? $second - 60.0 : $second;
+
+        $wholeSecond = (int) floor($parked);
+        $fraction = $parked - $wholeSecond;
+
+        $secondsOfDay = $hour * 3600 + $minute * 60 + $wholeSecond + $offsetMinutes * 60;
+        $days = intdiv($secondsOfDay, 86400);
+        $rest = $secondsOfDay % 86400;
+
+        if ($rest < 0) {
+            $rest += 86400;
+            $days--;
+        }
+
+        [$shiftedYear, $shiftedMonth, $shiftedDay] = self::civilDate(
+            self::civilJulianDay($year, $month, $day, $gregorian) + $days,
+            $gregorian
+        );
+
+        return [
+            'year' => $shiftedYear,
+            'month' => $shiftedMonth,
+            'day' => (int) floor($shiftedDay),
+            'hour' => intdiv($rest, 3600),
+            'minute' => intdiv($rest % 3600, 60),
+            'second' => $rest % 60 + $fraction + ($leap ? 60.0 : 0.0),
+        ];
+    }
+
+    /**
+     * Whether that UTC minute is the 61-second one, that is, the last minute of a day on which
+     * the leap second counter goes up. It is the rule `utcToJulianDay()` has always applied, in
+     * one place now that three methods ask it.
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     * @param int $hour
+     * @param int $minute
+     * @param bool $gregorian
+     * @return bool
+     */
+    private static function carriesLeapSecond(int $year, int $month, int $day, int $hour, int $minute, bool $gregorian): bool
+    {
+        if ($hour !== 23 || $minute !== 59) {
+            return false;
+        }
+
+        $jd0 = self::civilJulianDay($year, $month, $day, $gregorian);
+        $tai = self::taiMinusUtc($jd0);
+
+        return $tai !== null && self::taiMinusUtc($jd0 + 1) === $tai + 1;
+    }
+
+    /**
+     * The complaint about a 61st second where none was inserted.
+     *
+     * **It names the MINUTE and not the day, because the day is not what is wrong.** The message
+     * used to say "2016-12-31 carries no leap second", and that sentence is false on exactly the
+     * day it is most likely to be read on: 31 December 2016 does carry one, at 23:59, and what
+     * does not exist is a 12:30:60 in the middle of it. Two different mistakes were coming out
+     * with the same wording and one of the two wordings was a lie.
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     * @param int $hour
+     * @param int $minute
+     * @param float $second
+     * @return InvalidArgumentException
+     */
+    private static function noLeapSecond(int $year, int $month, int $day, int $hour, int $minute, float $second): InvalidArgumentException
+    {
+        return new InvalidArgumentException(sprintf(
+            '%04d-%02d-%02d %02d:%02d:%06.3f does not exist: no leap second was inserted into that minute.',
+            $year, $month, $day, $hour, $minute, $second
+        ));
+    }
+
+    /**
+     * The range of a clock time, which is the same in the three doors that take one.
+     *
+     * @param int $hour
+     * @param int $minute
+     * @param float $second
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function checkClockTime(int $hour, int $minute, float $second): void
+    {
+        if ($hour < 0 || $hour > 23 || $minute < 0 || $minute > 59 || $second < 0 || $second >= 61) {
+            throw new InvalidArgumentException(sprintf('The time %02d:%02d:%06.3f does not exist.', $hour, $minute, $second));
+        }
+    }
+
+    /**
+     * An offset in minutes written the way a clock offset is written, for the error message.
+     *
+     * The sign is taken off the minutes before splitting them, because -210 divided by 60 is -3
+     * and its remainder -30: printing the two with their own signs would give "-03:-30".
+     *
+     * @param int $offsetMinutes
+     * @return string
+     */
+    private static function writtenOffset(int $offsetMinutes): string
+    {
+        return sprintf(
+            '%s%02d:%02d',
+            $offsetMinutes < 0 ? '-' : '+',
+            intdiv(abs($offsetMinutes), 60),
+            abs($offsetMinutes) % 60
+        );
     }
 
     /**
@@ -919,7 +1235,7 @@ class Time
      *
      * It is the IAU 2000B series (McCarthy and Luzum, 2003): 77 luni-solar terms plus two fixed
      * offsets in place of the planetary nutation. The table is written by
-     * `astro:nutacion` from the ERFA source, the IAU reference implementation, and
+     * `astronomy nutation` from the ERFA source, the IAU reference implementation, and
      * there is not a single coefficient written by hand here. It is also the model Swiss
      * Ephemeris uses by default (`SEMOD_NUT_DEFAULT` is `SEMOD_NUT_IAU_2000B`), and that is
      * measured and not assumed: against Swiss over 1200 dates from 1600 to 2400, the difference
@@ -1087,7 +1403,7 @@ class Time
         $d = $jdUt - self::J2000;
 
         return 280.46061837
-            + 360.98564736629 * $d
+            + self::ROTATION_PER_DAY * $d
             + 0.000387933 * $t * $t
             - $t ** 3 / 38710000;
     }
@@ -1172,7 +1488,7 @@ class Time
      * @param int $day
      * @param float $hours Of the day, from 0 to 24.
      * @param bool $gregorian
-     * @return array{valida: bool, jd: float, anio: int, mes: int, dia: int, horas: float}
+     * @return array{valid: bool, jd: float, year: int, month: int, day: int, hours: float}
      */
     public static function checkedJulianDay(
         int $year,

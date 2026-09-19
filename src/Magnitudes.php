@@ -15,7 +15,7 @@ namespace Astronomy;
  * function of the phase angle, and that is the only thing that gets stored.
  *
  * **The coefficients are NOT written by hand: they are fitted against the JPL itself** with
- * `astro:magnitudes`, which asks Horizons for the published magnitude across centuries and
+ * `astronomy magnitudes`, which asks Horizons for the published magnitude across centuries and
  * strips the geometry out of it. It is the same decision as the ephemeris correction: instead
  * of copying the polynomials out of a paper and hoping they were transcribed right, the fit is
  * made against the source and the residual is measured, which is a number that can be shown.

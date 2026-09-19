@@ -3,8 +3,8 @@
 /*
  * Mean elements of the eight planets · Simon et al. (1994)
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:elementos-medios` in the
- * Tarotian application from ERFA's plan94.c, the reference implementation (BSD license)
+ * GENERATED. Do not edit by hand: written by `astronomy mean-elements`
+ * in this package from ERFA's plan94.c, the reference implementation (BSD license)
  * of the paper by Simon, Bretagnon, Chapront, Chapront-Touzé, Francou and Laskar,
  * A&A 282, 663-683 (1994).
  *

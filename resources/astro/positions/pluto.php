@@ -3,8 +3,8 @@
 /*
  * Pluto · heliocentric tabulated positions
  *
- * GENERATED. Do not edit by hand: written by `php artisan astro:tabla pluton` in the
- * Tarotian application, requesting them from JPL Horizons (object 9).
+ * GENERATED. Do not edit by hand: written by `astronomy tables pluto` in this
+ * in this package, requesting them from JPL Horizons (object 9).
  *
  * Rectangular coordinates on the J2000 ecliptic, in astronomical units. Only x, y, z:
  * each point's date comes from the first Julian day and the step, which is constant.

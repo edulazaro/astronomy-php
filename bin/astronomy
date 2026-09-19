@@ -4,14 +4,14 @@
 /**
  * The engine's command line, so that downloading a body does not need a framework.
  *
- * Everything it does lives in classes (`Downloader`, `SatelliteList`): this file only reads
- * arguments and writes what happened, which is the same shape an Artisan command has in an
- * application that installs the package. Two thin wrappers over one implementation, never two
- * implementations.
+ * Everything it does lives in classes (`Downloader`, `StarCatalog`, `Vsop87Series`…): this file
+ * only reads arguments and writes what happened, which is the same shape an Artisan command has
+ * in an application that installs the package. Two thin wrappers over one implementation, never
+ * two implementations.
  *
- *     vendor/bin/astronomy download asteroids 136199 --from=1980 --to=1989
- *     vendor/bin/astronomy download satellites Io Titan --data=/var/data/astro
- *     vendor/bin/astronomy satellites
+ *     vendor/bin/astronomy asteroids 136199 --from=1980 --to=1989
+ *     vendor/bin/astronomy satellites Io Titan --data=/var/data/astro
+ *     vendor/bin/astronomy stars
  *
  * **Where it writes is asked for and not guessed.** The engine reads its series from inside the
  * package, and writing there is wrong twice over: in an application the package is a copy that
@@ -22,12 +22,23 @@
 namespace Astronomy\Cli;
 
 use Astronomy\DataFolder;
+use Astronomy\DeltaTTable;
 use Astronomy\Downloadables;
 use Astronomy\DownloadableGroup;
 use Astronomy\Downloader;
+use Astronomy\Elp2000Series;
+use Astronomy\HorizonsCheck;
+use Astronomy\MagnitudeFit;
+use Astronomy\MassTable;
+use Astronomy\MeanElementsTable;
+use Astronomy\MoonCorrectionTable;
+use Astronomy\NutationSeries;
+use Astronomy\PlanetCorrectionTable;
+use Astronomy\PositionTables;
 use Astronomy\SatelliteList;
 use Astronomy\StarCatalog;
 use Astronomy\Time;
+use Astronomy\Vsop87Series;
 use Throwable;
 
 foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
@@ -88,6 +99,29 @@ function usage(): never
     A body is a number or a designation for asteroids and comets (136199, "2024 YR4", 1P) and
     the name of its case for satellites (Io, Titan, Phobos).
 
+    Rebuilding what DOES ship, which is not for whoever installs this:
+
+      astronomy vsop87              VSOP87D from CDS Strasbourg
+      astronomy elp2000             ELP 2000-82B from CDS Strasbourg
+      astronomy delta-t             the SMH 2016 spline and the IERS tables
+      astronomy nutation            the IAU 2000B series, from ERFA
+      astronomy mean-elements       Simon et al. (1994), from ERFA
+      astronomy masses              the DE440 header
+      astronomy magnitudes          fitted against JPL Horizons
+      astronomy tables pluto        the tabulated positions of one body, from JPL Horizons
+      astronomy moon-correction     what ELP is missing to be DE440
+      astronomy planet-correction   what VSOP87 is missing to be DE440
+      astronomy satellite-list      rewrites the cases of the Satellite enum
+
+    And the one that checks the engine rather than rebuilding anything:
+
+      astronomy check               every body against JPL Horizons, live
+
+    The data these write already ships inside the package: they are here so that an engine can
+    rebuild its own data, which is the difference between a library and a folder of numbers.
+    They take minutes, they need the network, and `--data` has to point at the package's own
+    `resources/astro` or the work lands somewhere nobody reads.
+
     TEXT);
 
     exit(0);
@@ -127,6 +161,195 @@ if (! is_dir($folder) && ! @mkdir($folder, 0755, true) && ! is_dir($folder)) {
 }
 
 DataFolder::useFolder($folder);
+
+/**
+ * Rebuilding the data the package already ships.
+ *
+ * **Whoever installs this never runs any of it**: the series, the tables and the corrections are
+ * inside, and that is what gets deployed. They are here because an engine that cannot rebuild its
+ * own data is a folder of numbers with some code next to it. Until now they lived as Artisan
+ * commands inside one particular application, so regenerating VSOP87 needed that application
+ * checked out; the day Strasbourg moves a file or the IERS publishes another year, this is what
+ * has to answer.
+ *
+ * Each of them is the SAME call an application's console command makes. Two thin wrappers over
+ * one implementation, never two implementations, which is the rule this whole file is written to.
+ *
+ * @param string $what
+ * @param list<string> $arguments
+ * @return string|null What to print, or null when this is not one of them.
+ *
+ * @throws \RuntimeException
+ */
+function rebuild(string $what, array $arguments): ?string
+{
+    switch ($what) {
+        case 'vsop87':
+            $report = Vsop87Series::regenerate();
+
+            return sprintf(
+                '%d bodies written into vsop87/, %d terms kept and %d discarded below the threshold.',
+                count($report['bodies']),
+                array_sum(array_column($report['bodies'], 'terms')),
+                array_sum(array_column($report['bodies'], 'discarded'))
+            );
+
+        case 'elp2000':
+            $report = Elp2000Series::regenerate();
+
+            return sprintf(
+                '%d files written into elp2000/, %d terms in total.',
+                count($report['files']),
+                array_sum(array_column($report['files'], 'lines'))
+            );
+
+        case 'delta-t':
+            $report = DeltaTTable::regenerate();
+
+            return sprintf(
+                '%d values and %d leap seconds written into %s. Observed to %.2f, predicted to %.2f.',
+                $report['values'], $report['leapSeconds'], $report['path'],
+                $report['observedUntil'], $report['predictedUntil']
+            );
+
+        case 'nutation':
+            $report = NutationSeries::regenerate();
+
+            return sprintf(
+                '%d terms of the IAU 2000B series written, with %d Delaunay arguments.',
+                $report['terms'], $report['arguments']
+            );
+
+        case 'mean-elements':
+            $report = MeanElementsTable::regenerate();
+
+            return sprintf(
+                'Mean elements written for %d bodies, %d elements each, from %s.',
+                $report['bodies'], $report['elements'], $report['source']
+            );
+
+        case 'masses':
+            $report = MassTable::regenerate();
+
+            return sprintf(
+                '%d masses written from the %s header.',
+                count($report['bodies']), $report['ephemeris']
+            );
+
+        case 'magnitudes':
+            $report = MagnitudeFit::regenerate();
+
+            return sprintf(
+                'Magnitude models written for %d bodies into %s.',
+                count($report['bodies']), $report['path']
+            );
+
+        /* `tables` and not `positions` so it cannot be read as the sibling of `asteroids`: that
+           one fetches a body somebody wants and leaves it in `downloads/`, and this one rebuilds
+           one of the seven tables the engine itself reads. Same source, opposite audience. */
+        case 'tables':
+            if ($arguments === []) {
+                fail('Say which body: astronomy tables pluto');
+            }
+
+            $lines = [];
+
+            foreach ($arguments as $body) {
+                $report = PositionTables::regenerate(body: $body);
+                $lines[] = sprintf(
+                    '%s (Horizons %s): %d points in %d requests.',
+                    $report['body'], $report['horizons_id'],
+                    array_sum(array_column($report['chunks'], 'points')), $report['requests']
+                );
+            }
+
+            return implode("\n", $lines);
+
+        case 'moon-correction':
+            $report = MoonCorrectionTable::regenerate();
+
+            return sprintf(
+                '%s: %d blocks of %d days, degree %d, %s. Worst fit %.4f arcsec, worst seam %.4f.',
+                $report['path'], $report['blocks'], $report['block_days'], $report['degree'],
+                bytes($report['bytes']), $report['worst_fit_arcseconds'], $report['worst_seam_arcseconds']
+            );
+
+        case 'planet-correction':
+            $report = PlanetCorrectionTable::regenerate();
+            $lines = [];
+
+            foreach ($report['tables'] as $table) {
+                $lines[] = sprintf(
+                    '%s: %d blocks of %d days, degree %d, %s. Worst residual %.4f arcsec.',
+                    $table['body'], $table['blocks'], $table['block_days'], $table['degree'],
+                    bytes($table['bytes']), $table['worst_residual']
+                );
+            }
+
+            return implode("\n", $lines);
+    }
+
+    return null;
+}
+
+/**
+ * @param int $bytes
+ * @return string
+ */
+function bytes(int $bytes): string
+{
+    return $bytes < 1048576
+        ? sprintf('%.1f KB', $bytes / 1024)
+        : sprintf('%.1f MB', $bytes / 1048576);
+}
+
+try {
+    $rebuilt = rebuild($what, $arguments);
+} catch (Throwable $error) {
+    fail($error->getMessage());
+}
+
+if ($rebuilt !== null) {
+    fwrite(STDOUT, $rebuilt."\n");
+
+    exit(0);
+}
+
+/* The proof of what this package claims. A badly computed chart does not look wrong: the wheel
+   comes out just as pretty with Mars three degrees off. This is the only thing that says the
+   engine is right, so it ships with it. */
+if ($what === 'check') {
+    try {
+        $report = HorizonsCheck::run(
+            from: is_string($options['from'] ?? null) ? $options['from'] : '1900-01-01',
+            to: is_string($options['to'] ?? null) ? $options['to'] : '2050-01-01',
+        );
+    } catch (Throwable $error) {
+        fail($error->getMessage());
+    }
+
+    fwrite(STDOUT, sprintf("%-20s %7s %12s %12s   %s\n", 'body', 'dates', 'worst long', 'worst lat', 'verdict'));
+    fwrite(STDOUT, str_repeat('-', 71)."\n");
+
+    foreach ($report['rows'] as $row) {
+        fwrite(STDOUT, match ($row['status']) {
+            'absent' => sprintf("%-20s %7s %12s %12s   not in Horizons\n", $row['body'], '-', '-', '-'),
+            'silent' => sprintf("%-20s %7s %12s %12s   Horizons did not answer\n", $row['body'], '-', '-', '-'),
+            default => sprintf(
+                "%-20s %7d %9.3f\"  %9.3f\"   %s\n",
+                $row['body'], $row['dates'], $row['longitude'], $row['latitude'],
+                $row['status'] === 'ok' ? 'ok' : 'OUT'
+            ),
+        });
+    }
+
+    fwrite(STDOUT, sprintf(
+        "\nWorst difference: %.3f arcseconds (tolerance %.3f\").\n",
+        $report['worst'], $report['tolerance']
+    ));
+
+    exit($report['failures'] === 0 ? 0 : 1);
+}
 
 /* Regenerating the cases of the `Satellite` enum is not something whoever installs the package
    does: it rewrites this package's own source. It lives here because it is the same list and the

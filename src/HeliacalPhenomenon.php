@@ -6,7 +6,7 @@ namespace Astronomy;
  * A heliacal phenomenon that has been found: the day an object becomes visible again or
  * stops being visible.
  *
- * **It carries two instants, and both are needed.** `paso` is when the object crosses the
+ * **It carries two instants, and both are needed.** `pass` is when the object crosses the
  * geometric horizon, which is where the arc is MEASURED because that is where Schoch defines
  * it; there its altitude is zero and says nothing. `observation` is the moment it is SEEN:
  * when the sky reaches the required darkness, that is, when the Sun is
@@ -16,7 +16,7 @@ namespace Astronomy;
  * the criterion is checked.
  *
  * In a morning phenomenon the object rises first and the sky brightens afterwards, so
- * `observation` comes AFTER `paso`; in an evening one, the other way round.
+ * `observation` comes AFTER `pass`; in an evening one, the other way round.
  */
 readonly class HeliacalPhenomenon
 {
@@ -32,7 +32,7 @@ readonly class HeliacalPhenomenon
         public UtInstant $observation,
         /** The object's crossing of the geometric horizon that day, where the arc is measured. */
         public UtInstant $pass,
-        /** The Sun's depression at `paso`, in degrees: that day's arcus visionis. */
+        /** The Sun's depression at `pass`, in degrees: that day's arcus visionis. */
         public float $arcusVisionis,
         /** The arc the criterion requires, in degrees. The Sun's depression at `observation`. */
         public float $arcusVisionisRequired,

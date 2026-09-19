@@ -104,6 +104,25 @@ final readonly class CustomAyanamsa
     }
 
     /**
+     * The sidereal position measured on the invariable plane of the solar system: Swiss's
+     * `SE_SIDBIT_SSY_PLANE`. The arithmetic is in `Ayanamsa`, with this one's pair, and so is the
+     * account of which zero point it counts from and which one it does not.
+     *
+     * A custom pair reaches it by the same door as the forty-three cases, which is the point of
+     * that method being passed (t0, a0) loose: two copies of one rotation are two things that can
+     * one day disagree.
+     *
+     * @param float $longitude Tropical longitude in the true ecliptic of date.
+     * @param float $latitude
+     * @param float $jdTT
+     * @return array{0: float, 1: float}
+     */
+    public function projectedOnSolarSystemPlane(float $longitude, float $latitude, float $jdTT): array
+    {
+        return Ayanamsa::onSolarSystemPlane($longitude, $latitude, $jdTT, $this->epoch, $this->initialValue);
+    }
+
+    /**
      * What it is called, to write it out.
      *
      * It has no table to translate: this name is not a label of
