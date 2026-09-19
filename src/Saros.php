@@ -112,7 +112,7 @@ final class Saros
     /**
      * The series of a solar eclipse, given the instant of its maximum.
      *
-     * @return array{serie: int, miembro: int|null}|null
+     * @return array{series: int, member: int|null}|null
      */
     public static function forSolar(float $jdTT): ?array
     {
@@ -122,7 +122,7 @@ final class Saros
     /**
      * The series of a lunar eclipse, given the instant of its maximum.
      *
-     * @return array{serie: int, miembro: int|null}|null
+     * @return array{series: int, member: int|null}|null
      */
     public static function forLunar(float $jdTT): ?array
     {
@@ -154,7 +154,7 @@ final class Saros
     }
 
     /**
-     * @return array{serie: int, miembro: int|null}|null
+     * @return array{series: int, member: int|null}|null
      */
     private static function series(float $jdTT, bool $fullMoon, int $anchor): ?array
     {

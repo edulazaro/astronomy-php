@@ -117,12 +117,24 @@ class Constellations
     ];
 
     /**
-     * @param string $abbreviation The three letters of the Bayer designation.
-     * @return string|null
+     * The Latin name of a constellation, from its abbreviation or from the name itself.
+     *
+     * It takes the name too, and that is not convenience: `Star::$constellation` already holds
+     * the resolved name, so composing the two is the natural thing to write and it used to return
+     * null for 1,068 of the 1,099 stars. It worked on Regulus, because `Leo` is one of the only
+     * two abbreviations that equal their own name, and on Ara. A reader tried it there, saw it
+     * work, and got null everywhere else.
+     *
+     * @param string $constellation The three letters of the designation, or the Latin name.
+     * @return string|null Null if it is neither.
      */
-    public static function name(string $abbreviation): ?string
+    public static function name(string $constellation): ?string
     {
-        return self::NAMES[$abbreviation] ?? null;
+        if (isset(self::NAMES[$constellation])) {
+            return self::NAMES[$constellation];
+        }
+
+        return in_array($constellation, self::NAMES, true) ? $constellation : null;
     }
 
     /**

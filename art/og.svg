@@ -41,8 +41,8 @@
   <rect x="92" y="176" width="72" height="7" rx="3.5" fill="#7FB4D4"/>
 
   <text x="88" y="240" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="34" font-weight="400" fill="#aeb6c9">A pure PHP astronomical engine</text>
-  <text x="88" y="288" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">Verified against JPL Horizons and Swiss Ephemeris</text>
-  <text x="88" y="322" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">No framework. No extensions. No network at runtime.</text>
+  <text x="88" y="288" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">Verified against JPL Horizons, 1600 to 2400</text>
+  <text x="88" y="322" font-family="'DejaVu Sans', 'Nimbus Sans', Arial, sans-serif" font-size="23" font-weight="400" fill="#8b93a8">No framework. No dependencies. No network at runtime.</text>
 
   <!-- Ancho del chip = 36 caracteres a 21px de DejaVu Sans Mono (avance 0.60205em,
        o sea 455px) mas 28 de aire a cada lado. Escrito asi y no a ojo porque en un

@@ -75,8 +75,427 @@ The same houses without a clock, for anyone who already has their sidereal time:
 $houses = Houses::fromArmc(HouseSystem::Regiomontanus, armc: 123.456, latitude: 40.4165, obliquity: 23.4392);
 ```
 
-Fixed stars, eclipses and rise times follow the same shape. Every public method carries a
-docblock explaining what it does and, where it matters, why it is done that way.
+Every public method carries a docblock explaining what it does and, where it matters, why it
+is done that way.
+
+## More of what it does
+
+Every example below was run to produce the output shown.
+
+### Fixed stars
+
+**Where a star falls on a date**
+
+The position goes in Terrestrial Time, like the planets, and comes back in both systems that get read: ecliptic longitude of the date for the conjunction, declination of the date for the parallel.
+```php
+use Astronomy\Stars;
+use Astronomy\Time;
+
+[$jdTT] = Time::fromClock(new DateTimeImmutable('1981-05-11 07:15:00', new DateTimeZone('UTC')));
+
+$position = Stars::position(Stars::find('Regulus'), $jdTT);
+
+echo $position->formatted(), "\n";             // longitude on the ecliptic of the date
+echo $position->sign()->name(), "\n";
+echo $position->formattedDeclination(), "\n";  // declination, for the parallel
+printf("%.4f %.4f\n", $position->rightAscension, $position->latitude);
+```
+```
+29° 34' Leo
+Leo
++12° 04'
+151.8417 0.4643
+```
+
+**Mean position versus apparent**
+
+An apparent position carries aberration, which swings up to twenty arcseconds over the year, more than precession advances in that year, so it is not monotonic in time: Regulus runs backwards between March and August 2011 while the mean position only ever moves forward, and by January 2012 the two disagree about which sign the star is in, which is why an ingress is dated with `apparent: false`.
+```php
+use Astronomy\Stars;
+use Astronomy\Time;
+
+$regulus = Stars::find('Regulus');
+
+foreach (['2011-03-01', '2011-08-01', '2012-01-01'] as $day) {
+    [$jdTT] = Time::fromClock(new DateTimeImmutable($day, new DateTimeZone('UTC')));
+
+    $apparent = Stars::position($regulus, $jdTT);
+    $mean = Stars::position($regulus, $jdTT, apparent: false);
+
+    printf("%s  apparent %.5f %-5s  mean %.5f %s\n", $day,
+        $apparent->longitude, $apparent->sign()->name(), $mean->longitude, $mean->sign()->name());
+}
+```
+```
+2011-03-01  apparent 149.99514 Leo    mean 149.98433 Leo
+2011-08-01  apparent 149.99005 Leo    mean 149.99016 Leo
+2012-01-01  apparent 150.00442 Virgo  mean 149.99598 Leo
+```
+
+### The horizon
+
+**Rise, culmination and set**
+
+The passes of a body over the horizon of one place on one civil day of that place, returned in both shapes at once: a julian day in Universal Time to keep computing with, and a clock reading already in the time zone of the place. By default it is the upper limb lifted by refraction, which is what an almanac publishes; the centre of the disc with no atmosphere comes four and a half minutes later.
+```php
+use Astronomy\Body;
+use Astronomy\Limb;
+use Astronomy\Place;
+use Astronomy\RiseSet;
+
+$madrid = new Place('Madrid', null, 'Spain', 'ES', 40.4165, -3.7026, 'Europe/Madrid');
+$day = new DateTimeImmutable('2026-09-19', $madrid->timeZone());
+
+$sun = RiseSet::ofTheDay(Body::Sun, $madrid, $day);
+
+echo $sun->rise->date->format('H:i:s T');              // 07:59:19 CEST
+echo $sun->upperCulmination->date->format('H:i:s T');  // 14:08:35 CEST
+echo $sun->set->date->format('H:i:s T');               // 20:17:12 CEST
+echo $sun->rise->jdUt;                                 // 2461302.7495276
+
+// The centre of the disc, with no atmosphere: the geometric instant.
+$geometric = RiseSet::ofTheDay(Body::Sun, $madrid, $day, Limb::Center, refraction: false);
+
+echo $sun->rise->secondsTo($geometric->rise);          // 265.05947560072
+```
+
+**A horizon that is not at zero**
+
+A ridge delays the rise and standing above the sea brings it forward, and `Horizon::horizonDip()` returns the dip already negative so that it chains into the call without anyone having to reason about the sign. Past 1.8 degrees of dip, which is an observer at 3,100 metres, refraction can no longer be corrected and the call throws instead of returning a plausible time. The instant goes in as a julian day in Universal Time.
+```php
+use Astronomy\Body;
+use Astronomy\Horizon;
+use Astronomy\Pass;
+use Astronomy\Place;
+use Astronomy\RiseSet;
+use Astronomy\Time;
+
+$madrid = new Place('Madrid', null, 'Spain', 'ES', 40.4165, -3.7026, 'Europe/Madrid');
+$jdUt = Time::julianDay(new DateTimeImmutable('2026-09-19 00:00:00', $madrid->timeZone()));
+
+$dip = Horizon::horizonDip(1000.0);   // -0.92119464062593
+
+echo RiseSet::next(Body::Sun, $madrid, $jdUt, Pass::Rise)->date->format('H:i:s');                          // 07:59:19
+echo RiseSet::next(Body::Sun, $madrid, $jdUt, Pass::Rise, horizonAltitude: 3.0)->date->format('H:i:s');    // 08:16:51
+echo RiseSet::next(Body::Sun, $madrid, $jdUt, Pass::Rise, horizonAltitude: $dip)->date->format('H:i:s');   // 07:53:14
+
+// From 4,000 metres the dip is 1.84 degrees and this throws:
+// «A horizon at -1.84 degrees cannot be corrected for refraction […] Ask for the pass without refraction.»
+RiseSet::next(Body::Sun, $madrid, $jdUt, Pass::Rise, horizonAltitude: Horizon::horizonDip(4000.0));
+```
+
+### Eclipses and occultations
+
+**The solar eclipses of a stretch of time**
+
+The solar eclipses between two instants, in order. The two julian days go in Universal Time and so do the instants that come back, so `maximum->date` is a UTC `DateTimeImmutable` unless a time zone is asked for.
+```php
+use Astronomy\Eclipses;
+use Astronomy\Time;
+
+$from = Time::julianDay(new DateTimeImmutable('2026-01-01', new DateTimeZone('UTC')));
+$to = Time::julianDay(new DateTimeImmutable('2027-01-01', new DateTimeZone('UTC')));
+
+foreach (Eclipses::solar($from, $to) as $eclipse) {
+    echo $eclipse->maximum->date->format('Y-m-d H:i:s'), ' UT  ',
+        $eclipse->type->name(), '  magnitude ', round($eclipse->magnitude, 4),
+        '  greatest at ', round($eclipse->maximumLatitude, 2),
+        ' / ', round($eclipse->maximumLongitude, 2), PHP_EOL;
+}
+```
+```
+2026-02-17 12:12:13 UT  Annular  magnitude 0.9638  greatest at -64.58 / 86.65
+2026-08-12 17:46:09 UT  Total  magnitude 1.0395  greatest at 65.11 / -25.19
+```
+
+**What one place sees of a solar eclipse**
+
+What a place sees of that eclipse, with the instants in the time zone of the place and `visible` answering phase by phase: from Madrid the eclipse of 12 August 2026 covers 99.9 per cent of the diameter and the Sun sets partway through it, so the fourth contact is computed and not seen.
+```php
+use Astronomy\Eclipses;
+use Astronomy\Place;
+use Astronomy\Time;
+
+$jdUt = Time::julianDay(new DateTimeImmutable('2026-08-12', new DateTimeZone('UTC')));
+$eclipse = Eclipses::solar($jdUt, $jdUt + 1)[0];
+$madrid = new Place('Madrid', null, 'Spain', 'ES', 40.4165, -3.7026, 'Europe/Madrid');
+
+$local = Eclipses::localSolar($eclipse, $madrid);
+
+echo $local->type->name(), ', ', round($local->magnitude * 100, 1), ' per cent of the diameter', PHP_EOL;
+echo $local->contact1->date->format('H:i:s T'), ' to ', $local->contact4->date->format('H:i:s T'), PHP_EOL;
+echo 'Sun ', round($local->altitude, 1), ' degrees up at maximum', PHP_EOL;
+echo 'last contact above the horizon: ', $local->visible['contact4'] ? 'yes' : 'no', PHP_EOL;
+```
+```
+Partial, 99.9 per cent of the diameter
+19:36:46 CEST to 21:24:31 CEST
+Sun 7.2 degrees up at maximum
+last contact above the horizon: no
+```
+
+**The central path of a solar eclipse**
+
+The band of a central eclipse, sampled every two minutes, with the width of the band and how long totality lasts for someone standing on the central line; the two ends of the path carry those two numbers as null and not as zero, because there the shadow arrives grazing and runs off the globe, which is where the band is at its widest and not at its narrowest.
+```php
+use Astronomy\CentralPath;
+use Astronomy\Eclipses;
+use Astronomy\Time;
+
+$jdUt = Time::julianDay(new DateTimeImmutable('2026-08-12', new DateTimeZone('UTC')));
+$path = CentralPath::of(Eclipses::solar($jdUt, $jdUt + 1)[0]);
+
+foreach ([$path->start(), $path->maximum, $path->end()] as $point) {
+    echo $point->observation->date->format('H:i'), '  ',
+        round($point->latitude, 2), ' / ', round($point->longitude, 2),
+        '  Sun ', round($point->sunAltitude, 1), ' degrees up  ',
+        $point->hasEdges()
+            ? round($point->widthKm).' km wide, totality '.round($point->durationSeconds, 1).' s'
+            : 'no band: the shadow is running off the globe', PHP_EOL;
+}
+```
+```
+17:00  75.34 / 113.56  Sun 0.3 degrees up  no band: the shadow is running off the globe
+17:46  65.11 / -25.19  Sun 25.8 degrees up  294 km wide, totality 138.1 s
+18:32  38.77 / 5.08  Sun 0.3 degrees up  no band: the shadow is running off the globe
+```
+
+**The Moon passing in front of a planet**
+
+An occultation is the same geometry as a solar eclipse with another body in front of the Moon, so it comes back with the same local circumstances; the instants are in UT for the global event and in the time zone of the place for the local one, and `Occultations::local()` returns null when the occultation does not reach that place at all, which is the usual answer rather than the exceptional one.
+```php
+use Astronomy\Body;
+use Astronomy\Occultations;
+use Astronomy\Place;
+use Astronomy\Time;
+
+$jdUt = Time::julianDay(new DateTimeImmutable('2026-09-01', new DateTimeZone('UTC')));
+$occultation = Occultations::next(Body::Venus, $jdUt);
+$madrid = new Place('Madrid', null, 'Spain', 'ES', 40.4165, -3.7026, 'Europe/Madrid');
+
+$local = Occultations::local($occultation, $madrid);
+
+echo $occultation->name, ' ', $occultation->maximum->date->format('Y-m-d H:i:s'), ' UT, ',
+    $occultation->type->name(), PHP_EOL;
+echo 'from Madrid it comes back out at ', $local->contact3->date->format('H:i:s T'),
+    ', ', round($local->altitude, 1), ' degrees up', PHP_EOL;
+echo 'disappearance above the horizon: ', $local->visible['contact2'] ? 'yes' : 'no', PHP_EOL;
+```
+```
+Venus 2026-09-14 11:34:38 UT, Total
+from Madrid it comes back out at 12:21:32 CEST, 3.2 degrees up
+disappearance above the horizon: no
+```
+
+### Crossings, retrogrades and orbits
+
+**When a body enters a sign, and why it can enter the same one three times**
+
+A body can enter the same sign three times, because it goes in, retrogrades back out and returns months later, which is why Pluto's entry into Aquarius has three published dates rather than one; the window is given in Terrestrial Time and the instants come back as UTC clock time.
+```php
+use Astronomy\Body;
+use Astronomy\Crossings;
+use Astronomy\Time;
+
+[$fromTT] = Time::fromClock(new DateTimeImmutable('2023-01-01', new DateTimeZone('UTC')));
+[$toTT] = Time::fromClock(new DateTimeImmutable('2025-01-01', new DateTimeZone('UTC')));
+
+foreach (Crossings::ingresses(Body::Pluto, $fromTT, $toTT) as $ingress) {
+    echo Time::toClock($ingress['jd'])->format('Y-m-d H:i'), '  ',
+        $ingress['sign']->name(),
+        $ingress['retrograde'] ? '  retrograde' : '', PHP_EOL;
+}
+```
+```
+2023-03-23 12:21  Aquarius
+2023-06-11 09:36  Capricorn  retrograde
+2024-01-21 00:55  Aquarius
+2024-09-01 23:59  Capricorn  retrograde
+2024-11-19 20:38  Aquarius
+```
+
+**This year's retrograde stations**
+
+A station is where the speed in longitude changes sign, and that speed already comes signed from the ephemeris, so this is a zero of something the engine had computed anyway; the window goes in Terrestrial Time, and asking for the Sun or the Moon throws instead of returning an empty list, which would read as "it has not gone retrograde this year".
+```php
+use Astronomy\Body;
+use Astronomy\Retrogrades;
+use Astronomy\Time;
+
+[$fromTT] = Time::fromClock(new DateTimeImmutable('2026-01-01', new DateTimeZone('UTC')));
+[$toTT] = Time::fromClock(new DateTimeImmutable('2027-01-01', new DateTimeZone('UTC')));
+
+foreach (Retrogrades::stations(Body::Mercury, $fromTT, $toTT) as $station) {
+    echo Time::toClock($station['jd'])->format('Y-m-d H:i'), '  ',
+        $station['retrograde'] ? 'turns retrograde' : 'turns direct    ', '  ',
+        round($station['longitude'], 2), PHP_EOL;
+}
+```
+```
+2026-02-26 06:48  turns retrograde  352.57
+2026-03-20 19:33  turns direct      338.49
+2026-06-29 17:35  turns retrograde  116.26
+2026-07-23 22:57  turns direct      106.32
+2026-10-24 07:11  turns retrograde  230.98
+2026-11-13 15:54  turns direct      215.03
+```
+
+**The orbit of a body: nodes, apsides and period**
+
+The two nodes are half a turn apart but not at the same distance from the Sun, because the orbit is an ellipse and the Sun sits at one focus rather than at the centre; the instant goes in Terrestrial Time and the angles come out in the true ecliptic of date, the same frame in which Ephemeris leaves the planets.
+```php
+use Astronomy\Body;
+use Astronomy\NodesAndApsides;
+use Astronomy\Time;
+
+[$jdTT] = Time::fromClock(new DateTimeImmutable('2026-09-19', new DateTimeZone('UTC')));
+
+$orbit = NodesAndApsides::of(Body::Pluto, $jdTT);
+
+printf("ascending node   %.3f degrees, at %.3f AU from the Sun\n", $orbit->ascendingNode, $orbit->ascendingNodeDistance);
+printf("descending node  %.3f degrees, at %.3f AU\n", $orbit->descendingNode(), $orbit->descendingNodeDistance);
+printf("perihelion       %.3f degrees, at %.3f AU\n", $orbit->perihelion, $orbit->perihelionDistance);
+printf("aphelion         %.3f degrees, at %.3f AU\n", $orbit->aphelion(), $orbit->aphelionDistance);
+printf("e %.5f  i %.3f  sidereal period %.0f days\n", $orbit->eccentricity, $orbit->inclination, $orbit->siderealPeriod);
+```
+```
+ascending node   110.701 degrees, at 40.900 AU from the Sun
+descending node  290.701 degrees, at 33.656 AU
+perihelion       224.730 degrees, at 29.590 AU
+aphelion         44.730 degrees, at 49.100 AU
+e 0.24794  i 17.173  sidereal period 90142 days
+```
+
+### Frames and phenomena
+
+**The same body from four origins**
+
+The same Mars at the same instant seen from the Earth, from the Sun, from the barycentre of the solar system and from Jupiter, all four from a julian day in Terrestrial Time: the heliocentric and planetocentric columns are not the geocentric one shifted, because light time and aberration are measured from wherever the observer stands.
+```php
+use Astronomy\Ephemeris;
+use Astronomy\Body;
+use Astronomy\Time;
+
+[$jdTT] = Time::fromClock(new DateTimeImmutable("2026-06-21 12:00:00", new DateTimeZone("UTC")));
+
+$seenFrom = [
+    "the Earth"      => Ephemeris::position(Body::Mars, $jdTT),
+    "the Sun"        => Ephemeris::heliocentric(Body::Mars, $jdTT),
+    "the barycentre" => Ephemeris::barycentric(Body::Mars, $jdTT),
+    "Jupiter"        => Ephemeris::planetocentric(Body::Mars, Body::Jupiter, $jdTT),
+];
+
+foreach ($seenFrom as $origin => $mars) {
+    printf("Mars from %-15s %10.4f deg  %8.4f AU\n", $origin, $mars->longitude, $mars->distance);
+}
+```
+```
+Mars from the Earth          54.7553 deg    2.1336 AU
+Mars from the Sun            30.4901 deg    1.4317 AU
+Mars from the barycentre     30.3419 deg    1.4274 AU
+Mars from Jupiter           318.3291 deg    5.5329 AU
+```
+
+**The Moon's phase and the lunations around it**
+
+The Moon's phase at a julian day in Terrestrial Time, with the two lunations that surround it: the illuminated fraction is measured at the Moon and not derived from the elongation, which is why 85.07 degrees gives 45.8 per cent and not the 45.7 of the formula that circulates.
+```php
+use Astronomy\MoonPhase;
+use Astronomy\Time;
+
+[$jdTT] = Time::fromClock(new DateTimeImmutable("2026-06-21 12:00:00", new DateTimeZone("UTC")));
+
+$phase = MoonPhase::at($jdTT);
+
+printf("%s, elongation %.2f deg, %.1f%% lit\n", $phase->name, $phase->elongationForDisplay(), $phase->illumination * 100);
+printf("disc %.2f arcminutes, %+.2f%% of its usual size\n", $phase->apparentDiameter * 60, $phase->relativeToMeanSize());
+
+foreach (MoonPhase::lunations($jdTT) as $when => $lunation) {
+    printf("%-8s %s on %s\n", $when, $lunation["type"], Time::toClock($lunation["jd"])->format("Y-m-d H:i"));
+}
+```
+```
+first-quarter, elongation 85.07 deg, 45.8% lit
+disc 30.95 arcminutes, -0.43% of its usual size
+previous new-moon on 2026-06-15 02:54
+next     full-moon on 2026-06-29 23:56
+```
+
+### The sidereal zodiac, and the houses beyond their cusps
+
+**The sidereal zodiac, with Lahiri**
+
+An ayanamsa is the number subtracted from a tropical longitude to get the sidereal one, it takes a julian day in Terrestrial Time like every ephemeris here, and at twenty three and a half degrees it moves most positions back into the previous sign.
+```php
+use Astronomy\Ayanamsa;
+use Astronomy\Body;
+use Astronomy\Ephemeris;
+use Astronomy\Time;
+
+// Terrestrial Time, which is what every ephemeris takes.
+$jdTT = Time::tt(Time::julianDay(new DateTimeImmutable('1981-05-11 07:15:00', new DateTimeZone('UTC'))));
+
+$sun = Ephemeris::position(Body::Sun, $jdTT);
+
+echo $sun->formatted(), "\n";                                          // tropical
+echo $sun->shifted(Ayanamsa::Lahiri->value($jdTT))->formatted(), "\n";  // sidereal
+echo Ayanamsa::Lahiri->value($jdTT), "\n";                              // degrees subtracted
+```
+```
+20° 30' 31" Taurus
+26° 54' 58" Aries
+23.592520152579
+```
+
+**A body placed in its house with its latitude**
+
+`housePosition` is `swe_house_pos`, and in the quadrant systems a house is defined over the sky and not over the zodiac, so a body with ecliptic latitude can sit in a house its longitude alone does not reach: this Saturn is a degree and a half short of cusp five by longitude and over it by two and a half degrees of latitude.
+```php
+use Astronomy\Body;
+use Astronomy\Ephemeris;
+use Astronomy\Houses;
+use Astronomy\HouseSystem;
+use Astronomy\Time;
+
+[$jdTT, $jdUt] = Time::fromClock(new DateTimeImmutable('1981-05-11 07:15:00', new DateTimeZone('UTC')));
+
+$houses = Houses::calculate(HouseSystem::Placidus, $jdUt, latitude: 40.4165, geographicLongitude: -3.7026);
+$saturn = Ephemeris::position(Body::Saturn, $jdTT);   // the body in Terrestrial Time
+
+echo $houses->houseOf($saturn->longitude), "\n";                              // by longitude alone
+echo $houses->houseWithLatitude($saturn->longitude, $saturn->latitude), "\n";
+echo $houses->housePosition($saturn->longitude, $saturn->latitude), "\n";
+echo $saturn->longitude, ' under a cusp at ', $houses->cusps[5], ', latitude ', $saturn->latitude, "\n";
+```
+```
+4
+5
+5.0165278277963
+183.5071189058 under a cusp at 185.01126338975, latitude 2.589119460589
+```
+
+### Time
+
+**Delta T, the leap seconds and the 61st second**
+
+`Time` is the only class in the engine that depends on no other one, and this block is what that buys: no place, no body and no ephemeris file, only scales, delta T and the calendars, which is what everything else hangs from starting with `Ephemeris`. The 61st second exists and is accepted, but only on the twenty seven days that carried one; anywhere else it throws rather than returning a good-looking instant.
+```php
+use Astronomy\Time;
+
+[$jdTT, $jdUt1] = Time::utcToJulianDay(2026, 9, 19, 12, 0, 0.0);
+
+echo Time::deltaT($jdTT);                                    // 69.197902996366
+echo Time::taiMinusUtc(Time::civilJulianDay(2026, 9, 19));   // 37
+
+// The last minute of 31 December 2016 had 61 seconds, and it goes out and comes back.
+[$leap] = Time::utcToJulianDay(2016, 12, 31, 23, 59, 60.0);
+
+echo implode(' ', Time::ttToUtc($leap));                     // 2016 12 31 23 59 60
+echo Time::taiMinusUtc(Time::civilJulianDay(2016, 12, 31));  // 36, the jump to 37 is the next day
+
+// «2026-09-19 23:59:60.000 does not exist: no leap second was inserted into that minute.»
+Time::utcToJulianDay(2026, 9, 19, 23, 59, 60.0);
+```
 
 ## What it covers
 
