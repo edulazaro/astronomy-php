@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * The correction of our analytical series towards the JPL ephemerides.
  *
- * **The position is not stored: what the position is missing is stored.** VSOP87 and ELP are
+ * The position is not stored: what the position is missing is stored. VSOP87 and ELP are
  * series fitted forty years ago to DE200, and against DE440 they drift away by tenths of an
  * arcsecond (the inner planets, in the 20th century) up to several arcseconds (Uranus and
  * Neptune three centuries out, the Moon in 1600 because of the tidal acceleration). Storing
@@ -15,14 +15,14 @@ use RuntimeException;
  * fraction of that, because it is a number a thousand times smaller and therefore needs far
  * fewer coefficients for the same ABSOLUTE accuracy, which is the one that matters.
  *
- * And it has a property the other one does not: **if the file is missing or the date falls
- * outside the range, the engine keeps working** the way it did before. The correction is a
+ * And it has a property the other one does not: if the file is missing or the date falls
+ * outside the range, the engine keeps working the way it did before. The correction is a
  * layer on top, not a replacement.
  *
  * The coefficients are Chebyshev, in blocks of equal days, one per rectangular coordinate, in
  * the J2000 ecliptic, which is the frame the JPL serves its vectors in.
  *
- * ## The file
+ * The file
  *
  * Binary and not PHP, and that is the only reason it fits. A `float` in a PHP array takes
  * some twenty bytes of text and has to be compiled at boot; here it is four bytes, and the
@@ -32,19 +32,19 @@ use RuntimeException;
  * A 32-byte header, all little endian:
  *
  * ```
- *  0  "TCOR"          4 bytes
- *  4  version         u8
- *  5  bytes per datum u8 (4 = float32)
- *  6  degree          u8
- *  7  reserved        u8
- *  8  first jd        float64
+ * 0  "TCOR"          4 bytes
+ * 4  version         u8
+ * 5  bytes per datum u8 (4 = float32)
+ * 6  degree          u8
+ * 7  reserved        u8
+ * 8  first jd        float64
  * 16  days per block  float64
  * 24  blocks          u32
  * 28  reserved        u32
  * 32  coefficients    blocks × 3 × (degree+1) floats, the whole x, then y, then z
  * ```
  *
- * **Four-byte floats and not eight**, and it is measured: the correction of Uranus reaches
+ * Four-byte floats and not eight, and it is measured: the correction of Uranus reaches
  * 7e-4 AU and the relative precision of a four-byte float is 1e-7, that is 1e-10 AU of
  * rounding error, four orders of magnitude below what is being corrected. Storing the whole
  * position with this precision would indeed be madness; storing a correction, it is not.

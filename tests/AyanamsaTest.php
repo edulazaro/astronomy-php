@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  * The reference numbers come from pyswisseph 2.10.03 and are copied in by hand, so the suite runs
  * with no network, exactly as `EphemerisTest` does with JPL Horizons.
  *
- * **What is compared is what the projection MOVES, not the position.** pyswisseph here runs with
+ * What is compared is what the projection MOVES, not the position. pyswisseph here runs with
  * no ephemeris files and falls back to Moshier, so comparing longitudes outright would measure two
  * ephemerides and two precession models rather than this rotation: that comparison comes out at
  * 3.25 arcseconds, of which 3.23 is the ORDINARY sidereal longitude of the same body and has
@@ -44,7 +44,7 @@ final class AyanamsaTest extends TestCase
      * arcseconds and the shift in latitude in degrees, at 12:00 Universal Time of 10 June of each
      * year.
      *
-     * Measured residual over these 63 rows: **0.011 arcseconds in longitude and 0.137 in
+     * Measured residual over these 63 rows: 0.011 arcseconds in longitude and 0.137 in
      * latitude**. The latitude one is larger and is understood: the shift in latitude goes as the
      * sine of the body's longitude from the node, so it inherits the one to three arcseconds by
      * which our longitude and Moshier's differ, times the inclination. Pluto in 1700, which is the

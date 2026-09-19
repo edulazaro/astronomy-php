@@ -11,7 +11,7 @@ namespace Astronomy;
  * diameter of the Sun. When the limb of the Sun touches the horizon, the whole Sun is
  * already geometrically below it.
  *
- * **The azimuth is measured from the NORTH towards the EAST**: north 0, east 90, south
+ * The azimuth is measured from the NORTH towards the EAST: north 0, east 90, south
  * 180, west 270. It is the convention of navigation and of field astronomy, and the same
  * one used by the vertex check in `CasasTest`. Swiss Ephemeris measures it from the south
  * towards the west: to compare against it, add 180 degrees.

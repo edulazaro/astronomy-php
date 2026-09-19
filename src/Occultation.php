@@ -24,7 +24,7 @@ readonly class Occultation
 {
     /**
      * @param Body|Star|Closure(float): Equatorial $target What was occulted, so that the
-     *        local circumstances can be computed afterwards without searching again.
+     * local circumstances can be computed afterwards without searching again.
      */
     public function __construct(
         public string $name,

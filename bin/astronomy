@@ -9,11 +9,11 @@
  * in an application that installs the package. Two thin wrappers over one implementation, never
  * two implementations.
  *
- *     vendor/bin/astronomy asteroids 136199 --from=1980 --to=1989
- *     vendor/bin/astronomy satellites Io Titan --data=/var/data/astro
- *     vendor/bin/astronomy stars
+ * vendor/bin/astronomy asteroids 136199 --from=1980 --to=1989
+ * vendor/bin/astronomy satellites Io Titan --data=/var/data/astro
+ * vendor/bin/astronomy stars
  *
- * **Where it writes is asked for and not guessed.** The engine reads its series from inside the
+ * Where it writes is asked for and not guessed. The engine reads its series from inside the
  * package, and writing there is wrong twice over: in an application the package is a copy that
  * Composer replaces, and what is downloaded belongs to whoever downloads it, not to the engine.
  * So `--data` says where, and without it the folder is `astro/` under the current directory.
@@ -165,7 +165,7 @@ DataFolder::useFolder($folder);
 /**
  * Rebuilding the data the package already ships.
  *
- * **Whoever installs this never runs any of it**: the series, the tables and the corrections are
+ * Whoever installs this never runs any of it: the series, the tables and the corrections are
  * inside, and that is what gets deployed. They are here because an engine that cannot rebuild its
  * own data is a folder of numbers with some code next to it. Until now they lived as Artisan
  * commands inside one particular application, so regenerating VSOP87 needed that application

@@ -10,17 +10,17 @@ use InvalidArgumentException;
  *
  * They are three different things, and wherever they are shown it has to say which one each is:
  *
- * - **The eight of the Hamburg school** (Cupido, Hades, Zeus, Kronos, Apollon, Admetos,
- *   Vulkanus and Poseidon), postulated by Alfred Witte and Friedrich Sieggrün in the twenties
- *   and thirties. They are here because the midpoints were already here (`Midpoint`), which
- *   is the central technique of that same school: having one half of the system and not the
- *   other was an odd hole.
- * - **Four hypothetical ones with followers**: Isis-Transpluto, Selena, Proserpina and Vulcan.
- * - **Four failed predictions and three discarded or pseudoscientific hypotheses**: the
- *   positions that Leverrier, Adams, Lowell and Pickering calculated before Neptune and Pluto
- *   were found, plus Nibiru, Harrington and Waldemath's second moon.
+ * - The eight of the Hamburg school (Cupido, Hades, Zeus, Kronos, Apollon, Admetos,
+ * Vulkanus and Poseidon), postulated by Alfred Witte and Friedrich Sieggrün in the twenties
+ * and thirties. They are here because the midpoints were already here (`Midpoint`), which
+ * is the central technique of that same school: having one half of the system and not the
+ * other was an odd hole.
+ * - Four hypothetical ones with followers: Isis-Transpluto, Selena, Proserpina and Vulcan.
+ * - Four failed predictions and three discarded or pseudoscientific hypotheses: the
+ * positions that Leverrier, Adams, Lowell and Pickering calculated before Neptune and Pluto
+ * were found, plus Nibiru, Harrington and Waldemath's second moon.
  *
- * **None of them has ever been observed.** They are not in JPL, nor in the minor body
+ * None of them has ever been observed. They are not in JPL, nor in the minor body
  * catalogue, nor anywhere, so here there is no analytical theory and no table to interpolate:
  * there is a fixed ellipse and not even the perturbation of any other planet is taken into
  * account. Swiss's own documentation warns that this can be worth a degree in the twentieth
@@ -58,7 +58,7 @@ class FictitiousBodies
      * The vector from its centre to the body, geometric, in the ecliptic of the DATE and in
      * astronomical units.
      *
-     * **From ITS centre, which is not always the Sun.** Seventeen are heliocentric and two,
+     * From ITS centre, which is not always the Sun. Seventeen are heliocentric and two,
      * Selena and Waldemath's moon, orbit the EARTH. Whoever calls has to ask `isGeocentric` and
      * add the Earth to those two, which is what `Ephemeris::geometricHeliocentric` does and by
      * the same route as the Moon, so that the correction of the Earth towards JPL is applied
@@ -66,7 +66,7 @@ class FictitiousBodies
      * forced this class to ask for the Earth, and then there would be two places that know
      * where each body comes from instead of one.
      *
-     * **The last rotation is not decorative.** The elements of nearly all of them are referred
+     * The last rotation is not decorative. The elements of nearly all of them are referred
      * to the mean ecliptic and equinox of another epoch (1900 the eight of Hamburg, 1850 the
      * predictions of Neptune, 1930 those of Pluto), so the ellipse comes out drawn on a plane
      * that is no longer today's: it has to be precessed to the equinox of the date. That is
@@ -134,7 +134,7 @@ class FictitiousBodies
      * Whether its elements describe an orbit around the EARTH and not around the Sun.
      *
      * They are two of the nineteen, Selena and Waldemath's moon, and `seorbel.txt` marks it
-     * with the word `geo` at the end of the line. **A geocentric body treated as heliocentric
+     * with the word `geo` at the end of the line. A geocentric body treated as heliocentric
      * comes out one astronomical unit away from where it belongs and looking every bit like a
      * normal planet in some sign or other**, which is the kind of failure you do not see by
      * looking at a wheel. Waldemath is the one it hurts most: its vector measures seven
@@ -156,7 +156,7 @@ class FictitiousBodies
      * carries a linear term, that term IS the mean motion (in degrees per Julian century); if it
      * comes on its own, it comes out of the semi-major axis by Kepler's third law.
      *
-     * **And the third law is only good for the heliocentric ones.** The Gaussian constant has
+     * And the third law is only good for the heliocentric ones. The Gaussian constant has
      * the mass of the Sun inside it, so applying it to a body that orbits the Earth would give a
      * period hundreds of times shorter. The two geocentric ones there are carry their linear
      * term, so the case does not arise; if some day one is added that does not carry it, this
@@ -249,7 +249,7 @@ class FictitiousBodies
      *
      * Newton with a bisection safeguard, and the safeguard is not superfluous. The first eighteen
      * bodies have nearly circular orbits (the largest eccentricity is 0.31) and with them bare
-     * Newton converges in two turns. **Nibiru has 0.981**, that is, a nearly parabolic orbit,
+     * Newton converges in two turns. Nibiru has 0.981, that is, a nearly parabolic orbit,
      * and there Newton starting at the mean anomaly jumps out of the interval and oscillates
      * without converging. The equation has one root and only one in [0, 2π), so it is enough to
      * keep narrowing the interval by the sign of the residual and to fall on the midpoint every

@@ -11,19 +11,19 @@ use Closure;
  * and for a birth chart that is enough, because a chart is read in ecliptic longitudes and six
  * thousand kilometres do not move them. Here it is not enough, for two reasons:
  *
- * - **Parallax.** From the ground the Moon is seen up to one degree lower than from the centre
- *   of the Earth, because the observer is six thousand kilometres closer to the horizon they
- *   look at it over. One degree is four minutes of clock time in its rising. For anything to do
- *   with the horizon, the Moon goes in topocentric coordinates.
- * - **Refraction.** The atmosphere lifts whatever is low: at the horizon, 34 arcminutes. The
- *   Sun that is seen touching the sea is already geometrically below it in full.
+ * - Parallax. From the ground the Moon is seen up to one degree lower than from the centre
+ * of the Earth, because the observer is six thousand kilometres closer to the horizon they
+ * look at it over. One degree is four minutes of clock time in its rising. For anything to do
+ * with the horizon, the Moon goes in topocentric coordinates.
+ * - Refraction. The atmosphere lifts whatever is low: at the horizon, 34 arcminutes. The
+ * Sun that is seen touching the sea is already geometrically below it in full.
  *
  * And here lives the trap of the two time scales as well, for the third time: the position of
  * the body is asked for in Terrestrial Time, but where the observer is depends on how much the
  * Earth has turned, and that goes in Universal Time. Everything that takes a `$jdUt` converts
  * it inside when it needs the other one.
  *
- * **Azimuth is measured from north towards east.** Swiss Ephemeris measures it from south
+ * Azimuth is measured from north towards east. Swiss Ephemeris measures it from south
  * towards west; `Horizontal::azimuthFromSouth()` gives it in that convention for comparison.
  */
 readonly class Horizon
@@ -61,7 +61,7 @@ readonly class Horizon
     /**
      * The Moon's two k values, which the IAU adopted in 1982 for eclipse predictions.
      *
-     * **There are two and not one, and choosing wrong costs kilometres.** The one above is the
+     * There are two and not one, and choosing wrong costs kilometres. The one above is the
      * MEAN LIMB and holds for the penumbra and for the first and the last contact. The one below
      * is the UMBRAL LIMB, 0.08 % smaller, and it is the one that rules where what decides is the
      * last light of the Sun slipping through the valleys between the mountains of the limb: the
@@ -69,7 +69,7 @@ readonly class Horizon
      *
      * Neither of the two is the radius of the physical body.
      *
-     * **They live here because two places use them**, `Eclipses` for its interior contacts and
+     * They live here because two places use them, `Eclipses` for its interior contacts and
      * `CentralPath` for its cone, and they were written by hand in both with the same figure.
      * Measured on the 2017 path: with the mean limb it comes out at 117.90 km and totality at
      * 164.5 seconds, where NASA publishes 114.7 and 160.1. Three kilometres too many in every
@@ -247,7 +247,7 @@ readonly class Horizon
      * changes per unit of time. The unit of time does not matter and is not named: what this does
      * is a rotation, and a rotation is linear, so it comes out in the same unit it went in with.
      *
-     * **The velocity is not rotated as if it were another position**, and that is the reason this
+     * The velocity is not rotated as if it were another position, and that is the reason this
      * exists instead of calling the usual rotation twice. Angles are not a vector: rotating the
      * point «one degree of longitude per day» as if it were a point of the sky gives nonsense.
      * What gets rotated is the rectangular vector and its derivative, which are vectors, and from
@@ -255,7 +255,7 @@ readonly class Horizon
      * the denominator of the latitude that comes back: near the pole, one degree per day of
      * longitude is a great deal less distance covered.
      *
-     * **In this engine there is nobody to feed it**, and it is better said here than discovered:
+     * In this engine there is nobody to feed it, and it is better said here than discovered:
      * `Position` carries the velocity IN LONGITUDE, a single number, and that is a measured
      * decision (the full velocity comes out of centred differences and costs three times as much;
      * the milestones of a life went from thirty seconds to ten precisely by no longer asking for
@@ -338,7 +338,7 @@ readonly class Horizon
     /**
      * Apparent geocentric equatorial coordinates of a body or of a star at an instant.
      *
-     * **This is the only place where a `Star` is turned into a direction**, and everything that
+     * This is the only place where a `Star` is turned into a direction, and everything that
      * rises and sets or gets occulted (`RiseSet`, `Occultations`, `Eclipses`) comes through here
      * by way of `track()`. APPARENT right ascension and declination of date, with aberration and
      * nutation, which is what `swe_rise_trans` and `swe_lun_occult_when_*` use when they are
@@ -517,7 +517,7 @@ readonly class Horizon
      * The way back: from azimuth and altitude to right ascension and declination. It is Swiss's
      * `swe_azalt_rev`.
      *
-     * **The altitude that goes in is the TRUE one, not the apparent one**, and mixing them up
+     * The altitude that goes in is the TRUE one, not the apparent one, and mixing them up
      * costs half a degree right down at the horizon. Refraction lifts the image, so a body that
      * is seen at the horizon is really 34 arcminutes below it: to put in here what is read off a
      * theodolite, it has to go through `trueAltitude()` first. Swiss demands the same thing and
@@ -533,10 +533,10 @@ readonly class Horizon
      * To go back as far as the ecliptic there is `eclipticOf()`, which is what Swiss does with
      * `SE_HOR2ECL` instead of `SE_HOR2EQU`.
      *
-     * **Against `swe_azalt_rev`, sixteen cases in four places and four dates from 1900 to 2023:
+     * Against `swe_azalt_rev`, sixteen cases in four places and four dates from 1900 to 2023:
      * the declination comes out identical to exactly zero and the right ascension differs by
-     * 0.017 to 0.283 arcseconds.** And that residual has a name: it is **the same for every place
-     * and every azimuth of a given date**, because the only way in that it has is the right
+     * 0.017 to 0.283 arcseconds. And that residual has a name: it is the same for every place
+     * and every azimuth of a given date, because the only way in that it has is the right
      * ascension, which comes out of sidereal time. Checked: the difference between our apparent
      * sidereal time and theirs gives those three numbers down to the last printed figure. That
      * is, the way back itself carries nothing, and what is left is the sidereal time offset that
@@ -546,7 +546,7 @@ readonly class Horizon
      * @param float $trueAltitude Degrees above the horizon, without refraction.
      * @param float $jdUt
      * @param float|null $distanceKm If it is known, it travels with the coordinate; if not, it is
-     *                               a direction without distance, like a star.
+     * a direction without distance, like a star.
      * @return Equatorial
      */
     public function equatorialFromHorizontal(
@@ -677,7 +677,7 @@ readonly class Horizon
      * refraction is 0.16 and at the horizon 0.57, so using the one at the horizon for a mountain
      * leaves the rising half a degree of altitude out.
      *
-     * **The APPARENT altitude is what is asked for, which is the one that is seen**, and that is
+     * The APPARENT altitude is what is asked for, which is the one that is seen, and that is
      * the asymmetry of refraction: it depends on where the light comes in at the end, not on
      * where the body is. That is why `refractionAtHorizon()` is this very one evaluated at zero
      * and there is no direct way to ask «how much does what is really at such an altitude
@@ -698,7 +698,7 @@ readonly class Horizon
      * grazing ray follows. With the standard atmosphere it is 0.17, that is, the light bends a
      * little less than a fifth of what the planet bends.
      *
-     * It is the Explanatory Supplement formula, and **the thermal lapse rate is the one that
+     * It is the Explanatory Supplement formula, and the thermal lapse rate is the one that
      * rules**: pressure and temperature move it little and the lapse rate moves everything,
      * because what bends the ray is the air changing density with height. That is why Swiss
      * exposes it as a parameter with `swe_set_lapse_rate` instead of taking it for granted.
@@ -728,19 +728,19 @@ readonly class Horizon
      * NEGATIVE: the higher one stands, the lower it lies. It is the part of
      * `swe_refrac_extended` that did not fit into ordinary refraction.
      *
-     * **It comes out with the sign it is used with**, so that it can be chained without thinking:
+     * It comes out with the sign it is used with, so that it can be chained without thinking:
      * `RiseSet::next(..., horizonAltitude: Horizon::horizonDip(1000.0))`. An observer at a
      * thousand metres sees the horizon 0.93 degrees below the astronomical one, and that brings
      * the rising forward by some four minutes.
      *
-     * The reckoning is two things: **the geometry**, which is the angle at which the tangent to a
-     * sphere is seen from outside it, and **the refraction**, which reduces it because the ray
+     * The reckoning is two things: the geometry, which is the angle at which the tangent to a
+     * sphere is seen from outside it, and the refraction, which reduces it because the ray
      * bends following the planet. With standard air the dip comes out at 91 % of the geometric
      * one, that is, 1.75 arcminutes per square root of a metre.
      *
      * Against `swe_refrac_extended`, with coherent atmospheres from 1 to 3,100 metres and four
-     * lapse rates: **worst 1.6 arcseconds**. And that figure has to be read next to the other
-     * one: **not knowing the lapse rate moves the dip by up to 94 arcseconds**, sixty times more.
+     * lapse rates: worst 1.6 arcseconds. And that figure has to be read next to the other
+     * one: not knowing the lapse rate moves the dip by up to 94 arcseconds, sixty times more.
      * Here the precision is not set by the formula, it is set by the air of that morning.
      *
      * @param float $heightMetres Of the observer above sea level.

@@ -21,7 +21,7 @@ namespace Astronomy;
  * disc, and the geometry knows it because its distance is null and its radius zero. A
  * callable returning an `Equatorial` serves for whatever is not in the catalogue.
  *
- * **A star far from the ecliptic is discarded before computing anything.** The Moon never
+ * A star far from the ecliptic is discarded before computing anything. The Moon never
  * gets farther than 5.3 degrees from the ecliptic, and to be covered from somewhere on
  * Earth the star has to be within the lunar parallax (1.0) plus the semidiameter
  * (0.28) of its centre: 6.6 degrees. Vega is at 61. Without that discard, looking for its

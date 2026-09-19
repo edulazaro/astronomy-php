@@ -14,11 +14,11 @@ class Phenomenon
     /**
      * @param Body|DownloadableBody $body
      * @param float $phaseAngle Sun-body-Earth, in degrees. Zero is the body right
-     *                            opposite the Sun, that is, full; 180 is between the Sun and
-     *                            us, that is, in the dark.
+     * opposite the Sun, that is, full; 180 is between the Sun and
+     * us, that is, in the dark.
      * @param float $illuminatedFraction From 0 to 1, the part of the disc that is seen lit.
      * @param float $elongation Sun-Earth-body, in degrees: how far it gets from the Sun in the
-     *                          sky. It is what decides whether a planet can be looked at.
+     * sky. It is what decides whether a planet can be looked at.
      * @param float $apparentDiameter Degrees taken up by the whole disc.
      * @param float|null $magnitude Visual brightness. Null if there is no model for this body.
      */
@@ -54,7 +54,7 @@ class Phenomenon
     /**
      * Whether the body is waxing or waning.
      *
-     * **This is decided by the elongation measured from 0 to 360, not by the phase angle**,
+     * This is decided by the elongation measured from 0 to 360, not by the phase angle,
      * which is symmetric: the first quarter and the last quarter both have 90 degrees of phase
      * and half the disc lit, and the only thing that tells them apart is which side of the Sun
      * the body is on. It is the same trap already noted in `MoonPhase` with the lunar

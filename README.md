@@ -3,11 +3,11 @@
 # Astronomy
 
 <p align="center">
-    <a href="https://github.com/edulazaro/astronomy/actions/workflows/tests.yml"><img src="https://github.com/edulazaro/astronomy/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+    <a href="https://github.com/edulazaro/astronomy-php/actions/workflows/tests.yml"><img src="https://github.com/edulazaro/astronomy-php/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
     <a href="https://packagist.org/packages/edulazaro/astronomy"><img src="https://img.shields.io/packagist/v/edulazaro/astronomy" alt="Latest Stable Version"></a>
     <a href="https://packagist.org/packages/edulazaro/astronomy"><img src="https://img.shields.io/packagist/dt/edulazaro/astronomy" alt="Total Downloads"></a>
     <a href="https://packagist.org/packages/edulazaro/astronomy"><img src="https://img.shields.io/packagist/php-v/edulazaro/astronomy" alt="PHP Version"></a>
-    <a href="https://github.com/edulazaro/astronomy/blob/main/LICENSE.md"><img src="https://img.shields.io/packagist/l/edulazaro/astronomy" alt="License"></a>
+    <a href="https://github.com/edulazaro/astronomy-php/blob/main/LICENSE.md"><img src="https://img.shields.io/packagist/l/edulazaro/astronomy" alt="License"></a>
 </p>
 
 A pure PHP astronomical engine. Planetary and lunar positions, houses, fixed stars, eclipses,
@@ -392,13 +392,31 @@ The one check that does go to the network is deliberately not in the suite, and 
 That is the number this README opens with, and it is here so that anybody can reproduce it rather
 than take it on trust.
 
+## Contributing
+
+Contributions are welcome. Fork the repo, add tests, and open a PR.
+
+Two things this package asks for that most do not, and both come from what it is:
+
+- **A number, not an adjective.** Anything that changes a computed value has to say how much,
+  measured against JPL Horizons or against the published source, and the figure goes in the
+  docblock. A chart that is wrong does not look wrong, which is why this is the rule.
+- **The published source, never Swiss Ephemeris's code.** Swiss is AGPL and staying clear of it is
+  the reason this engine exists. Comparing results against it is expected and there are tests that
+  do; reading its C to write ours is not.
+
+If you are adding something the engine already has data for, say so in the PR: several of the
+capabilities added recently turned out to need no new astronomy at all, only a door onto what was
+already there.
+
 ## Sponsors
 
 Astronomy is supported by the following sponsors. Thank you for keeping it growing:
 
 <p>
   <a href="https://kenodo.com"><img src="art/logo-kenodo.png" width="24" alt="Kenodo"></a>&nbsp;<a href="https://kenodo.com">Kenodo</a>&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://andorradev.com"><img src="art/logo-andorradev.png" width="24" alt="AndorraDev"></a>&nbsp;<a href="https://andorradev.com">AndorraDev</a>
+  <a href="https://andorradev.com"><img src="art/logo-andorradev.png" width="24" alt="AndorraDev"></a>&nbsp;<a href="https://andorradev.com">AndorraDev</a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://tarotian.com"><img src="art/logo-tarotian.png" width="24" alt="Tarotian"></a>&nbsp;<a href="https://tarotian.com">Tarotian</a>
 </p>
 
 ## Author

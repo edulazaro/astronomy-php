@@ -39,7 +39,7 @@ readonly class UtInstant
         /* To the millisecond, which is more than the computation guarantees and less than a
            `format('U.u')` would accept without complaining about the decimals.
 
-           **The integer part is taken with `floor` and the fraction is always left positive**, and
+           * *The integer part is taken with `floor` and the fraction is always left positive**, and
            that is what has to be done before 1970. `U.v` does not read a decimal number: it reads
            some seconds and some milliseconds and ADDS them. Handing it "-1234567890.250", which is
            what `sprintf` writes for an instant earlier than the epoch, it understands -1234567890

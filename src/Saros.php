@@ -10,7 +10,7 @@ namespace Astronomy;
  * into numbered series, and that number is what NASA prints next to every eclipse in its
  * canon.
  *
- * **This is NOT geometry that can be derived: it is a numbering CONVENTION with a chosen
+ * This is NOT geometry that can be derived: it is a numbering CONVENTION with a chosen
  * origin**, van den Bergh's (1955), who gave number 1 to a series that was running during
  * the second millennium BC by extrapolating von Oppolzer's canon. It does not come from
  * looking at where the Moon is. The published convention has to be reproduced and checked
@@ -18,28 +18,28 @@ namespace Astronomy;
  * eye: the rule is NASA's and the anchors are measured against their tables.
  *
  * The rule is in NASA's own catalogue (Espenak, "Periodicity of Solar Eclipses", the table
- * that translates intervals between eclipses into series jumps): **one lunation further
- * on, the series goes up by 38, counting modulo 223**. That single constant reproduces the
+ * that translates intervals between eclipses into series jumps): one lunation further
+ * on, the series goes up by 38, counting modulo 223. That single constant reproduces the
  * eight rows of that table, and that is what proves it is the right one and not a number
  * tuned to make a handful of cases fit:
  *
- *     38 ·   5 ≡ -33 (short semester)   38 · 223 ≡  0 (saros)
- *     38 ·   6 ≡   5 (semester)         38 · 235 ≡ 10 (metonic cycle)
- *     38 · 135 ≡   1 (tritos)           38 · 358 ≡  1 (inex)
- *                                       38 · 669 ≡  0 (exeligmos)
+ * 38 ·   5 ≡ -33 (short semester)   38 · 223 ≡  0 (saros)
+ * 38 ·   6 ≡   5 (semester)         38 · 235 ≡ 10 (metonic cycle)
+ * 38 · 135 ≡   1 (tritos)           38 · 358 ≡  1 (inex)
+ * 38 · 669 ≡  0 (exeligmos)
  *
  * Solar and lunar eclipses are numbered separately, so each family carries its own anchor.
  * Both are the same lunation, number 37, and they are exactly 12 series apart.
  *
  * **The modulo representative goes in [0, 222] and NOT in [1, 223], and that difference is
- * one eclipse in every two hundred.** The popularised rule says "if it goes past 223,
- * subtract 223", that is, it numbers from 1 to 223. It is wrong in one place: **series 0
+ * one eclipse in every two hundred. The popularised rule says "if it goes past 223,
+ * subtract 223", that is, it numbers from 1 to 223. It is wrong in one place: series 0
  * exists** in NASA's canon and with that window it comes out as 223. Measured over the
  * 3,633 eclipses of the fourteen centuries downloaded from the canon, the [1, 223] window
  * fails 16 times and all 16 are that case; the [0, 222] window never fails. The numbers
  * published across the five millennia run from 0 to 190, so 223 never appears and 0 does.
  *
- * **The member within the series is always returned null, and that is deliberate.** A
+ * The member within the series is always returned null, and that is deliberate. A
  * series does not begin where the arithmetic would say: it lasts between 69 and 87
  * eclipses depending on the case, and where each one starts depends on the geometry and on
  * the criterion by which NASA decides that a grazing already counts as an eclipse of the

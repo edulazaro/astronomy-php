@@ -7,24 +7,24 @@ namespace Astronomy;
  *
  * The model is the classical one, the same one everybody uses:
  *
- *     V = 5 · log10(r · Δ) + f(α)
+ * V = 5 · log10(r · Δ) + f(α)
  *
  * The first two terms are pure geometry, how much a body dims for being far from the Sun and
  * for being far from us, and there is nothing to fit in them. Everything that is known about
  * each planet (how much it reflects, how it darkens when seen from the side) lives in `f(α)`, a
  * function of the phase angle, and that is the only thing that gets stored.
  *
- * **The coefficients are NOT written by hand: they are fitted against the JPL itself** with
+ * The coefficients are NOT written by hand: they are fitted against the JPL itself with
  * `astronomy magnitudes`, which asks Horizons for the published magnitude across centuries and
  * strips the geometry out of it. It is the same decision as the ephemeris correction: instead
  * of copying the polynomials out of a paper and hoping they were transcribed right, the fit is
  * made against the source and the residual is measured, which is a number that can be shown.
  *
- * ## Saturn does not fit in a function of the phase angle, and that is why it takes two variables
+ * Saturn does not fit in a function of the phase angle, and that is why it takes two variables
  *
  * The rings contribute a good part of Saturn's light and they look more or less open depending
  * on where we are: every fifteen years they turn edge-on and disappear. Between the fully open
- * ring and the edge-on ring there is almost **a whole magnitude**, which means that a fit on the
+ * ring and the edge-on ring there is almost a whole magnitude, which means that a fit on the
  * phase angle alone leaves Saturn with an error larger than the brightness of many stars. That
  * is why its `f` has two inputs, the phase angle and the ring opening, and that opening is the
  * latitude of the observer as seen from Saturn, which comes from the planet's pole.

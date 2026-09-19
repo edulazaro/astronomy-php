@@ -12,7 +12,7 @@ use Throwable;
  *
  * `Moon` is a truncated ELP 2000-82B, an analytical theory Chapront-Touzé and Chapront fitted to
  * DE200 forty years ago. Against DE440, which is what Horizons serves today, it drifts away by a
- * fifth of an arcsecond in the year 2000, eight tenths in 1900 and **fifteen arcseconds in 1600**.
+ * fifth of an arcsecond in the year 2000, eight tenths in 1900 and fifteen arcseconds in 1600.
  * Almost all of that is the tidal acceleration: how much the Moon is slowed down by raising tides
  * on the Earth, which enters its mean longitude as a term in the square of the time. DE200 fitted
  * it with one value and DE440 with another, and the difference grows towards both sides of 2000
@@ -22,20 +22,20 @@ use Throwable;
  * This is not fixed by touching the series: it is fixed by measuring the difference and storing
  * it. That is what this class does, and `Ephemeris::geometricMoon` adds it.
  *
- * ## What is asked for and why
+ * What is asked for and why
  *
  * The GEOCENTRIC vector of the Moon, geometric and in Terrestrial Time:
  *
  * - `CENTER='500@399'` and not the Earth-Moon barycentre: it is what ELP gives, and correcting
- *   each thing on its own leaves the Earth's error in the Earth's correction and the Moon's in
- *   its own. Mixed together there would be no way of telling which is whose.
+ * each thing on its own leaves the Earth's error in the Earth's correction and the Moon's in
+ * its own. Mixed together there would be no way of telling which is whose.
  * - `VEC_CORR='NONE'`, geometric: no light time. `Moon::geocentricRectangular` does not carry it
- *   either, because the delay is put in afterwards by whoever looks from the Earth. Asking for
- *   `LT` would tabulate the difference plus the delay, that is, seven tenths of an arcsecond of
- *   error put in by hand.
+ * either, because the delay is put in afterwards by whoever looks from the Earth. Asking for
+ * `LT` would tabulate the difference plus the delay, that is, seven tenths of an arcsecond of
+ * error put in by hand.
  * - `TIME_TYPE='TT'`. Asking in UT, Horizons converts with ITS delta T and we with ours, and the
- *   comparison ends up measuring the difference between the two clocks instead of the one between
- *   the ephemerides. It is the same trap `astro:verificar` already has written down.
+ * comparison ends up measuring the difference between the two clocks instead of the one between
+ * the ephemerides. It is the same trap `astro:verificar` already has written down.
  *
  * All three are what `Horizons::vectors` asks for, which is why the request goes through it: it
  * also carries the retry policy this project measured, because the JPL answers a 200 with an EMPTY
@@ -46,14 +46,14 @@ use Throwable;
  * Pluto and the asteroids. The correction is stored in the ecliptic of date because that is where
  * `Ephemeris` works, and so adding it is adding.
  *
- * ## Regenerating does not bite its own tail
+ * Regenerating does not bite its own tail
  *
  * The residual is measured against `Moon::spherical`, which is pure ELP and does not know a
  * correction table exists. Were it measured against `Ephemeris`, which already adds it, the second
  * run would measure a residual of almost nothing and would write a table of zeros: the correction
  * would erase itself without giving any error.
  *
- * ## The numbers that decided block, degree and step
+ * The numbers that decided block, degree and step
  *
  * All measured over three three-year windows in 1600, 2000 and 2400, fitting and then comparing
  * against the points in between. The frontier between what it costs and what it gives, asking for
@@ -73,18 +73,18 @@ use Throwable;
  * sampled every twelve hours gives 33 points and does not allow going past degree 10.
  *
  * Bringing the step down to SIX hours, that same block of sixteen days admits degree 14 with 65
- * points, that is 4.3 points per coefficient, and the error falls to **0.006"**. That is what is
+ * points, that is 4.3 points per coefficient, and the error falls to 0.006". That is what is
  * used: 16 days, degree 14, a point every six hours, 3.1 MB for 1600 to 2400.
  *
- * ## Why the fine step is not a luxury
+ * Why the fine step is not a luxury
  *
  * The rule of three points per coefficient is not caution: it is measured, and it bites right
  * here. With DAILY sampling, the block of 48 days and degree 24 is left with 49 points for 25
- * coefficients; the fit passes through nearly all of them and **its error at its own points falls
- * to 0.024" while the real error, measured between them, rises to 0.244"**. Ten times worse and
+ * coefficients; the fit passes through nearly all of them and its error at its own points falls
+ * to 0.024" while the real error, measured between them, rises to 0.244". Ten times worse and
  * looking for all the world as if it were better, which is the worst way to be wrong.
  *
- * ## Truncating ELP less does not pay off, and that is measured too
+ * Truncating ELP less does not pay off, and that is measured too
  *
  * The other way out was to lower the threshold of `astronomy elp2000` so that ELP brought more terms:
  * that kills the part of the residual that is truncation, which is the short-period part and
@@ -97,7 +97,7 @@ use Throwable;
  * 1e-9       6891      0.854          15.07"              1.2 MB
  * ```
  *
- * From today's threshold (1e-8) downwards **the raw residual stops going down**: 15.05" against
+ * From today's threshold (1e-8) downwards the raw residual stops going down: 15.05" against
  * 15.07". That is, what is left is not truncation, it is the difference between DE200 and DE440,
  * and against that no term of ELP is any use. Tripling the terms would cost tripling the time of
  * each Moon, which `Eclipses` and `Occultations` call thousands of times, to save a hundred
@@ -136,11 +136,11 @@ final class MoonCorrectionTable
      * @param int $degree Degree of the polynomial of each coordinate.
      * @param int $stepHours Separation between the points asked of Horizons.
      * @param callable|null $progress Called as ($stage, $done, $total), with `$stage` either
-     *                                'download' or 'fit'. For whoever wants to show a bar.
+     * 'download' or 'fit'. For whoever wants to show a bar.
      * @return array{path: string, bytes: int, blocks: int, block_days: int, degree: int,
-     *               step_hours: int, points: int, points_per_block: int, first: string,
-     *               last: string, from: string, to: string, epoch: float, worst_fit: float,
-     *               worst_fit_arcseconds: float, worst_seam: float, worst_seam_arcseconds: float}
+     * step_hours: int, points: int, points_per_block: int, first: string,
+     * last: string, from: string, to: string, epoch: float, worst_fit: float,
+     * worst_fit_arcseconds: float, worst_seam: float, worst_seam_arcseconds: float}
      *
      * @throws RuntimeException If the parameters do not hold together or Horizons does not answer.
      */
@@ -180,8 +180,8 @@ final class MoonCorrectionTable
      * @param int $degree
      * @param int $stepHours
      * @return array{blocks: int, block_days: int, degree: int, step_hours: int, points: int,
-     *               points_per_block: int, first: string, last: string, from: string, to: string,
-     *               epoch: float}
+     * points_per_block: int, first: string, last: string, from: string, to: string,
+     * epoch: float}
      *
      * @throws RuntimeException
      */
@@ -253,7 +253,7 @@ final class MoonCorrectionTable
      * Downloads the series and returns the residual of each point, in AU and in the ecliptic of
      * date.
      *
-     * **The series is asked for in chunks and each chunk is turned into residuals right away.**
+     * The series is asked for in chunks and each chunk is turned into residuals right away.
      * Keeping the whole of Horizons' answer and the whole of ours at the same time is twice the
      * memory for a number that is thrown away one line later.
      *
@@ -319,13 +319,13 @@ final class MoonCorrectionTable
      *
      * @param array{0: list<float>, 1: list<float>, 2: list<float>} $residuals
      * @param array{blocks: int, block_days: int, degree: int, step_hours: int, points: int,
-     *              points_per_block: int, first: string, last: string, from: string, to: string,
-     *              epoch: float} $plan
+     * points_per_block: int, first: string, last: string, from: string, to: string,
+     * epoch: float} $plan
      * @param callable|null $progress
      * @return array{path: string, bytes: int, blocks: int, block_days: int, degree: int,
-     *               step_hours: int, points: int, points_per_block: int, first: string,
-     *               last: string, from: string, to: string, epoch: float, worst_fit: float,
-     *               worst_fit_arcseconds: float, worst_seam: float, worst_seam_arcseconds: float}
+     * step_hours: int, points: int, points_per_block: int, first: string,
+     * last: string, from: string, to: string, epoch: float, worst_fit: float,
+     * worst_fit_arcseconds: float, worst_seam: float, worst_seam_arcseconds: float}
      *
      * @throws RuntimeException
      */

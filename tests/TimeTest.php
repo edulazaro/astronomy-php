@@ -229,7 +229,7 @@ final class TimeTest extends TestCase
 
     /**
      * An on-the-minute label comes back on the minute, and that is not obvious: `swe_utc_time_zone`
-     * gets it wrong for **45.96% of them**, measured exhaustively over the 1,440 minutes of a day
+     * gets it wrong for 45.96% of them, measured exhaustively over the 1,440 minutes of a day
      * and the 51 offsets, and with the same 33,756 of 73,440 in 1600, 1900, 2000, 2026, 2100 and
      * 2400, so it does not depend on the size of the julian day. It comes back one minute lower
      * with the second at 59.99999999999: the shortfall is at most 1.7e-11 seconds and it moves the

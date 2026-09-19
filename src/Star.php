@@ -19,7 +19,7 @@ namespace Astronomy;
  * engine counts the years from J2000. A catalogue referred to another epoch would leave every
  * star eight years of proper motion out of place without giving any error.
  *
- * **What a star MEANS is not here**, and that is the line this package draws. The planetary
+ * What a star MEANS is not here, and that is the line this package draws. The planetary
  * nature an astrologer reads into a star (Regulus «of Mars and Jupiter») is Robson, 1923, who
  * collects Ptolemy: it is not measured against anything and Swiss does not give it either. It
  * travelled inside this catalogue in a `nature` column, and not by decision: the file was born
@@ -121,7 +121,7 @@ readonly class Star
      * computed the same way. But their «position» is the centre of something that has extent,
      * and in the text it is better not to call them a star.
      *
-     * **It is the designation that says so and not the missing magnitude**, which is what this
+     * It is the designation that says so and not the missing magnitude, which is what this
      * asked while the catalogue had 174 entries and only clusters lacked one. Over 1,099 that is
      * false: SIMBAD publishes no V flux for a system it gives as a whole, so 22 perfectly
      * ordinary stars have no magnitude (14 Andromedae, gamma Cephei, mu1 Bootis) and were being

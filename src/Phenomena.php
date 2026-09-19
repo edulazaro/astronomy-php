@@ -18,20 +18,20 @@ use InvalidArgumentException;
  * that the angle must not come out of the law of cosines, which on the Moon loses two and a half
  * digits.
  *
- * ## The three things that are not obvious
+ * The three things that are not obvious
  *
- * **The elongation is measured between the APPARENT directions, not with the triangle.** The two
+ * The elongation is measured between the APPARENT directions, not with the triangle. The two
  * numbers look very much alike and are not the same thing: the triangle gives the geometric angle
  * and the elongation is what is seen, that is with light-time, aberration and latitude applied.
  * Since the elongation exists to decide whether a planet can be looked at, the good one is the one
  * that is seen.
  *
- * **The phase angle does not tell waxing from waning**, because it is symmetric: the first quarter
+ * The phase angle does not tell waxing from waning, because it is symmetric: the first quarter
  * and the last quarter both have ninety degrees and half the disc lit. What separates them is which
  * side of the Sun the body is on, and that is what `orientedElongation` says, measured from 0 to
  * 360. It is the same trap already noted in `MoonPhase`.
  *
- * **The Sun has no phase.** It does not light itself, so its phase angle is zero, its disc is whole
+ * The Sun has no phase. It does not light itself, so its phase angle is zero, its disc is whole
  * and its elongation is zero too. Computing its triangle would give a division by zero, because one
  * of the sides measures zero.
  */
@@ -91,7 +91,7 @@ class Phenomena
      * Null for every other body, which has no ring to see.
      *
      * It is the angle between the Saturn-Earth direction and the planet's equator, that is the sine
-     * of the dot product of the pole by that direction. **The pole stands still in space and the
+     * of the dot product of the pole by that direction. The pole stands still in space and the
      * ecliptic of date turns**, so the direction is taken to J2000 before multiplying it: doing it
      * in the ecliptic of date, the pole would drift a degree in a century and the ring opening with
      * it.
@@ -149,7 +149,7 @@ class Phenomena
      * projected diameter. The difference only reaches hundredths of an arcsecond on the Moon, but
      * writing the right one costs no more.
      *
-     * **With the EQUATORIAL radius and not with `radiusKm`**, which is the mean one: the giants are
+     * With the EQUATORIAL radius and not with `radiusKm`, which is the mean one: the giants are
      * flattened and on Saturn that is three and a half per cent of the disc's width. It came out of
      * comparing with Horizons, which gives the equatorial width like everyone else.
      *

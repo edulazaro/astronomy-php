@@ -9,7 +9,7 @@ use RuntimeException;
 /**
  * Checks the engine's own positions against JPL Horizons, live.
  *
- * **A badly computed chart does not look wrong.** The wheel comes out just as pretty with Mars
+ * A badly computed chart does not look wrong. The wheel comes out just as pretty with Mars
  * three degrees off, and nobody looking at it is going to notice. So this is not a luxury: it is
  * the only way to know the engine is right, and it has to be repeatable every time anything in
  * the calculation is touched.
@@ -18,7 +18,7 @@ use RuntimeException;
  * positions spacecraft are navigated with. Agreeing with that to the arcsecond is agreeing with
  * every astrology program on the market.
  *
- * **It lives in the package because it is the proof of what the package claims.** The number in
+ * It lives in the package because it is the proof of what the package claims. The number in
  * the README, «verified against JPL Horizons below two tenths of an arcsecond between 1600 and
  * 2400», comes out of here: a library that makes that claim has to ship the thing that
  * demonstrates it, or the claim is a sentence somebody wrote once.
@@ -41,8 +41,8 @@ final class HorizonsCheck
      * @param string $step Between dates, in Horizons' own format.
      * @param float $tolerance Largest acceptable difference, in arcseconds.
      * @return array{rows: list<array{body: string, dates: int, longitude: float, latitude: float,
-     *                status: 'ok'|'out'|'absent'|'silent'}>, worst: float, failures: int,
-     *                tolerance: float}
+     * status: 'ok'|'out'|'absent'|'silent'}>, worst: float, failures: int,
+     * tolerance: float}
      */
     public static function run(
         ?HttpClient $http = null,

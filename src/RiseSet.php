@@ -16,7 +16,7 @@ use RuntimeException;
  * limb with refraction, which is what any almanac publishes, and on request the centre
  * of the disc, without refraction, or the three twilights.
  *
- * **Never one ephemeris per second.** A rise has to be pinned down to the second and a
+ * Never one ephemeris per second. A rise has to be pinned down to the second and a
  * position of the Moon costs milliseconds, so finding it by evaluating the ephemeris at
  * every step of a bisection would be sixty thousand rounds for one datum. What is done
  * is to sample the GEOCENTRIC position every hour, which is a very smooth curve, and
@@ -26,13 +26,13 @@ use RuntimeException;
  * needed. The error of interpolating the Moon between one-hour samples is below a tenth
  * of an arcsecond.
  *
- * **Polar day or night: null.** If on that day the body does not cross the horizon,
+ * Polar day or night: null. If on that day the body does not cross the horizon,
  * there is no rise, and returning a number would be inventing it. The meridian passes do
  * always exist. And the same holds for a circumpolar star, or for one that never comes up
  * from that place: Vega does not set in Oslo nor rise in Ushuaia, and both cases are null
  * in rise and set with their two culminations.
  *
- * **A star comes in like any other body.** `Horizon::track()` translates it into an
+ * A star comes in like any other body. `Horizon::track()` translates it into an
  * apparent direction of the date, with no disc and no parallax, and from there on it is
  * the same as a planet. Swiss does the same with `swe_rise_trans` and a star name.
  */
@@ -79,9 +79,9 @@ readonly class RiseSet
     /**
      * @param string $name What it is that rises and sets, written out: «Sun», «Antares».
      * @param Body|Star|Closure(float): Equatorial $target The same thing, as an object,
-     *        so one can keep computing with it without looking it up again.
+     * so one can keep computing with it without looking it up again.
      * @param array<string, array{sunrise: UtInstant|null, dusk: UtInstant|null}> $twilights
-     *        Only for the Sun, by twilight name: civil, nautical and astronomical.
+     * Only for the Sun, by twilight name: civil, nautical and astronomical.
      */
     public function __construct(
         public string $name,
@@ -98,8 +98,8 @@ readonly class RiseSet
      * midnight to local midnight.
      *
      * @param Body|Star|callable(float): Equatorial $target A body, a star from the
-     *        catalogue, or an arbitrary direction of the date as a function of the
-     *        Julian day TT.
+     * catalogue, or an arbitrary direction of the date as a function of the
+     * Julian day TT.
      * @param Place $place
      * @param DateTimeInterface $day Only the date counts; the time is ignored.
      * @param Limb $limb
@@ -180,7 +180,7 @@ readonly class RiseSet
      * @param Limb $limb
      * @param bool $refraction
      * @param Twilight|null $twilight Only makes sense with the Sun and with rise or set:
-     *        dawn is the «rise» of the twilight and dusk its «set».
+     * dawn is the «rise» of the twilight and dusk its «set».
      * @param float $heightMetres
      * @return UtInstant|null
      */
@@ -219,7 +219,7 @@ readonly class RiseSet
      * The four passes of a civil day, SOLVED instead of tracked. Same answer as `ofTheDay()` and
      * the same shape, by a road that costs a tenth of the ephemerides.
      *
-     * ### Which of the two is the right one
+     * Which of the two is the right one
      *
      * `ofTheDay()` TRACKS the day: it samples the geocentric position every hour, interpolates,
      * and walks the altitude at ten minute steps looking for sign changes, refining the maxima
@@ -234,8 +234,8 @@ readonly class RiseSet
      * happens at. That gives the local sidereal time of the pass straight away, and from there
      * the instant, because over a day the Earth turns linearly. The catch is that δ belongs to
      * the position at the instant being looked for, so it is a fixed point: evaluate at noon,
-     * solve, evaluate there, solve again. **It converges as the ratio between how fast the body
-     * runs in right ascension and how fast the Earth turns**, which for the Moon, the worst, is
+     * solve, evaluate there, solve again. It converges as the ratio between how fast the body
+     * runs in right ascension and how fast the Earth turns, which for the Moon, the worst, is
      * thirteen degrees a day against three hundred and sixty one. Two or three rounds for a
      * planet, four for the Moon, one ephemeris each.
      *
@@ -243,29 +243,29 @@ readonly class RiseSet
      * needed and the geometry is enough. It is the second case that put it here, in
      * `Houses::gauquelinSectorByRiseAndSet`, which needs three passes for every sector it places.
      *
-     * ### What it costs and what it agrees with
+     * What it costs and what it agrees with
      *
      * Measured against `ofTheDay()` under the same options, the ten classical bodies from three
-     * places (Madrid, Oslo, Ushuaia) on three days, which is 360 passes: **the worst disagreement
-     * is 0.038 seconds of clock time**, and it is the Moon setting in Oslo, which is the fastest
+     * places (Madrid, Oslo, Ushuaia) on three days, which is 360 passes: the worst disagreement
+     * is 0.038 seconds of clock time, and it is the Moon setting in Oslo, which is the fastest
      * declination in the set. Where the tracker finds no pass this finds none either, in all of
      * them, the five days of that stretch on which the Moon does not rise included.
      *
-     * And it costs about a third: the ten bodies for one day come to **113 milliseconds here
-     * against 357** there. Per body, Mars 11.4 against 37.0 and the Moon 17.8 against 37.6. The
+     * And it costs about a third: the ten bodies for one day come to 113 milliseconds here
+     * against 357 there. Per body, Mars 11.4 against 37.0 and the Moon 17.8 against 37.6. The
      * saving is not the algorithm, it is the ephemeris count: a tracked day is twenty nine
      * samples plus the walk over them and a solved one is a dozen positions with no walk at all.
      * It pays better where fewer than four passes are wanted, which is the Gauquelin case: three
      * passes there would be two whole tracked days.
      *
-     * ### What it gives up, said plainly
+     * What it gives up, said plainly
      *
-     * - **A day with two passes of the same kind gets one**, like `ofTheDay()`, because a
-     *   `RiseSet` has one slot per kind. That is the shape of `swe_rise_trans` too.
-     * - **The twilights are not filled in.** They are the same closed form with a fixed altitude
-     *   and they could be; they are left out because nothing that wants speed wants them.
-     * - **A body that does not converge throws** instead of falling back quietly. No real body
-     *   does; what would is one running in right ascension as fast as the planet turns.
+     * - A day with two passes of the same kind gets one, like `ofTheDay()`, because a
+     * `RiseSet` has one slot per kind. That is the shape of `swe_rise_trans` too.
+     * - The twilights are not filled in. They are the same closed form with a fixed altitude
+     * and they could be; they are left out because nothing that wants speed wants them.
+     * - A body that does not converge throws instead of falling back quietly. No real body
+     * does; what would is one running in right ascension as fast as the planet turns.
      *
      * @param Body|Star|callable(float): Equatorial $target
      * @param Place $place
@@ -316,7 +316,7 @@ readonly class RiseSet
      * outside [-1, 1] and there is nothing to return. The culminations always exist, so for those
      * two it is never null.
      *
-     * **It is bracketed on the instant and not on the day**, which is what makes it useful for
+     * It is bracketed on the instant and not on the day, which is what makes it useful for
      * the Gauquelin sectors: asking for the last rise and the last set before an instant says
      * which arc the body is in without going anywhere near its altitude.
      *
@@ -544,7 +544,7 @@ readonly class RiseSet
      * below the limb. For the Sun they add up to 50 arcminutes, which at middle latitudes
      * is about three minutes of clock time.
      *
-     * **And the refraction is evaluated at the horizon altitude it is given, not at zero**,
+     * And the refraction is evaluated at the horizon altitude it is given, not at zero,
      * which is all that is needed for a mountain horizon. At five degrees the refraction is
      * 0.16 degrees and at the horizon 0.57: using the horizon one up there would leave the
      * rise four tenths of a degree of altitude off, which at middle latitudes is three
@@ -575,7 +575,7 @@ readonly class RiseSet
      * A horizon that cannot be corrected for refraction is rejected instead of returning a
      * good-looking time.
      *
-     * The floor below is MEASURED and belongs to the formula, not to the sky: **Bennett
+     * The floor below is MEASURED and belongs to the formula, not to the sky: Bennett
      * stops growing as one goes below 1.8 degrees under the horizon**, and there its
      * refraction starts to shrink until it vanishes near its pole, at −4.4. That is, below
      * that it does not return a small refraction: it returns a wrong one. And 1.8 degrees of

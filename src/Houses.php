@@ -36,22 +36,21 @@ readonly class Houses
      * The step the speeds are differenced over, in degrees of ARMC. A thousandth of a degree is
      * a quarter of a second of clock time.
      *
-     * **It is measured and it is the floor of the curve, not a round number picked by eye.** The
+     * It is measured and it is the floor of the curve, not a round number picked by eye. The
      * ascendant is one of the few things here with a derivative in closed form, so the difference
      * can be compared against the truth and not against another difference. Worst error over a
      * whole ARMC sweep, in degrees per day:
      *
-     * | | 1e-1 | 1e-2 | 1e-3 | 1e-4 | 1e-5 | 1e-6 |
-     * |---|---|---|---|---|---|---|
-     * | equator | 7.5e-5 | 7.5e-7 | **4.4e-8** | 3.1e-7 | 3.5e-6 | 2.1e-5 |
-     * | Madrid | 7.0e-4 | 7.0e-6 | **1.1e-7** | 4.3e-7 | 3.2e-6 | 2.7e-5 |
-     * | Oslo | 2.1e-2 | 2.1e-4 | 2.2e-6 | **9.7e-7** | 6.6e-6 | 3.7e-5 |
-     * | Tromsø | | 1.2e-3 | 1.2e-5 | **1.7e-6** | 9.2e-6 | 5.9e-5 |
+     * 1e-1    1e-2    1e-3        1e-4        1e-5    1e-6
+     * equator  7.5e-5  7.5e-7  4.4e-8  3.1e-7      3.5e-6  2.1e-5
+     * Madrid   7.0e-4  7.0e-6  1.1e-7  4.3e-7      3.2e-6  2.7e-5
+     * Oslo     2.1e-2  2.1e-4  2.2e-6      9.7e-7  6.6e-6  3.7e-5
+     * Tromsø           1.2e-3  1.2e-5      1.7e-6  9.2e-6  5.9e-5
      *
      * Truncation falls as the square of the step down to about 1e-3, and rounding takes over
      * below it. The bottom of the curve is between 1e-3 and 1e-4 and moves with how fast the
-     * cusps run; 1e-3 is the one taken because **it is also the bottom for the systems that
-     * iterate**, which the ascendant cannot show. Placidus converges its cusps to 1e-11 degrees,
+     * cusps run; 1e-3 is the one taken because it is also the bottom for the systems that
+     * iterate, which the ascendant cannot show. Placidus converges its cusps to 1e-11 degrees,
      * and that floor divided by the step is what limits its difference: measured against a five
      * point reference, its cusp eleven scatters by 7e-10 at Oslo with this step and by 2e-8 with
      * 1e-4, thirty times worse. The worst this costs anywhere in the sweep is 1.2e-5 degrees per
@@ -65,16 +64,16 @@ readonly class Houses
     /**
      * @param array<int, float> $cusps All twelve, from 1 to 12, in ecliptic degrees.
      * @param float|null $kochCoAscendant Walter Koch's co-ascendant: the ascendant there would
-     *                                     be with the imum coeli on the meridian, seen from the
-     *                                     other side.
+     * be with the imum coeli on the meridian, seen from the
+     * other side.
      * @param float|null $munkaseyCoAscendant Munkasey's co-ascendant: the ascendant computed
-     *                                         for the colatitude of the place.
+     * for the colatitude of the place.
      * @param float|null $polarAscendant Munkasey's polar ascendant, opposite Koch's
-     *                                    co-ascendant.
+     * co-ascendant.
      * @param float|null $geographicLatitude Degrees. Needed to place bodies with latitude.
      * @param float|null $obliquity Degrees. Same.
      * @param float|null $sunDeclination Degrees. Only Sunshine carries it, being the only
-     *                                   system that depends on where the Sun is that day.
+     * system that depends on where the Sun is that day.
      */
     public function __construct(
         public HouseSystem $system,
@@ -267,50 +266,50 @@ readonly class Houses
      * Every system is resolved with the geometry that defines it, not with the cusps:
      *
      * - The ECLIPTIC ones (Equal, Whole sign, Vehlow, Equal from the midheaven, Porphyry,
-     *   Sripati, Pullen SD and SR, Morinus) go by longitude and the latitude of the body does
-     *   not count, because the system only exists over the ecliptic. In Pullen SD and SR it is
-     *   the proportion between cusps, which is what Swiss calls «simplified».
+     * Sripati, Pullen SD and SR, Morinus) go by longitude and the latitude of the body does
+     * not count, because the system only exists over the ecliptic. In Pullen SD and SR it is
+     * the proportion between cusps, which is what Swiss calls «simplified».
      * - The CIRCLE ones (Regiomontanus, Campanus, Meridian, Carter, Azimuthal, Krusinski) place
-     *   the body on the circle that contains it and measure where that circle cuts the one the
-     *   system divides: the equator, the prime vertical, the horizon, the circle through the
-     *   ascendant and the zenith.
+     * the body on the circle that contains it and measure where that circle cuts the one the
+     * system divides: the equator, the prime vertical, the horizon, the circle through the
+     * ascendant and the zenith.
      * - The TIME ones (Placidus, Koch, Alcabitius, Topocentric, APC, Sunshine) measure what
-     *   fraction of the corresponding arc the body has covered.
+     * fraction of the corresponding arc the body has covered.
      *
      * The Swiss conventions that have to be known because they do not follow from the
      * definition:
      *
-     * - **Placidus in the circumpolar region** uses Otto Ludwig's procedure (1930): a body that
-     *   never rises starts its «nocturnal arc» at the lower culmination, and one that never sets
-     *   its «diurnal arc» at the upper one. That way there is a position even where there are no
-     *   cusps.
-     * - **Koch measures time by the rising in the eastern half and by the setting in the western
-     *   one**, always in units of the semiarc of the MIDHEAVEN. Since the body has its own
-     *   semiarc, at the meridian the two measures do not join up: a body can be east of the
-     *   meridian and in house nine. Swiss warns about it in its documentation and it is not a
-     *   computation fault, it is the definition. A body whose fraction falls outside [0, 2] (it
-     *   only happens with circumpolar bodies) has no position and here an exception is thrown,
-     *   where Swiss returns zero.
-     * - **Alcabitius divides the equator by the semiarcs of the ASCENDANT** and places the body
-     *   by its right ascension, with its latitude. It is consistent with its cusps, which are
-     *   hour circles.
-     * - **Sripati is Porphyry plus half a house.** Swiss does exactly that and then, on passing
-     *   12, writes `hpos = 1` instead of subtracting twelve: it loses the fraction and returns
-     *   1.0 for the whole of house twelve. Here twelve is subtracted, which is what it means. It
-     *   is the only deliberate divergence.
-     * - **Past the polar circle nothing extra is needed**, and it is worth knowing why: the
-     *   systems that place by geometry (Regiomontanus, Campanus, Azimuthal, Meridian...) know
-     *   nothing about conventions and already return the right house, and the ones that look at
-     *   the ascendant (Porphyry, Krusinski, Carter, Equal, APC...) take it from
-     *   `$this->ascendant`, which arrives already straightened from `calculate`. If one day one
-     *   of these computed the ascendant on its own, that is where the planet would come out six
-     *   houses off again.
-     * - **Morinus ignores the latitude of the body**, just as its cusps ignore the horizon: it
-     *   projects perpendicular to the ecliptic and undoes the equator to ecliptic map that
-     *   defines them. That inverse map is `tan a = tan λ / cos ε`, which has the same shape as
-     *   getting the midheaven out of sidereal time and is NOT the right ascension of the ecliptic
-     *   point (`tan α = cos ε tan λ`). They were confused once and Venus came out 0.16 houses off
-     *   in Oslo.
+     * - Placidus in the circumpolar region uses Otto Ludwig's procedure (1930): a body that
+     * never rises starts its «nocturnal arc» at the lower culmination, and one that never sets
+     * its «diurnal arc» at the upper one. That way there is a position even where there are no
+     * cusps.
+     * - Koch measures time by the rising in the eastern half and by the setting in the western
+     * one, always in units of the semiarc of the MIDHEAVEN. Since the body has its own
+     * semiarc, at the meridian the two measures do not join up: a body can be east of the
+     * meridian and in house nine. Swiss warns about it in its documentation and it is not a
+     * computation fault, it is the definition. A body whose fraction falls outside [0, 2] (it
+     * only happens with circumpolar bodies) has no position and here an exception is thrown,
+     * where Swiss returns zero.
+     * - Alcabitius divides the equator by the semiarcs of the ASCENDANT and places the body
+     * by its right ascension, with its latitude. It is consistent with its cusps, which are
+     * hour circles.
+     * - Sripati is Porphyry plus half a house. Swiss does exactly that and then, on passing
+     * 12, writes `hpos = 1` instead of subtracting twelve: it loses the fraction and returns
+     * 1.0 for the whole of house twelve. Here twelve is subtracted, which is what it means. It
+     * is the only deliberate divergence.
+     * - Past the polar circle nothing extra is needed, and it is worth knowing why: the
+     * systems that place by geometry (Regiomontanus, Campanus, Azimuthal, Meridian...) know
+     * nothing about conventions and already return the right house, and the ones that look at
+     * the ascendant (Porphyry, Krusinski, Carter, Equal, APC...) take it from
+     * `$this->ascendant`, which arrives already straightened from `calculate`. If one day one
+     * of these computed the ascendant on its own, that is where the planet would come out six
+     * houses off again.
+     * - Morinus ignores the latitude of the body, just as its cusps ignore the horizon: it
+     * projects perpendicular to the ecliptic and undoes the equator to ecliptic map that
+     * defines them. That inverse map is `tan a = tan λ / cos ε`, which has the same shape as
+     * getting the midheaven out of sidereal time and is NOT the right ascension of the ecliptic
+     * point (`tan α = cos ε tan λ`). They were confused once and Venus came out 0.16 houses off
+     * in Oslo.
      *
      * @param float $longitude Ecliptic degrees.
      * @param float $latitude Ecliptic degrees, north positive.
@@ -351,38 +350,38 @@ readonly class Houses
      * How fast the twelve cusps and the eight points are moving, in degrees per day. It is
      * `swe_houses_ex2` and `swe_houses_armc_ex2`.
      *
-     * **It is a derivative and there is nothing else it could be.** Swiss publishes no formula
+     * It is a derivative and there is nothing else it could be. Swiss publishes no formula
      * for this and cites nobody: its documentation says only that it «also provides the speeds
      * ("daily motions") of the house cusps and additional points». So it is computed as what it
      * means: the cusps a fraction of a second earlier and a fraction later, differenced, times
      * the rotation of the Earth. `fromArmc` makes that exact rather than approximate, because a
-     * set of houses is a pure function of the ARMC and **the date comes in through no other
-     * door**: there is no hidden term to miss.
+     * set of houses is a pure function of the ARMC and the date comes in through no other
+     * door: there is no hidden term to miss.
      *
      * That rotation is `Time::ROTATION_PER_DAY`, and it is the same one Swiss uses: what Swiss
      * returns as the speed of the ARMC itself agrees with it to 3e-8 degrees per day. What the
      * constant leaves out, and how little it is, is written up beside it.
      *
-     * ### Why it is worth having even with no third party to agree with
+     * Why it is worth having even with no third party to agree with
      *
-     * **Differentiating the cusps is a sharper check of the cusp formulas than comparing cusp
-     * values is**, and that is the reason this method earns its place independently of Swiss. Two
+     * Differentiating the cusps is a sharper check of the cusp formulas than comparing cusp
+     * values is, and that is the reason this method earns its place independently of Swiss. Two
      * formulations can agree at every point they are sampled at and still be different functions;
      * the derivative is what tells them apart, because it amplifies exactly what the sampling
-     * hides. Measured: these speeds reproduce the numerical derivative of **Swiss's own cusps** to
+     * hides. Measured: these speeds reproduce the numerical derivative of Swiss's own cusps to
      * 1.2e-5 degrees per day over twenty two of the twenty three systems and 21,600 cusps each, so
      * the two constructions agree in slope and not only at the point. The twenty third is
      * Azimuthal, where the cusps themselves deliberately differ; see below.
      *
-     * ### Where it disagrees with Swiss, and who is wrong
+     * Where it disagrees with Swiss, and who is wrong
      *
      * Measured over the twenty three systems at five latitudes (Madrid, Oslo, Ushuaia, Singapore
      * and Tromsø), sweeping the ARMC right round the clock at one degree steps, which is 21,600
      * cusps per system. Three quantities at once: the speed Swiss publishes, the numerical
      * derivative of the cusps Swiss ITSELF returns, and this.
      *
-     * **Sixteen of the twenty three agree with the speed Swiss publishes to 5.3e-5 degrees per
-     * day outside the polar circle.** Inside it, three of those sixteen (APC, Pullen SR and
+     * Sixteen of the twenty three agree with the speed Swiss publishes to 5.3e-5 degrees per
+     * day outside the polar circle. Inside it, three of those sixteen (APC, Pullen SR and
      * Sunshine) part company by up to 0.88, at ARMCs where their own cusps have a kink: those
      * three saturate an arc that has stopped existing, and at a kink the two one sided
      * derivatives are genuinely different numbers.
@@ -390,44 +389,43 @@ readonly class Houses
      * In the other seven the disagreement is structural, and in six of the seven it is Swiss
      * that parts company with its own cusps:
      *
-     * | System | Swiss against its own cusp | at Madrid | this against the same |
-     * |---|---|---|---|
-     * | Porphyry | 2662 | 292 | 1e-7 |
-     * | Whole sign, Equal from Aries | 2331 | 624 | 0 |
-     * | Krusinski | 2243 | 572 | 1e-7 |
-     * | Koch | 586 | 136 | 1e-7 |
-     * | Placidus | 424 | 161 | 1.2e-5 |
+     * System                        Swiss against its own cusp  at Madrid  this against the same
+     * Porphyry                      2662                        292        1e-7
+     * Whole sign, Equal from Aries  2331                        624        0
+     * Krusinski                     2243                        572        1e-7
+     * Koch                          586                         136        1e-7
+     * Placidus                      424                         161        1.2e-5
      *
      * The maxima scale with how fast the cusps are running, which past the polar circle is fast;
      * the Madrid column is the same thing on an ordinary chart. What does not scale is the shape
      * of it:
      *
-     * - **Krusinski, Whole sign and Equal from Aries fill four of their twelve.** Measured on
-     *   every one of the 1,800 charts of the sweep, and it is the same four every time: cusps 1,
-     *   4, 7 and 10 come back carrying the speeds of the ascendant and the midheaven, and the
-     *   eight intermediate ones come back exactly 0.0. In Krusinski those eight are real moving
-     *   cusps running at three or four hundred degrees a day. In Whole sign and Equal from Aries
-     *   it is the other way round and the zeros are the right half: their cusps are nailed to the
-     *   sign boundaries and do not move at all, so what is wrong is the four angle speeds on 1,
-     *   4, 7 and 10. Here all twelve are zero, which is what `restsOnTheSigns()` is asked.
-     * - **Porphyry has the anchor the wrong way round, and it is exactly diagnosable.** Its cusp
-     *   eleven is the midheaven plus a third of the quadrant, so its derivative has to be
-     *   `MC' + (ASC' - MC')/3`. Swiss publishes `ASC' + (ASC' - MC')/3`, the same correction hung
-     *   on the other angle. That is not a guess: it comes out in **1,800 charts out of 1,800**.
-     * - **Placidus is the one that proves the gap is not in the cusps.** Its cusps agree with
-     *   Swiss's to 0.0004 arcseconds over the same sweep while the speeds differ by up to 424
-     *   degrees per day, so whatever separates the two speeds it cannot be a difference in where
-     *   the cusp is. The thirty six Gauquelin sectors, which are Placidus in ninths, carry the
-     *   same thing: sector cusps to 0.0005 arcseconds and published speeds out by up to 814.
-     * - **Azimuthal is the seventh, and there the difference is OURS**, which is worth saying
-     *   plainly because it is the only one of the seven that is. Swiss agrees with its own
-     *   azimuthal cusps to 0.0 over all 21,600 of them; what our speed differs from is its cusps,
-     *   by up to 1331 degrees a day, and only at Singapore. It is the divergence already written
-     *   up in `azimuthalOrientation`: Swiss orients that frame by the hemisphere and this orients
-     *   it by which side of the zenith the midheaven falls on, so in the tropics, at the hours
-     *   when the midheaven passes north of the zenith, its cusps and ours are half a turn apart
-     *   and the speeds go with them. At Madrid, Oslo, Ushuaia and Tromsø the two speeds agree to
-     *   the last digit.
+     * - Krusinski, Whole sign and Equal from Aries fill four of their twelve. Measured on
+     * every one of the 1,800 charts of the sweep, and it is the same four every time: cusps 1,
+     * 4, 7 and 10 come back carrying the speeds of the ascendant and the midheaven, and the
+     * eight intermediate ones come back exactly 0.0. In Krusinski those eight are real moving
+     * cusps running at three or four hundred degrees a day. In Whole sign and Equal from Aries
+     * it is the other way round and the zeros are the right half: their cusps are nailed to the
+     * sign boundaries and do not move at all, so what is wrong is the four angle speeds on 1,
+     * 4, 7 and 10. Here all twelve are zero, which is what `restsOnTheSigns()` is asked.
+     * - Porphyry has the anchor the wrong way round, and it is exactly diagnosable. Its cusp
+     * eleven is the midheaven plus a third of the quadrant, so its derivative has to be
+     * `MC' + (ASC' - MC')/3`. Swiss publishes `ASC' + (ASC' - MC')/3`, the same correction hung
+     * on the other angle. That is not a guess: it comes out in 1,800 charts out of 1,800.
+     * - Placidus is the one that proves the gap is not in the cusps. Its cusps agree with
+     * Swiss's to 0.0004 arcseconds over the same sweep while the speeds differ by up to 424
+     * degrees per day, so whatever separates the two speeds it cannot be a difference in where
+     * the cusp is. The thirty six Gauquelin sectors, which are Placidus in ninths, carry the
+     * same thing: sector cusps to 0.0005 arcseconds and published speeds out by up to 814.
+     * - Azimuthal is the seventh, and there the difference is OURS, which is worth saying
+     * plainly because it is the only one of the seven that is. Swiss agrees with its own
+     * azimuthal cusps to 0.0 over all 21,600 of them; what our speed differs from is its cusps,
+     * by up to 1331 degrees a day, and only at Singapore. It is the divergence already written
+     * up in `azimuthalOrientation`: Swiss orients that frame by the hemisphere and this orients
+     * it by which side of the zenith the midheaven falls on, so in the tropics, at the hours
+     * when the midheaven passes north of the zenith, its cusps and ours are half a turn apart
+     * and the speeds go with them. At Madrid, Oslo, Ushuaia and Tromsø the two speeds agree to
+     * the last digit.
      *
      * Taking the derivative and not Swiss's number is the same call this engine has already made
      * five times with its reasons written down next to it: the 1976 precession over Vondrák,
@@ -439,18 +437,18 @@ readonly class Houses
      * 1.2e-5 degrees per day across the whole sweep, and with the derivative of Swiss's own
      * points to 8e-8.
      *
-     * ### The two decisions that come with it
+     * The two decisions that come with it
      *
-     * - **The Sun of Sunshine is held still.** It is the one system that needs an ephemeris, and
-     *   through this door its declination is a parameter and not a function of the date. Holding
-     *   it agrees with Swiss to 0.0002 degrees per day; letting it move over the step departs by
-     *   up to 0.98 at Tromsø and 0.12 at Madrid. It is also the only reading that keeps the two
-     *   doors one path: a rate that depended on the Sun could not be computed from `fromArmc` at
-     *   all.
-     * - **Whole sign and Equal from Aries are zero**, as above, and not the speed of the angle
-     *   they hang from. Their cusps do not move: that is what makes them those systems.
+     * - The Sun of Sunshine is held still. It is the one system that needs an ephemeris, and
+     * through this door its declination is a parameter and not a function of the date. Holding
+     * it agrees with Swiss to 0.0002 degrees per day; letting it move over the step departs by
+     * up to 0.98 at Tromsø and 0.12 at Madrid. It is also the only reading that keeps the two
+     * doors one path: a rate that depended on the Sun could not be computed from `fromArmc` at
+     * all.
+     * - Whole sign and Equal from Aries are zero, as above, and not the speed of the angle
+     * they hang from. Their cusps do not move: that is what makes them those systems.
      *
-     * ### The polar convention, which is a jump and not a speed
+     * The polar convention, which is a jump and not a speed
      *
      * Past the polar circle there are two instants a day when the midheaven crosses the horizon
      * and the whole wheel flips half a turn (see `midheavenBelowHorizon`). That is a jump in the
@@ -460,12 +458,12 @@ readonly class Houses
      * Tromsø that gives -0.0046 and -0.0096 degrees a day where Swiss gives -0.005 and -0.010,
      * and the naive difference gives 32,488,708.
      *
-     * ### What a cusp really does, measured
+     * What a cusp really does, measured
      *
      * The ascendant at Madrid runs between 283 and 624 degrees a day. At Tromsø, between -2331
      * and +181: past the polar circle it goes backwards for part of the day, which is the
      * clockwise wheel of that same convention. Just inside the circle, at latitude 66, it reaches
-     * **14,937**, and at 66.56 exactly it is not finite at all: there the horizon is tangent to
+     * 14,937, and at 66.56 exactly it is not finite at all: there the horizon is tangent to
      * the ecliptic and the ascendant has a genuine pole. No finite difference survives that one
      * and none can.
      *
@@ -691,26 +689,25 @@ readonly class Houses
      * The Gauquelin sector of a body taken from its own RISING AND SETTING instead of from where
      * it is in the zodiac. It is methods 2 to 5 of `swe_gauquelin_sector`.
      *
-     * **It is a different definition and not a different way in.** The other one
+     * It is a different definition and not a different way in. The other one
      * (`gauquelinSector`) places the body by its position, dividing the semiarc of its degree;
      * this one finds the two instants when the body itself crosses the horizon and asks what
      * fraction of that arc has gone by. The diurnal arc, from the rise to the set, is the
      * eighteen sectors from 1 to 18, and the nocturnal one, from the set to the next rise, the
      * eighteen from 19 to 36, which is Swiss's numbering and the Gauquelins'.
      *
-     * **The two readings part company by half a sector**, and that spread is the reason these are
+     * The two readings part company by half a sector, and that spread is the reason these are
      * worth having rather than a rounding to argue about. Measured over 384 cases, eight bodies
      * from six places on two dates at four hours of the day, against `gauquelinSector()`:
      *
-     * | | worst departure from method 0 |
-     * |---|---|
-     * | 2, disc centre | 0.511 sectors, 20 minutes of the Earth's turn |
-     * | 3, with refraction | 0.388 |
-     * | 4, disc edge | 0.408 |
-     * | 5, disc edge with refraction | 0.461 |
-     * | 1, position without latitude | **2.940** |
+     * worst departure from method 0
+     * 2, disc centre                0.511 sectors, 20 minutes of the Earth's turn
+     * 3, with refraction            0.388
+     * 4, disc edge                  0.408
+     * 5, disc edge with refraction  0.461
+     * 1, position without latitude  2.940
      *
-     * Against Swiss, given the same atmosphere, all four come out at **0.00019 sectors** over
+     * Against Swiss, given the same atmosphere, all four come out at 0.00019 sectors over
      * those 384 cases, and the 24 of them where there is no arc are the same 24 Swiss refuses.
      * Giving them a different atmosphere is what moves them: with Swiss's 0 °C against the 10 °C
      * of `Horizon::TEMPERATURE`, methods 3 and 5 shift by up to 0.12 sectors at Tromsø, 0.027 at
@@ -718,23 +715,22 @@ readonly class Houses
      * A refracted sector carries the air of that morning, and the higher the latitude the more of
      * it, because there the body crosses the horizon at a shallower angle.
      *
-     * **Which of the four it is comes from the two parameters and not from a number**, because
+     * Which of the four it is comes from the two parameters and not from a number, because
      * the two are already the vocabulary `RiseSet` speaks and a second way of saying the same
      * thing is a second way of saying it wrong:
      *
-     * | Swiss | here |
-     * |---|---|
-     * | 2, disc centre | `Limb::Center`, `refraction: false` |
-     * | 3, disc centre with refraction | `Limb::Center`, `refraction: true` |
-     * | 4, disc edge | `Limb::Superior`, `refraction: false` |
-     * | 5, disc edge with refraction | `Limb::Superior`, `refraction: true` |
+     * Swiss                           here
+     * 2, disc centre                  `Limb::Center`, `refraction: false`
+     * 3, disc centre with refraction  `Limb::Center`, `refraction: true`
+     * 4, disc edge                    `Limb::Superior`, `refraction: false`
+     * 5, disc edge with refraction    `Limb::Superior`, `refraction: true`
      *
-     * **Whether the body is up is not asked of its altitude**: the two passes before the instant
+     * Whether the body is up is not asked of its altitude: the two passes before the instant
      * are solved, and the later of the two says which arc it is in. That way the answer cannot
      * disagree with the arc it is measured against, whatever disc and refraction were asked for,
      * and it is exactly 1 at the rise and exactly 19 at the set with nothing to round.
      *
-     * **It is not free and it is not seventy thousand times anything.** Measured: 8.6
+     * It is not free and it is not seventy thousand times anything. Measured: 8.6
      * milliseconds for Mars by method 2 and 14.1 for the Moon by method 5, against 0.89 for
      * method 0 counted honestly, with the ephemeris position it also needs. Ten to sixteen times,
      * and the whole of it is the three ephemeris solutions. Counting method 0 as its 0.061
@@ -843,9 +839,9 @@ readonly class Houses
      * Computes the houses.
      *
      * @param HouseSystem $system
-     * @param float $jdUt Julian day in Universal Time. **UT and not TT**: the houses depend on
-     *                    how far the Earth has turned, and that is what the civil clock
-     *                    measures. With TT the ascendant shifts by almost a minute of arc.
+     * @param float $jdUt Julian day in Universal Time. UT and not TT: the houses depend on
+     * how far the Earth has turned, and that is what the civil clock
+     * measures. With TT the ascendant shifts by almost a minute of arc.
      * @param float $latitude Degrees, north positive.
      * @param float $geographicLongitude Degrees, east positive.
      * @return self
@@ -867,7 +863,7 @@ readonly class Houses
         /* The obliquity is passed in RADIANS, which is what has just come out of `Time`, and
            not through the public door `fromArmc`, which takes it in degrees. Converting and
            converting back is not free: measured over 78,972 true obliquities spread from 1600
-           to 2400, `deg2rad(rad2deg($eps))` returns a different number in **36 %** of cases.
+           to 2400, `deg2rad(rad2deg($eps))` returns a different number in 36 % of cases.
            That is 1e-11 arcseconds, which is nothing in the sky and everything in a `diff`: it
            moves the last bit of the cusps and with it the fingerprint that checks that an engine
            change has not moved anybody's chart. */
@@ -880,12 +876,12 @@ readonly class Houses
      *
      * The ARMC (right ascension of the midheaven) is LOCAL sidereal time in degrees, that is to
      * say Greenwich's plus the geographic longitude. With it, the latitude and the obliquity,
-     * everything the houses need has been said: **the date comes in through no other door**,
+     * everything the houses need has been said: the date comes in through no other door,
      * because a house is geometry of the turned sky and knows nothing about what day it is. That
      * is why this is the real entry point and `calculate()` is only this one with a clock in
      * front of it.
      *
-     * **It works without ephemerides for twenty-two of the twenty-three systems.** The odd one out is
+     * It works without ephemerides for twenty-two of the twenty-three systems. The odd one out is
      * Sunshine, which divides the diurnal arc of the SUN of that day and therefore needs its
      * declination; here it is asked for as a parameter instead of computed, which is what allows
      * this class to be used without dragging the ephemeris engine behind it. Without it an
@@ -896,19 +892,19 @@ readonly class Houses
      * @param HouseSystem $system
      * @param float $armc Degrees. Apparent local sidereal time.
      * @param float $latitude Degrees, north positive.
-     * @param float $obliquity Degrees. **Degrees and not radians**, like everything else that
-     *                          comes in and out through here and like `swe_houses_armc`. The
-     *                          loose statics of this class (`midheaven`, `ascendant`, `vertex`,
-     *                          `eclipticPointUnderPole`) do take it in radians, which is their
-     *                          working unit.
-     * ### That the two doors are the same path, measured
+     * @param float $obliquity Degrees. Degrees and not radians, like everything else that
+     * comes in and out through here and like `swe_houses_armc`. The
+     * loose statics of this class (`midheaven`, `ascendant`, `vertex`,
+     * `eclipticPointUnderPole`) do take it in radians, which is their
+     * working unit.
+     * That the two doors are the same path, measured
      *
      * Behind both there is `build`, so they cannot diverge by construction. And it is measured:
      * the twenty-three systems in six places (Madrid, Oslo, Ushuaia, Singapore, Longyearbyen and
      * Quito) and five dates from 1655 to 2377, giving this one the ARMC and the obliquity of that
      * instant. Twenty of the 690 combinations throw, which are the four time systems at
      * Longyearbyen and is the point of them throwing, so 670 charts are compared: of their
-     * **8,040 cusps, 7,943 come out identical to the bit** and the other 97 differ by at most
+     * 8,040 cusps, 7,943 come out identical to the bit and the other 97 differ by at most
      * 4.09e-10 arcseconds.
      *
      * And those 97 are not the computation: they are the round trip of units, because this door
@@ -933,7 +929,7 @@ readonly class Houses
 
         /* It is only folded when it needs to be, and this is not a micro-optimisation:
            `normalise` adds 360 and takes it away again, and that loses the low bits of a number
-           that was already in range. Measured over 200,000 values in [0,360), **it changes 68 %**
+           that was already in range. Measured over 200,000 values in [0,360), it changes 68 %
            of them, by up to 5.7e-14 degrees. That is nothing in the sky and it is exactly what
            separates this door from giving the same cusps as `calculate()` DOWN TO THE LAST BIT,
            which is the check that the two really are the same path. */
@@ -1023,8 +1019,8 @@ readonly class Houses
      * negative when those two differ by more than ninety degrees. The declination of the
      * midheaven comes from its right ascension, which is sidereal time: `tan δ = sin(lst) · tan
      * ε`. Since δ never exceeds the obliquity, the condition cannot be met below `90 - ε`, that
-     * is 66.5 degrees: **outside the polar circle this is always false and does not move a single
-     * arcsecond**, which is what allowed it to be added without touching anything that already
+     * is 66.5 degrees: outside the polar circle this is always false and does not move a single
+     * arcsecond, which is what allowed it to be added without touching anything that already
      * worked.
      *
      * It is the same computation `fix_asc_polar` does in Swiss Ephemeris, and it is equivalent to
@@ -1215,8 +1211,8 @@ readonly class Houses
      * @param float $midheaven
      * @param float|null $sunDeclination
      * @param bool $underThePole Whether the midheaven is below the horizon. The ascendant and (in
-     *                         the ones that turn) the midheaven arrive already straightened; this
-     *                         is only needed where the DIRECTION the cusps chain in changes too.
+     * the ones that turn) the midheaven arrive already straightened; this
+     * is only needed where the DIRECTION the cusps chain in changes too.
      * @return array<int, float>
      */
     private static function cuspsOf(
@@ -2004,11 +2000,11 @@ readonly class Houses
      * @param string $family
      * @param float $midheaven
      * @param bool $underThePole With the midheaven sunk, the wheel of Regiomontanus and Campanus is
-     *                         numbered CLOCKWISE (see `HouseSystem::turnsWithTheMidheaven`), so
-     *                         every cusp goes BEHIND the previous one and not ahead of it. Without
-     *                         inverting the criterion, the chain picks the opposite branch on
-     *                         alternate cusps and six come out right and six upside down, which is
-     *                         the worst that can happen: it does not show.
+     * numbered CLOCKWISE (see `HouseSystem::turnsWithTheMidheaven`), so
+     * every cusp goes BEHIND the previous one and not ahead of it. Without
+     * inverting the criterion, the chain picks the opposite branch on
+     * alternate cusps and six come out right and six upside down, which is
+     * the worst that can happen: it does not show.
      * @return list<float>
      */
     private static function withCircles(
@@ -2069,7 +2065,7 @@ readonly class Houses
      * @param float $eps
      * @param float|null $previous
      * @param int $direction 1 when the cusps grow in longitude, -1 when they shrink (the clockwise
-     *                     wheel of the polar convention).
+     * wheel of the polar convention).
      * @return float
      */
     private static function cutWithEcliptic(array $normal, float $eps, ?float $previous, int $direction = 1): float
@@ -2481,7 +2477,7 @@ readonly class Houses
      * Swiss, at zero in Madrid, at the equator, in Oslo, in Ushuaia and in Tromsø; the other
      * possible reading, dividing into thirds the SINE of the declination, goes degrees off.
      *
-     * **At the equator the computation is zero over zero**: the zenith is on the equator and the
+     * At the equator the computation is zero over zero: the zenith is on the equator and the
      * whole prime vertical has zero declination. Its limit is `sin h = k/3`, and that is what
      * Swiss gives there, with the cusps at 48.19 and 70.53 degrees from the meridian in right
      * ascension, which are the arccosine of two thirds and that of one third.

@@ -11,14 +11,14 @@ use RuntimeException;
 /**
  * Everything that has to do with time and with the orientation of the Earth.
  *
- * Here lives the trap that ruins the most birth charts: **there are two time scales and they
+ * Here lives the trap that ruins the most birth charts: there are two time scales and they
  * are not interchangeable**. The planets are computed in Terrestrial Time (TT) and the houses
  * in Universal Time (UT), because the houses depend on how much the Earth has turned and that
  * is measured by the civil clock, not by the ephemeris one. Between the two there are some 70
  * seconds today. Using the same one for both things moves the ascendant almost a minute of arc
  * and nobody detects it looking at the wheel.
  *
- * And there is a third one, the wall clock scale: **UTC is not UT1**. UT1 is the rotation of
+ * And there is a third one, the wall clock scale: UTC is not UT1. UT1 is the rotation of
  * the Earth, which is what decides where the ascendant is; UTC is an atomic scale into which a
  * second is inserted every so often so that it does not drift from the former by more than 0.9
  * seconds. `utcToJulianDay()`, `ttToUtc()` and `ut1ToUtc()` are the bridge between the three,
@@ -274,45 +274,45 @@ class Time
      * The three stretches, and where each one comes from (all of it downloaded by `astronomy delta-t`,
      * nothing written by hand):
      *
-     * - **Before 1 January 1955**: the cubic spline of Stephenson, Morrison and Hohenkerk (2016),
-     *   their reconstruction from Babylonian, Chinese and Arab eclipses and from the telescopic
-     *   occultations since 1600. It runs from -720 to 2016 in 54 stretches (Table S15 of the
-     *   paper, which is open access). Before -720 it carries on with their long-term parabola,
-     *   -320 + 32.5·u² with u in centuries since 1825, shifted so as to join the spline at -720;
-     *   the shift is computed on load, it is not copied.
+     * - Before 1 January 1955: the cubic spline of Stephenson, Morrison and Hohenkerk (2016),
+     * their reconstruction from Babylonian, Chinese and Arab eclipses and from the telescopic
+     * occultations since 1600. It runs from -720 to 2016 in 54 stretches (Table S15 of the
+     * paper, which is open access). Before -720 it carries on with their long-term parabola,
+     * -320 + 32.5·u² with u in centuries since 1825, shifted so as to join the spline at -720;
+     * the shift is computed on load, it is not copied.
      *
-     *   Careful, because this was the wrong starting point of the assignment: Swiss does NOT use
-     *   the annual Astronomical Almanac table from 1620 on. It used it up to 2.05; since 2.06 the
-     *   spline rules until 1955 and the table only afterwards. It was checked by measuring, which
-     *   is what counts: `swe_deltat` in 1620 gives 66.6 seconds, and the Almanac table says 124.
+     * Careful, because this was the wrong starting point of the assignment: Swiss does NOT use
+     * the annual Astronomical Almanac table from 1620 on. It used it up to 2.05; since 2.06 the
+     * spline rules until 1955 and the table only afterwards. It was checked by measuring, which
+     * is what counts: `swe_deltat` in 1620 gives 66.6 seconds, and the Almanac table says 124.
      *
-     * - **From 1955 to 1973**: the six-monthly USNO values, which are the Astronomical Almanac
-     *   ones. From 1955 on there are atomic clocks and delta T stops depending on any theory.
+     * - From 1955 to 1973: the six-monthly USNO values, which are the Astronomical Almanac
+     * ones. From 1955 on there are atomic clocks and delta T stops depending on any theory.
      *
-     * - **From February 1973 on**: one value per month from the IERS series, which is who
-     *   measures the rotation of the Earth: 32.184 + (TAI-UTC) - (UT1-UTC). The last months are
-     *   the IERS's own prediction for the following year; `observado_hasta` says where the
-     *   measured part ends. Between points it interpolates linearly. Swiss carries one value per
-     *   year and interpolates with Bessel's formula; with twelve points per year the interpolation
-     *   does not matter, and the measured difference between the two paths is hundredths.
+     * - From February 1973 on: one value per month from the IERS series, which is who
+     * measures the rotation of the Earth: 32.184 + (TAI-UTC) - (UT1-UTC). The last months are
+     * the IERS's own prediction for the following year; `observado_hasta` says where the
+     * measured part ends. Between points it interpolates linearly. Swiss carries one value per
+     * year and interpolates with Bessel's formula; with twelve points per year the interpolation
+     * does not matter, and the measured difference between the two paths is hundredths.
      *
-     * - **After the last value**: the Swiss extrapolation for this model, anchored to the last
-     *   point of OUR table: a cubic that Koch fitted to the long-term prediction of Stephenson,
-     *   Morrison and Hohenkerk (64 + 0.1737·t + 0.0008·t² + 0.00000403·t³, with t in years since
-     *   2000) up to 2500 and the parabola 42.5 + 32.5·T² afterwards, plus a linear term that
-     *   spreads the step between the table and the formula over a hundred years. And here there
-     *   is a trap: the Swiss documentation says that after the table it uses the Stephenson
-     *   formula of 1997, -20 + 31·u², and its code does this other thing. They are 130 seconds
-     *   apart in 2100. What is here is what the code does, verified against `swe_deltat` up to the
-     *   year 3000.
+     * - After the last value: the Swiss extrapolation for this model, anchored to the last
+     * point of OUR table: a cubic that Koch fitted to the long-term prediction of Stephenson,
+     * Morrison and Hohenkerk (64 + 0.1737·t + 0.0008·t² + 0.00000403·t³, with t in years since
+     * 2000) up to 2500 and the parabola 42.5 + 32.5·T² afterwards, plus a linear term that
+     * spreads the step between the table and the formula over a hundred years. And here there
+     * is a trap: the Swiss documentation says that after the table it uses the Stephenson
+     * formula of 1997, -20 + 31·u², and its code does this other thing. They are 130 seconds
+     * apart in 2100. What is here is what the code does, verified against `swe_deltat` up to the
+     * year 3000.
      *
-     * **The 1955 step.** The spline at 1955.0 gives 30.41 seconds and the first atomic
+     * The 1955 step. The spline at 1955.0 gives 30.41 seconds and the first atomic
      * observation 31.07: they are two different measurements of the same thing and they do not
      * agree. Swiss spreads that step over the preceding thousand days with a linear ramp, and
      * here it is done the same way; the size of the step is computed when the table is loaded, so
      * that if one day the 1955 source changes the ramp goes on closing by itself.
      *
-     * **The tidal acceleration.** Before 1955 delta T comes out of comparing observations with a
+     * The tidal acceleration. Before 1955 delta T comes out of comparing observations with a
      * lunar theory, so the value depends on which secular acceleration of the Moon that theory
      * carries: changing it is adding -0.000091·(n' - n'0)·(year - 1955)² seconds. The spline is
      * referred to -25.85 arcseconds per century squared and here it is taken to -25.80, the DE431
@@ -542,7 +542,7 @@ class Time
      * to the equinox of date. The three terms are the IAU 1976 ones (Lieske), which are the ones
      * Meeus and Laskar carry.
      *
-     * **The quadratic term is not optional.** With the linear constant alone, which is what the
+     * The quadratic term is not optional. With the linear constant alone, which is what the
      * original ELP Fortran program carries, the error grows with the square of time: 1.1
      * arcseconds in 1900, 13.6 in 1650 and in 2350. Two independent measurements caught it on the
      * same day: Pluto and Chiron against the JPL were off by 14 arcseconds symmetrically on both
@@ -593,7 +593,7 @@ class Time
      * rotation of the Earth would be corrected in jumps. It began at 10 and stands at 37 since
      * 1 January 2017, which is the last jump so far.
      *
-     * **It is looked up by the DAY, not by the instant**, and that is the nuance that decides the
+     * It is looked up by the DAY, not by the instant, and that is the nuance that decides the
      * odd case. In the minute in which a jump is inserted there are 61 seconds, so 23:59:60 on a
      * 31 December, counted crudely as seconds from 0h, gives the Julian day of 0h on 1 January,
      * which is exactly the date on which the counter goes up. Looking it up by that Julian day
@@ -626,7 +626,7 @@ class Time
      * A UTC clock date and time, in Terrestrial Time and in Universal Time: it returns
      * [jdTT, jdUT1].
      *
-     * **Wall clock time is UTC and what moves the sky is UT1, and they are not the same thing.**
+     * Wall clock time is UTC and what moves the sky is UT1, and they are not the same thing.
      * UTC runs at a whole second from the atomic clocks and UT1 is the real rotation of the
      * Earth, which is neither uniform nor predictable; what keeps them together below 0.9 seconds
      * is inserting a leap second every so often. Almost everybody takes civil time as if it
@@ -642,22 +642,22 @@ class Time
      * It is `swe_utc_to_jd`. The arithmetic, which is the whole function:
      *
      * - TT = UTC + (TAI-UTC) + 32.184 seconds, and both are known constants: the day's leap
-     *   second counter and what separates TT from TAI by definition. Nothing measured comes in
-     *   here, so this path is exact.
+     * second counter and what separates TT from TAI by definition. Nothing measured comes in
+     * here, so this path is exact.
      * - UT1 = TT - delta T, and there the measurement does come in.
      *
-     * **Before 1972 civil time is taken as UT1**, which is what Swiss does and the only honest
+     * Before 1972 civil time is taken as UT1, which is what Swiss does and the only honest
      * thing: there were no leap seconds to count, and from 1961 to 1972 the UTC of elastic
      * seconds is not modelled here. Measured at the join itself: 23:59:59 on 31 December 1971 and
      * 00:00:00 on 1 January 1972 come out 0.954 seconds from each other instead of 1, and those
      * 46 milliseconds are the UT1-UTC of that day. It is not a fault of the seam: it is the
      * measure of what is being taken for granted before 1972.
      *
-     * **The 60th second exists and is accepted**, but only where it exists: in the last minute of
+     * The 60th second exists and is accepted, but only where it exists: in the last minute of
      * a day that carries a jump. Anywhere else it blows up instead of returning a good-looking
      * instant, just as Swiss does.
      *
-     * **Past the last known jump it carries on with that one, and that is a stated assumption.**
+     * Past the last known jump it carries on with that one, and that is a stated assumption.
      * Nobody knows whether there will be more leap seconds, so here it is assumed there will not:
      * since 2017 the counter is 37 and it stays at 37 going forward. Swiss does something else,
      * and it is measured: it keeps the last one while the UT1-UTC that implies does not go over
@@ -669,7 +669,7 @@ class Time
      * leap seconds by 2035 and to let UT1-UTC grow, so assuming there will be no more is today
      * the published assumption. Below 2034 the two paths agree exactly.
      *
-     * **`swe_utc_time_zone` is `utcToLocal()` and `localToUtc()`**, and it stood here for a
+     * `swe_utc_time_zone` is `utcToLocal()` and `localToUtc()`, and it stood here for a
      * while saying it was not worth having, on a reason aimed at the wrong thing: it was read as
      * a worse time zone resolver than `DateTimeZone`, and it does not resolve anything. It
      * shifts a clock LABEL by an offset somebody else already worked out, and it carries the
@@ -714,7 +714,7 @@ class Time
      * The way back: from Terrestrial Time to the UTC clock date and time.
      *
      * It is `swe_jdet_to_utc`. It returns [year, month, day, hour, minute, second] with the
-     * astronomical year, just like `civilDate()`, and **it can return the 60th second**: if the
+     * astronomical year, just like `civilDate()`, and it can return the 60th second: if the
      * instant falls inside a leap second, the clock time that corresponds to it is 23:59:60 and
      * there is no other way of writing it.
      *
@@ -797,17 +797,17 @@ class Time
      * instant with the numbers moved: it returns ['year', 'month', 'day', 'hour', 'minute',
      * 'second'], keyed like `checkedJulianDay()`.
      *
-     * It is half of `swe_utc_time_zone`, and **it is not a time zone resolver**. Which offset was
+     * It is half of `swe_utc_time_zone`, and it is not a time zone resolver. Which offset was
      * in force in Ourense on that 10 June, with its summer time and its historical clock changes,
      * is `DateTimeZone`'s job and stays `DateTimeZone`'s job; this takes the offset already worked
      * out and moves the label. What it buys over doing the same thing with a `DateTimeImmutable`
-     * is the only thing PHP cannot do: **it carries the 60th second across the shift**, because
+     * is the only thing PHP cannot do: it carries the 60th second across the shift, because
      * `DateTimeImmutable` has no way of holding 23:59:60. Measured: it reads
      * "2016-12-31 23:59:60" as the 00:00:00 of 1 January 2017, which is the same answer it gives
      * for 23:59:59 plus one second, so the leap second and the instant after it become the same
      * number and one of the two is lost.
      *
-     * **The 61-second minute moves as a block**, which is why the 60th second is still the 60th
+     * The 61-second minute moves as a block, which is why the 60th second is still the 60th
      * on the other side. That holds because the offset is a whole number of minutes, and that is
      * not an assumption: measured over the IANA database, the 51 distinct offsets any zone has
      * used since the first leap second of 30 June 1972 are all whole minutes, and 37 of them are
@@ -817,14 +817,14 @@ class Time
      * 60th second would have no label on the far side, so it would not be a question with an
      * answer.
      *
-     * **The offset goes in minutes and not in hours**, which is what Swiss takes, so that the
+     * The offset goes in minutes and not in hours, which is what Swiss takes, so that the
      * whole computation is integer seconds of the day and nothing rounds. Hours as a float would
      * be exact for the offsets that are a multiple of a quarter of an hour, which is all of
      * today's; it is Pacific/Kiritimati at -10:40 until 1979 that is not one, and -38400/3600
      * only comes back to -38400 by luck of the rounding. Working in minutes there is no luck to
      * rely on.
      *
-     * **And going in the other direction is `localToUtc()`, not a negative sign.** Swiss
+     * And going in the other direction is `localToUtc()`, not a negative sign. Swiss
      * documents one function for the two ways round ("for conversion from local time to UTC, use
      * +(offset)"), which is a parameter whose SIGN changes what the function does, and this engine
      * already has that written down as a place to get it wrong without noticing: it is why
@@ -837,12 +837,12 @@ class Time
      * label in all 50,000, and the second agreeing to 2.5e-11 seconds, which is Swiss's noise and
      * not ours.
      *
-     * **And on whole seconds it is not noise, it is a whole minute.** Over 200,000 conversions
+     * And on whole seconds it is not noise, it is a whole minute. Over 200,000 conversions
      * with the second an exact number, 1,556 of them, 0.78%, come back from Swiss with the minute
      * one lower and the second at 59.99999999999. Every one of them had the second at exactly 0,
      * so the rate of the mixed sample says nothing; swept exhaustively instead, over the 1,440
-     * minutes of a day and the 51 offsets, **33,756 of 73,440 on-the-minute labels, 45.96%, come
-     * back one minute lower**, and it is the same 45.96% on 1600, 1700, 1800, 1900, 2000, 2026,
+     * minutes of a day and the 51 offsets, 33,756 of 73,440 on-the-minute labels, 45.96%, come
+     * back one minute lower, and it is the same 45.96% on 1600, 1700, 1800, 1900, 2000, 2026,
      * 2100, 2250 and 2400, so it does not depend on the size of the Julian day either. The
      * shortfall is at most 1.7e-11 seconds and it moves the printed label by sixty of them. It is
      * the same ulp of a Julian day that `ttToUtc()` already has written down for the leaps, and
@@ -895,7 +895,7 @@ class Time
      * The way back: a clock label from a zone `$offsetMinutes` east of Greenwich, written in UTC.
      * Same shape and same rules as `utcToLocal()`, and the offset still means minutes east.
      *
-     * **The leap second is checked on the UTC side, which is the only side it exists on.** A leap
+     * The leap second is checked on the UTC side, which is the only side it exists on. A leap
      * second belongs to a UTC day, so which label may carry a 60 depends on where the offset puts
      * it: 00:59:60 on 1 January 2017 in Madrid is the 23:59:60 of 31 December 2016 UTC and is
      * real, while 23:59:60 on that same 31 December in Madrid would be 22:59:60 UTC, which is a
@@ -1037,7 +1037,7 @@ class Time
     /**
      * The complaint about a 61st second where none was inserted.
      *
-     * **It names the MINUTE and not the day, because the day is not what is wrong.** The message
+     * It names the MINUTE and not the day, because the day is not what is wrong. The message
      * used to say "2016-12-31 carries no leap second", and that sentence is false on exactly the
      * day it is most likely to be read on: 31 December 2016 does carry one, at 23:59, and what
      * does not exist is a 12:30:60 in the middle of it. Two different mistakes were coming out
@@ -1106,18 +1106,18 @@ class Time
      * the ascendant is 12 arcseconds of median and up to eight minutes near the polar circle,
      * measured in `UtcTest`.
      *
-     * **It is only corrected where UT1-UTC is known**: from 1 January 1972 up to the last value
+     * It is only corrected where UT1-UTC is known: from 1 January 1972 up to the last value
      * of the IERS table, with the following year's prediction inside it. Outside, civil time is
      * taken as UT1, just as before, and for two reasons that are not the same one:
      *
-     * - **Before 1972** there were no leap seconds and the UTC of elastic seconds is not
-     *   modelled. It is the same thing `utcToJulianDay()` already does.
-     * - **After the table** nobody knows what a clock will read. The IERS resolved to stop
-     *   inserting jumps by 2035, and with the extrapolated delta T UT1-UTC would come out at 24
-     *   seconds in 2100: six minutes of arc of ascendant pulled out of an extrapolation. Here
-     *   `utcToJulianDay()` carries on with the last counter and it is right that it should,
-     *   because it answers what TT is for a given UTC time, which is arithmetic; this one answers
-     *   how much the Earth had turned, and outside the table nobody knows that.
+     * - Before 1972 there were no leap seconds and the UTC of elastic seconds is not
+     * modelled. It is the same thing `utcToJulianDay()` already does.
+     * - After the table nobody knows what a clock will read. The IERS resolved to stop
+     * inserting jumps by 2035, and with the extrapolated delta T UT1-UTC would come out at 24
+     * seconds in 2100: six minutes of arc of ascendant pulled out of an extrapolation. Here
+     * `utcToJulianDay()` carries on with the last counter and it is right that it should,
+     * because it answers what TT is for a given UTC time, which is arithmetic; this one answers
+     * how much the Earth had turned, and outside the table nobody knows that.
      *
      * Both boundaries leave a step of UT1-UTC, at most 0.9 seconds. It is the measure of what is
      * being taken for granted on each side, not a fault of the seam.
@@ -1145,7 +1145,7 @@ class Time
      * The way back: from Terrestrial Time to clock time, in UTC and rounded to the second, which
      * is how the sheet shows it.
      *
-     * **It has to use the same criterion as `fromClock()`**, and not out of symmetry: the solar
+     * It has to use the same criterion as `fromClock()`, and not out of symmetry: the solar
      * return is searched for in TT, turned into clock time with this and raised again as a chart
      * with that. With a different criterion on each side, the Sun of the return would come back
      * shifted by what the two differ, with no error given.
@@ -1362,13 +1362,13 @@ class Time
      * arbitrary obliquity is not offered, on purpose: there is one obliquity of date, and putting
      * in another one returns a sidereal time that is from nowhere.
      *
-     * **It is used by whoever compares with another source**, because almost all the literature
+     * It is used by whoever compares with another source, because almost all the literature
      * tabulates the mean one: the apparent one differs from it by less than two arcseconds and a
      * table given to the second does not tell them apart. Inside the engine nobody uses it, and
      * nobody should: the houses and the horizon go with the apparent one, which is where the real
      * equinox is.
      *
-     * **It is computed with UT, not with TT**, just like the apparent one: it measures the
+     * It is computed with UT, not with TT, just like the apparent one: it measures the
      * rotation of the planet.
      *
      * @param float $jdUt
@@ -1385,12 +1385,12 @@ class Time
      * The mean sidereal time polynomial as it is, without folding it into one turn: it is
      * millions of degrees for any given date.
      *
-     * **It exists so that the folding happens ONCE and at the end, and that is not a whim of
+     * It exists so that the folding happens ONCE and at the end, and that is not a whim of
      * style.** The apparent one is this number plus the equation of the equinoxes, and folding
      * before adding gives a different result in the last bits: the polynomial is worth some three
      * million degrees for a date in the seventeenth century, so the remainder of dividing by 360
      * is left with far fewer significant digits than the whole number. Measured: folding first,
-     * twelve of the twenty charts of the fingerprint moved **2.9e-5 arcseconds**. It is noise and
+     * twelve of the twenty charts of the fingerprint moved 2.9e-5 arcseconds. It is noise and
      * it makes no difference for any use, and even so the rule of the engine is that the chart
      * does not move by a single bit.
      *
@@ -1411,7 +1411,7 @@ class Time
     /**
      * Apparent sidereal time at Greenwich, in degrees.
      *
-     * How much the Earth has turned, which is what decides where the ascendant falls. **It is
+     * How much the Earth has turned, which is what decides where the ascendant falls. It is
      * computed with UT, not with TT**: it measures the rotation of the planet, and the rotation
      * goes with the civil clock. Putting TT in here shifts the houses.
      *
@@ -1438,7 +1438,7 @@ class Time
     /**
      * How many days a month has, with no table and no leap year rule written by hand.
      *
-     * **It comes out of subtracting two Julian days**, the one of the first of the following
+     * It comes out of subtracting two Julian days, the one of the first of the following
      * month and the one of the first of this one. Writing the twelve numbers and the leap year
      * rule would be thirteen places to get it wrong, and on top of that it would have to be
      * written twice, because in the Julian calendar every year divisible by four is a leap year
@@ -1467,11 +1467,11 @@ class Time
      *
      * `civilJulianDay` checks nothing, and that is not an oversight: it is the inner door, the
      * one the ephemerides use, and there the dates come from a `DateTimeImmutable` that already
-     * exists. But it is public API, and through it **a 31 February goes in and a good-looking
+     * exists. But it is public API, and through it a 31 February goes in and a good-looking
      * Julian day comes out**: the one of 3 March, with nothing warning about it. This is what has
      * to be called when the date comes from outside.
      *
-     * **The correction is not computed: it is read off the round trip.** An impossible date
+     * The correction is not computed: it is read off the round trip. An impossible date
      * falls, by the very arithmetic of `civilJulianDay`, on the day its count corresponds to, so
      * returning it through `civilDate` gives the right date without a single new rule. 31
      * February 2024 comes back as 2 March, day 0 as the last one of the previous month and month

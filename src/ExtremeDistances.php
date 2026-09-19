@@ -11,7 +11,7 @@ namespace Astronomy;
  * same idea as the Moon's illuminated fraction next to its apparent size, or as the "expected"
  * stellium of the birth chart: the raw figure and the reference it is read against.
  *
- * **The extremes belong to the two ORBITS, not to the body's lifetime.** They come from each
+ * The extremes belong to the two ORBITS, not to the body's lifetime. They come from each
  * one's osculating ellipse at this instant, so they state the closest and the farthest the two
  * could be if both orbits stayed as they are and both bodies were placed at the worst possible
  * spot on each. That configuration may take centuries to happen, or may never happen at all:

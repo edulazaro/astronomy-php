@@ -22,20 +22,20 @@ use PHPUnit\Framework\TestCase;
  *
  * It is checked from two sides, and the two are not worth the same.
  *
- * **Against Yallop's own paper**, which is the better one: his Table 4 publishes the arc of
+ * Against Yallop's own paper, which is the better one: his Table 4 publishes the arc of
  * light, the arc of vision, the relative azimuth, the parallax, the crescent width and q of 295
  * observations, so his equations can be fed his own numbers and asked to return his own
  * answers. Eight of those rows are copied in by hand below. A check against the source cannot
  * be fooled by both programs making the same mistake.
  *
- * **Against Swiss Ephemeris 2.10.03**, which pins the geometry. Those reference values are
+ * Against Swiss Ephemeris 2.10.03, which pins the geometry. Those reference values are
  * copied by hand too, so the suite runs with no network and with no pyswisseph installed.
  *
- * ### The tolerances are measured, and two of them are large on purpose
+ * The tolerances are measured, and two of them are large on purpose
  *
  * pyswisseph here runs without ephemeris files, so its positions fall back to Moshier: part of
- * every residual below is that and not this engine. And on top of it **Swiss's heliacal
- * internals disagree with Swiss's own `swe_azalt` at the same instant**, by 7.3 arcseconds in
+ * every residual below is that and not this engine. And on top of it Swiss's heliacal
+ * internals disagree with Swiss's own `swe_azalt` at the same instant, by 7.3 arcseconds in
  * altitude and 14 to 32 in azimuth, which is written up in `HeliacalDetails`.
  *
  * So the tolerances below sound slack and are not: they are a floor that belongs to the
@@ -91,7 +91,7 @@ final class HeliacalDetailsTest extends TestCase
     public static function swissValues(): array
     {
         return [
-            //                            object      place      instant (UT)            AltO      GeoAltO   AziO       AltS      AziS       ARCV      DAZ        ARCL      ParO        W'       q         class
+            // object      place      instant (UT)            AltO      GeoAltO   AziO       AltS      AziS       ARCV      DAZ        ARCL      ParO        W'       q         class
             'moon, Madrid, thin' => ['moon', 'madrid', '2000-08-29 19:15:00', -0.54949, 0.44827, 283.68144, -5.22363, 286.55629, 5.67189, 2.87485, 6.35674, 0.9977595, 0.10029, -0.55384, 'F'],
             'moon, Madrid' => ['moon', 'madrid', '2000-08-30 19:30:00', 2.99602, 3.98149, 274.00080, -8.24570, 288.87482, 12.22719, 14.87401, 19.16655, 0.9854712, 0.89404, 0.55305, 'A'],
             'moon, Babylon' => ['moon', 'babylon', '2015-06-17 16:00:00', 8.59376, 9.52724, 285.46708, 1.35486, 297.11318, 8.17238, 11.64611, 14.19493, 0.9334810, 0.46718, -0.08603, 'C'],
@@ -179,7 +179,7 @@ final class HeliacalDetailsTest extends TestCase
      * relative azimuth and his parallax go in, and his arc of light, his crescent width and his
      * q have to come back.
      *
-     * **This is the test that matters most**, because it checks the equations against the paper
+     * This is the test that matters most, because it checks the equations against the paper
      * they come from instead of against another implementation of them. His table is printed to
      * a tenth of a degree, a hundredth of an arcminute and a thousandth of q, and the
      * tolerances below are those roundings and nothing else.
@@ -188,7 +188,7 @@ final class HeliacalDetailsTest extends TestCase
      * so zero goes in: measured, sweeping h from 0 to 10 degrees moves W' by less than 0.002
      * arcminutes over these eight rows, which is under the hundredth they are printed to.
      *
-     * **And the tolerance on ARCL is the rounding of his own columns, propagated.** His ARCV
+     * And the tolerance on ARCL is the rounding of his own columns, propagated. His ARCV
      * and DAZ are printed to a tenth of a degree, and (2.1) behaves near enough like
      * `ARCL² = ARCV² + DAZ²`, so half a tenth on each of them is worth up to 0.07 in the ARCL
      * that comes back. Row 169 is the one that uses it, at 0.063.
@@ -197,7 +197,7 @@ final class HeliacalDetailsTest extends TestCase
      */
     public static function yallopTable4(): array
     {
-        //                   ARCL   ARCV   DAZ    parallax'  W''    q
+        // ARCL   ARCV   DAZ    parallax'  W''    q
         return [
             'No 275, 1984-11-23' => [9.2, 7.6, 5.2, 59.5, 0.21, -0.296],
             'No 7, 1861-08-07' => [16.0, 5.0, 15.2, 59.0, 0.63, -0.316],
@@ -257,7 +257,7 @@ final class HeliacalDetailsTest extends TestCase
 
     /**
      * The one decision in this class that departs from Swiss, held down by the measurement that
-     * settles it: **equation (3.8) takes the horizontal parallax**, because that is the only one
+     * settles it: equation (3.8) takes the horizontal parallax, because that is the only one
      * of the two that turns `0.27245 π` into a semi-diameter.
      *
      * The numbers are Madrid on 2000-08-30 19:30 UT, with the Moon 3.98 degrees up: the true

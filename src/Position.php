@@ -86,7 +86,7 @@ readonly class Position
      * The velocity in rectangular coordinates, in astronomical units per day. It is Swiss's
      * `SEFLG_XYZ | SEFLG_SPEED`.
      *
-     * **The velocity is not carried over to rectangular coordinates as if it were another
+     * The velocity is not carried over to rectangular coordinates as if it were another
      * position**, which is the trap already noted in `Horizon::equatorialWithSpeed`: it comes
      * out of differentiating the three formulas above, and that is why the three speeds are
      * needed and not just the longitude one. Without them it returns null instead of assuming

@@ -13,7 +13,7 @@ readonly class LunarCircumstances
 {
     /**
      * @param array<string, bool> $visible By phase, in order: p1, u1, u2, maximum, u3, u4, p4.
-     *        Only the phases this eclipse has.
+     * Only the phases this eclipse has.
      * @param float $altitude True altitude of the Moon at maximum.
      * @param UtInstant|null $moonRise If it rises during the eclipse.
      * @param UtInstant|null $moonSet If it sets during the eclipse.

@@ -57,7 +57,7 @@ final class Vsop87Series
     /**
      * Amplitude below which a term is dropped, in radians (and in AU for the radius).
      *
-     * **It is 1e-8 because that is what the series that ship were built with**, and a default
+     * It is 1e-8 because that is what the series that ship were built with, and a default
      * that does not reproduce them is a command that quietly makes the engine worse: the console
      * command this came from defaulted to 1e-7 and the committed tables were written by passing
      * 1e-8 by hand, so running it with no options rewrote Earth with 213 terms where it has 621,
@@ -123,7 +123,7 @@ final class Vsop87Series
     /**
      * Checks a block brought as many terms as its own header announced.
      *
-     * **A cut-off download does not fail: it parses fewer terms and writes a perfectly
+     * A cut-off download does not fail: it parses fewer terms and writes a perfectly
      * well-formed file** whose header announces the smaller count, with no error anywhere and a
      * chart that answers a slightly different sky. There is nothing to invent here, which is the
      * whole point: every VSOP87 block says how many terms it has («367 TERMS») right in its own

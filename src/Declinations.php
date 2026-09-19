@@ -11,7 +11,7 @@ namespace Astronomy;
  * time at the same height above the equator.
  *
  * When they match in height, tradition reads it as a hidden conjunction: it is called a
- * **parallel** if they are on the same side and a **contraparallel** if they are on opposite
+ * parallel if they are on the same side and a contraparallel if they are on opposite
  * sides and at the same distance, which is read as an opposition.
  *
  * It is the layer that serious programs have and almost no free website does, and not because
@@ -33,9 +33,9 @@ class Declinations
      *
      * It is the standard formula for going from ecliptic to equatorial coordinates:
      *
-     *     sin δ = sin β · cos ε + cos β · sin ε · sin λ
+     * sin δ = sin β · cos ε + cos β · sin ε · sin λ
      *
-     * **Ecliptic latitude CANNOT be taken as zero.** That is the temptation, because for the Sun
+     * Ecliptic latitude CANNOT be taken as zero. That is the temptation, because for the Sun
      * it really is zero and the formula reduces to `asin(sin ε · sin λ)`. But the Moon departs
      * from the ecliptic by up to five degrees and Pluto by up to seventeen: with β at zero,
      * Pluto's declination comes out with degrees of error and its parallels are made up.

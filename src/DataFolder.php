@@ -13,12 +13,12 @@ use LogicException;
  * outside a booted application not a single position could be computed. Now they all ask for
  * it here, and the folder can be changed.
  *
- * **By default it is this project's `resources/astro`, and nothing has to be configured.** The
+ * By default it is this project's `resources/astro`, and nothing has to be configured. The
  * folder is deduced from where this very file is, so it works the same inside a framework as with
  * just Composer's autoload. An application changes it with `useFolder()` at boot; here that is done
  * by the host application at boot, from wherever it keeps its configuration.
  *
- * **It is set at boot and not changed afterwards**, and that is why `useFolder()` blows up if
+ * It is set at boot and not changed afterwards, and that is why `useFolder()` blows up if
  * something has already been read from another folder. The engine classes remember what they read in
  * static variables: a folder changed halfway through the process would leave some tables coming from
  * one and some from the other, without any error. Setting the same folder again is allowed, because

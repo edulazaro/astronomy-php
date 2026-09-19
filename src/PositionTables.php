@@ -15,7 +15,7 @@ use Throwable;
  * are in no theory at all: they are small bodies whose orbit is known only through numerical
  * integration. For those, either you tabulate them or you do not have them.
  *
- * **HELIOCENTRIC coordinates are stored, not what is seen from the Earth.** Seen from the Sun the
+ * HELIOCENTRIC coordinates are stored, not what is seen from the Earth. Seen from the Sun the
  * orbits are smooth and very nearly straight from one month to the next, so one point every thirty
  * days is enough to interpolate with no appreciable error. Seen from the Earth they carry the
  * retrograde loops our own motion lays on top of them, and reproducing those would need a far finer
@@ -25,19 +25,19 @@ use Throwable;
  * The JPL's data are public and a position is a fact, not a work. This is what makes it possible to
  * have Pluto without licensing Swiss Ephemeris.
  *
- * **The range runs from 1600 to 2400**, 9740 points and some 580 KB per body. It used to run from
+ * The range runs from 1600 to 2400, 9740 points and some 580 KB per body. It used to run from
  * 1800 to 2150, and widening it took two checks that are worth not doing again:
  *
  * - Horizons was asked for its OWN uncertainty (`QUANTITIES='36'`, sigma in right ascension and in
- *   declination) at both ends. Chiron: 0.93 and 0.23 arcseconds in 1600, 0.40 and 0.10 in 2400. For
- *   the asteroids it is smaller. All of it well below the arcminute that would have forced starting
- *   them later.
+ * declination) at both ends. Chiron: 0.93 and 0.23 arcseconds in 1600, 0.40 and 0.10 in 2400. For
+ * the asteroids it is smaller. All of it well below the arcminute that would have forced starting
+ * them later.
  * - Pluto is asked for as `9`, the barycentre of its system, and not as `999`, the centre of the
- *   body. The 999 comes out of the solution of the satellites (PLU060) and Horizons only serves it
- *   from 1800 to 2199; the 9 comes out of the DE440 planetary ephemeris and reaches from 1550 to
- *   2650. Between the two there are some 2100 kilometres, which at thirty astronomical units is a
- *   tenth of an arcsecond, and Swiss uses the barycentre too. For the 9 Horizons gives no
- *   uncertainty (`n.a.`): a planetary ephemeris publishes no covariance.
+ * body. The 999 comes out of the solution of the satellites (PLU060) and Horizons only serves it
+ * from 1800 to 2199; the 9 comes out of the DE440 planetary ephemeris and reaches from 1550 to
+ * 2650. Between the two there are some 2100 kilometres, which at thirty astronomical units is a
+ * tenth of an arcsecond, and Swiss uses the barycentre too. For the 9 Horizons gives no
+ * uncertainty (`n.a.`): a planetary ephemeris publishes no covariance.
  *
  * What it writes is read by `EphemerisPositions`, which asks for `jd`, `step`, `points` and `xyz`.
  */
@@ -64,17 +64,17 @@ final class PositionTables
      * @param HttpClient|null $http
      * @param string $body The body's name, which is also what the file is called.
      * @param string|null $horizonsId Its identifier in Horizons. By default the one `Body` carries,
-     *                                which is where it lives next to everything else that is known
-     *                                about the body: having it here as well would be having it
-     *                                wrong in one of the two places the day a new one is added.
+     * which is where it lives next to everything else that is known
+     * about the body: having it here as well would be having it
+     * wrong in one of the two places the day a new one is added.
      * @param string $from First date.
      * @param string $to Last date.
      * @param string $step Separation between points, as Horizons writes it: a whole number of days.
      * @return array{body: string, horizons_id: string, estimated_points: int, requests: int, chunks: list<array{through: string, points: int}>, points: int, step: int, first_jd: float, last_jd: float, path: string}
      *
      * @throws RuntimeException If the identifier, the step or the dates do not add up, if Horizons
-     *                          answers without a data block, or if the series arrives with a hole
-     *                          or falls short of the range that was asked for.
+     * answers without a data block, or if the series arrives with a hole
+     * or falls short of the range that was asked for.
      */
     public static function regenerate(
         ?HttpClient $http = null,

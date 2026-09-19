@@ -12,7 +12,7 @@ use DateTimeImmutable;
  * of the names are stretches of that run. No new ephemeris is needed: they are the two
  * positions we already compute.
  *
- * **The illuminated fraction does NOT come from the elongation**, and that is the easy
+ * The illuminated fraction does NOT come from the elongation, and that is the easy
  * confusion, because the formula going around is `(1 − cos elongation) / 2` and it gives an
  * almost good number. Almost: the elongation is the angle seen from HERE and what decides how
  * much of the disk is lit is the angle seen from THE MOON, which is another one. The Moon is so
@@ -22,7 +22,7 @@ use DateTimeImmutable;
  * 3.72 %. It is computed with `Phenomena`, which measures the angle at the Moon, and it costs
  * 1.2 milliseconds more.
  *
- * **The elongation is ALWAYS measured forward, from 0 to 360, not folded to the shorter arc.**
+ * The elongation is ALWAYS measured forward, from 0 to 360, not folded to the shorter arc.
  * That is what tells waxing from waning: 90 degrees is first quarter and 270 is last quarter,
  * and folding to the short arc would give 90 for both and they would be indistinguishable. It
  * is the same care the separation of aspects already asks for, and for the same reason.
@@ -35,7 +35,7 @@ class MoonPhase
      *
      * New moon is the exact moment when the elongation is zero, and the same goes for the two
      * quarters and the full moon. Splitting the turn into eight equal stretches, which is what
-     * there was, turns each of those instants into **3.7 days of «new moon»** and leaves the
+     * there was, turns each of those instants into 3.7 days of «new moon» and leaves the
      * name saying nothing; worse still, half of every full moon falls on the «gibosa creciente»
      * side, so the closest full moon in seventy years, that of 14 November 2016, came out on the
      * sheet as «waxing gibbous» with 99.83 % of the disk lit. A sentence that contradicts
@@ -73,7 +73,7 @@ class MoonPhase
     /**
      * The elongation as it is written, with the turn closed.
      *
-     * At new moon the elongation is 359.997, which rounded to two decimals prints as **360.00**
+     * At new moon the elongation is 359.997, which rounded to two decimals prints as 360.00
      * right below the sentence saying that at zero it is new moon. It is not wrong, because a
      * whole turn is the same place, but it reads as if it contradicted itself. It is rounded
      * FIRST and the turn closed afterwards, which in that order gives zero.

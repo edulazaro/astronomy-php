@@ -10,15 +10,15 @@ use InvalidArgumentException;
  * Seen from here, a planet does not always move forward through the zodiac: for a few weeks a
  * year it seems to go backwards. It is not really moving backwards, it is that the Earth
  * overtakes it on the inside, like a car you pass and that for a moment seems to go
- * backwards. The instants when it changes direction are called **stations**, and between the
+ * backwards. The instants when it changes direction are called stations, and between the
  * retrograde one and the direct one lies the retrograde period.
  *
- * It all comes out of a number the ephemeris already gives: **the speed in longitude, which
- * comes with its sign**. A station is where that number is zero, so this is not a new
+ * It all comes out of a number the ephemeris already gives: the speed in longitude, which
+ * comes with its sign. A station is where that number is zero, so this is not a new
  * calculation, it is finding a zero of something that is already computed, and `Crossings::root`
  * takes care of that.
  *
- * ## Why this class is not called `Stations`
+ * Why this class is not called `Stations`
  *
  * Because a station of a planet and a season of the year are the same word in more than one
  * language, Spanish among them («estación»), and this engine grew inside an application that
@@ -26,12 +26,12 @@ use InvalidArgumentException;
  * nothing to do with each other is exactly the confusion already noted with `Vulcan` against
  * `Vulkanus`: it gives no error at all, someone simply opens the wrong one.
  *
- * ## The step of the sweep, which is the only delicate part
+ * The step of the sweep, which is the only delicate part
  *
  * A Mercury retrograde period lasts about three weeks, and it is the shortest of them all. If
  * the step of the sweep came close to that, the two stations of one and the same period would
- * fit inside a single step, the speed would have the same sign at both ends and **the whole
- * retrograde period would disappear without giving any error**. It is the same trap already told
+ * fit inside a single step, the speed would have the same sign at both ends and the whole
+ * retrograde period would disappear without giving any error. It is the same trap already told
  * in `Crossings`, where what rules is not the speed of the body but the width of its retrograde
  * arc.
  *
@@ -74,7 +74,7 @@ class Retrogrades
      * @param float $from Julian day in Terrestrial Time.
      * @param float $to Ditto.
      * @return list<array{jd: float, longitud: float, retrograda: bool}> `retrograda` tells
-     *         whether from that instant on the body starts going backwards.
+     * whether from that instant on the body starts going backwards.
      */
     public static function stations(Body|DownloadableBody $body, float $from, float $to): array
     {
@@ -123,7 +123,7 @@ class Retrogrades
     /**
      * The retrograde periods that TOUCH the window, pairing up the stations.
      *
-     * **The search runs on a window widened on both sides**, and that is the part that is not
+     * The search runs on a window widened on both sides, and that is the part that is not
      * obvious: a period that started in December and ends in January belongs to both years, and
      * asking only for the year would lose half of its information (an end without a beginning
      * would show up). The widening is half a year, which is more than the longest retrograde
@@ -133,8 +133,8 @@ class Retrogrades
      * @param float $from
      * @param float $to
      * @return list<array{inicio: float|null, fin: float|null, longitudInicio: float|null, longitudFin: float|null}>
-     *         A null endpoint means that the station falls outside the widening, which can only
-     *         happen with very large windows.
+     * A null endpoint means that the station falls outside the widening, which can only
+     * happen with very large windows.
      */
     public static function periods(Body|DownloadableBody $body, float $from, float $to): array
     {

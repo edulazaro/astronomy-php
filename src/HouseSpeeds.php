@@ -11,7 +11,7 @@ namespace Astronomy;
  * time, and one running at 624 (Madrid, its fastest) moves a degree in two and a half. That is
  * how much a badly noted birth hour costs, said as a number instead of as a warning.
  *
- * **The midheaven is the boring one and that is the point**: it runs between 331 and 393 degrees
+ * The midheaven is the boring one and that is the point: it runs between 331 and 393 degrees
  * a day at every latitude on Earth, because it only depends on the obliquity. Everything that
  * varies from place to place varies through the horizon.
  *
@@ -25,7 +25,7 @@ readonly class HouseSpeeds
      * @param float $ascendant
      * @param float $midheaven
      * @param float $armc How fast local sidereal time itself runs, which is the rotation of the
-     *                    Earth and the same number for every chart.
+     * Earth and the same number for every chart.
      * @param float|null $vertex Null at the equator, where there is no vertex.
      * @param float $eastPoint
      * @param float|null $kochCoAscendant

@@ -10,17 +10,17 @@ use LogicException;
  * From heliocentric to what gets drawn on a chart there are four steps, and not one of them is
  * optional if you want a real apparent position:
  *
- * 1. **Light time.** We do not see where Jupiter is: we see where it was when the light that
- *    reaches us left, up to fifty minutes earlier. It is solved by iterating, because the
- *    distance depends on the position and the position on the delay.
- * 2. **FK5 frame.** VSOP87 works in its own dynamical frame and it has to be rotated into the
- *    one modern ephemerides use. It is nine hundredths of an arcsecond. Only for what comes
- *    from VSOP87: the JPL tables are already in ICRF and the ELP Moon in its own fit, and for
- *    those the correction takes them out of where they already were right.
- * 3. **Aberration.** The Earth runs at thirty kilometres per second and that tilts the
- *    direction of the light it receives, the way rain tilts if you walk. It is twenty
- *    arcseconds: it shows.
- * 4. **Nutation.** The reference frame itself nods. Another seventeen arcseconds.
+ * 1. Light time. We do not see where Jupiter is: we see where it was when the light that
+ * reaches us left, up to fifty minutes earlier. It is solved by iterating, because the
+ * distance depends on the position and the position on the delay.
+ * 2. FK5 frame. VSOP87 works in its own dynamical frame and it has to be rotated into the
+ * one modern ephemerides use. It is nine hundredths of an arcsecond. Only for what comes
+ * from VSOP87: the JPL tables are already in ICRF and the ELP Moon in its own fit, and for
+ * those the correction takes them out of where they already were right.
+ * 3. Aberration. The Earth runs at thirty kilometres per second and that tilts the
+ * direction of the light it receives, the way rain tilts if you walk. It is twenty
+ * arcseconds: it shows.
+ * 4. Nutation. The reference frame itself nods. Another seventeen arcseconds.
  *
  * Without steps 3 and 4 the chart comes out displaced by almost forty arcseconds, which is a
  * hundredth of a degree. It does not change a sign, but it does change an exact degree, and
@@ -37,8 +37,8 @@ use LogicException;
  * change WHICH position is asked for without changing where it is looked at from: `PositionType`
  * (apparent, astrometric, geometric, without aberration or without deflection) and
  * `ReferenceEcliptic` (true of date, mean of date or J2000). The rectangular ones are
- * given by `Position` itself. **With both options at their defaults the path is the usual one, bit
- * for bit**: the apparent of date does not go through the general chain with everything turned on,
+ * given by `Position` itself. With both options at their defaults the path is the usual one, bit
+ * for bit: the apparent of date does not go through the general chain with everything turned on,
  * the same function as before is called.
  *
  * Besides the `Body` cases, the five frames accept a `DownloadableBody`: an asteroid, a satellite
@@ -122,19 +122,19 @@ class Ephemeris
      * read in its source and checked by measuring, because all three things can be done another
      * way and none of them warns:
      *
-     * - **Light time from the Sun.** The planet where it was when the light that reaches the
-     *   origin left (`dx = xx`, without subtracting the observer, in `app_pos_etc_plan`). Without
-     *   it, Mars comes out 18 arcseconds off with respect to Swiss.
-     * - **Without aberration or deflection.** The origin does not move (`plaus_iflag` turns on
-     *   `SEFLG_NOABERR` and `SEFLG_NOGDEFL` with the heliocentric bit).
-     * - **With nutation.** It is not of the body but of the reference frame, and the true
-     *   equinox of date is the same one looked at from wherever. Without it, 14 arcseconds.
+     * - Light time from the Sun. The planet where it was when the light that reaches the
+     * origin left (`dx = xx`, without subtracting the observer, in `app_pos_etc_plan`). Without
+     * it, Mars comes out 18 arcseconds off with respect to Swiss.
+     * - Without aberration or deflection. The origin does not move (`plaus_iflag` turns on
+     * `SEFLG_NOABERR` and `SEFLG_NOGDEFL` with the heliocentric bit).
+     * - With nutation. It is not of the body but of the reference frame, and the true
+     * equinox of date is the same one looked at from wherever. Without it, 14 arcseconds.
      *
      * The series are already heliocentric (VSOP87 and the JPL tables), so this is exposing
      * what was already there. The Moon is the Earth plus the geocentric Moon, and the Earth is
      * its own VSOP87 series: in this frame it takes the place the Sun has in the geocentric one.
      *
-     * **The Sun has no heliocentric position**: it is the origin. Swiss returns zeros, which is
+     * The Sun has no heliocentric position: it is the origin. Swiss returns zeros, which is
      * a 0° of Aries looking perfectly fine; here it throws. Nor do the nodes and Lilith:
      * they are elements of the orbit of the Moon AROUND THE EARTH and from the Sun they
      * mean nothing.
@@ -173,8 +173,8 @@ class Ephemeris
      * by `astronomy masses`). Same criterion as the heliocentric one, with the origin at the
      * barycentre (`SEFLG_BARYCTR`): light time from there, without aberration and with nutation.
      *
-     * Careful with the reference: Swiss with the Moshier ephemerides **does not give barycentric
-     * positions** ("barycentric Moshier positions are not supported"), so this frame is verified
+     * Careful with the reference: Swiss with the Moshier ephemerides does not give barycentric
+     * positions ("barycentric Moshier positions are not supported"), so this frame is verified
      * against the JPL Horizons vectors from `500@0`, not against Swiss.
      *
      * With `PositionType` the same happens as in the heliocentric one: only the geometric one changes anything.
@@ -260,52 +260,52 @@ class Ephemeris
      *
      * Mars seen from Jupiter, the Earth seen from Mars. It sounds like a curiosity and it is the
      * same calculation as always with the observer moved elsewhere, so what is here is not new
-     * astronomy: it is **taking away from the chain the assumption that the observer is the
+     * astronomy: it is taking away from the chain the assumption that the observer is the
      * Earth**, which was buried inside the deflection and the aberration.
      *
      * Both corrections depend on where the one who looks is, and that is the whole point:
      *
-     * - **Light time** is measured from the body to the new origin, not to the Earth. From
-     *   Jupiter to Mars there are four astronomical units of path at the worst moment and half
-     *   an hour of light.
-     * - **Aberration is the observer's.** Jupiter goes at 13 kilometres per second where the
-     *   Earth goes at 30, so from there the light tilts less than half as much and towards
-     *   another place. Leaving the velocity of the Earth in place gives no error at all and
-     *   shifts the result **by up to 29.8 arcseconds**, measured over fifteen cases, where the
-     *   worst is the Earth seen from Mars in the year 2000. In none of the fifteen is it below 1.7.
-     * - **The deflection carries the three vertices inside it.** What bends the light is passing
-     *   close to the Sun ON THE WAY TO THE OBSERVER, and from Mars the Sun is seen in another
-     *   direction and what is left almost behind it is something else. In those fifteen cases it
-     *   does not reach four thousandths of an arcsecond, because in none of them is anything
-     *   right up against the Sun; with Jupiter at 0.45 degrees from the Sun seen from Mars it is
-     *   **0.57 arcseconds**, which is exactly what it is there for, just as in the geocentric case.
+     * - Light time is measured from the body to the new origin, not to the Earth. From
+     * Jupiter to Mars there are four astronomical units of path at the worst moment and half
+     * an hour of light.
+     * - Aberration is the observer's. Jupiter goes at 13 kilometres per second where the
+     * Earth goes at 30, so from there the light tilts less than half as much and towards
+     * another place. Leaving the velocity of the Earth in place gives no error at all and
+     * shifts the result by up to 29.8 arcseconds, measured over fifteen cases, where the
+     * worst is the Earth seen from Mars in the year 2000. In none of the fifteen is it below 1.7.
+     * - The deflection carries the three vertices inside it. What bends the light is passing
+     * close to the Sun ON THE WAY TO THE OBSERVER, and from Mars the Sun is seen in another
+     * direction and what is left almost behind it is something else. In those fifteen cases it
+     * does not reach four thousandths of an arcsecond, because in none of them is anything
+     * right up against the Sun; with Jupiter at 0.45 degrees from the Sun seen from Mars it is
+     * 0.57 arcseconds, which is exactly what it is there for, just as in the geocentric case.
      *
-     * **Against JPL Horizons, fifteen combinations in 1700, 2000 and 2300: 0.0097 arcseconds
-     * worst case in longitude, 0.0049 in latitude and 4.6e-7 astronomical units in distance.**
+     * Against JPL Horizons, fifteen combinations in 1700, 2000 and 2300: 0.0097 arcseconds
+     * worst case in longitude, 0.0049 in latitude and 4.6e-7 astronomical units in distance.
      * That is ten times better than the engine's floor in geocentric, and it is not that this is
      * better done: it is that to compare you have to rotate our result to the ecliptic of J2000
      * (see below), and that rotation takes with it the difference in precession model, which is
      * exactly what forms the floor of 0.13 arcseconds. What this figure measures is the
      * planetocentric geometry: light time, aberration, deflection and where the observer is.
      *
-     * **And to compare it you have to know this, which does not warn: Horizons changes frame
-     * according to the centre.** Its `ObsEcLon` from the Earth goes in the TRUE ECLIPTIC OF DATE
+     * And to compare it you have to know this, which does not warn: Horizons changes frame
+     * according to the centre. Its `ObsEcLon` from the Earth goes in the TRUE ECLIPTIC OF DATE
      * (which is why `astro:verificar` matches to 0.18 arcseconds over eight hundred years), and
-     * from any other body it goes in the **J2000** one. Measured: in the year 2000 the difference
+     * from any other body it goes in the J2000 one. Measured: in the year 2000 the difference
      * is the 13.93 arcseconds of nutation exactly, and in 1700 and in 2300 it is 4.19 degrees,
      * that is three hundred years of precession. Comparing them raw it looks like a huge bug and
      * it is a change of frame.
      *
      * Here the nutation is applied, which is what Swiss does and the same thing the heliocentric
-     * and barycentric positions already do: **it is not of the body nor of the observer, it moves
-     * the whole reference frame**, and the true equinox of date is the same one looked at from
+     * and barycentric positions already do: it is not of the body nor of the observer, it moves
+     * the whole reference frame, and the true equinox of date is the same one looked at from
      * wherever.
      *
-     * And one that follows by itself: **from another planet, the Moon stops being a special
-     * case**. In geocentric it carries no annual aberration because it orbits WITH us and we
+     * And one that follows by itself: from another planet, the Moon stops being a special
+     * case. In geocentric it carries no annual aberration because it orbits WITH us and we
      * share velocity; from Mars it shares nothing, so it comes in through everyone's path.
      *
-     * **The two centres that already had a path of their own still have it.** From the Earth this
+     * The two centres that already had a path of their own still have it. From the Earth this
      * returns the usual geocentric position and from the Sun the heliocentric one, delegating to
      * them instead of recalculating it: two definitions of the same thing is a place where they
      * can diverge, and the geocentric one is what casts the charts.
@@ -445,7 +445,7 @@ class Ephemeris
      * latitude stops being zero, because that is another plane: it is the ecliptic of date seen
      * from it.
      *
-     * **Here the nutation is added to them, and it went unadded.** `LunarPoints` gives them in
+     * Here the nutation is added to them, and it went unadded. `LunarPoints` gives them in
      * the MEAN ecliptic of date, which is where the mean longitudes of ELP are written, and that
      * is how they reached the chart, while the planets arrive in the true one: they carried the
      * nutation in longitude, up to seventeen arcseconds, in every aspect of the node with a
@@ -544,7 +544,7 @@ class Ephemeris
      * crosses 360 degrees, the subtraction gives some 360 degrees per day of speed: the jump is
      * undone before dividing.
      *
-     * **The speed in latitude and in distance come for free**: the function being differentiated
+     * The speed in latitude and in distance come for free: the function being differentiated
      * already returned the three coordinates at each instant and here two of them were thrown
      * away. They are the ones needed for the speed in rectangular coordinates
      * (`Position::rectangularVelocity`), which is the `SEFLG_XYZ | SEFLG_SPEED` of Swiss, and
@@ -586,7 +586,7 @@ class Ephemeris
     /**
      * Only the apparent ecliptic longitude, without speed.
      *
-     * **The speed costs three times what the position costs**, because it comes from centred
+     * The speed costs three times what the position costs, because it comes from centred
      * differences: the body has to be calculated at the instant and at the two beside it.
      * Whoever is only going to read the longitude pays three times what they need, and in a
      * sweep that shows: the milestones of a life ask for some seven thousand positions, and with
@@ -686,18 +686,18 @@ class Ephemeris
      * touched: two definitions of the same thing is a place where they can diverge. The rest is
      * the same chain with steps turned off, and there are two bodies that do not follow it whole:
      *
-     * - **The Moon never carries deflection** (its light does not pass close to the Sun), so
-     *   without deflection it is the usual apparent one and without aberration it is the
-     *   astrometric one. **And its astrometric position does not come from its own path but from
-     *   the general one**: the heliocentric position at the instant the light left minus the
-     *   Earth at this one. The own path applies no aberration because the Moon travels with us,
-     *   and that is true of the SUM of the two corrections, not of each one: the light time of a
-     *   Moon that moves with the Earth already eats the annual aberration, and what is left
-     *   without it is not obtained by subtracting anything. Measured against Horizons with
-     *   `VEC_CORR='LT'`, which is this very thing.
-     * - **The Sun carries no light time**, because it is at the origin of the frame it is counted
-     *   in, nor deflection, because its light cannot be deviated by its own mass. It is the Swiss
-     *   convention, measured: its geometric and its astrometric positions are the same.
+     * - The Moon never carries deflection (its light does not pass close to the Sun), so
+     * without deflection it is the usual apparent one and without aberration it is the
+     * astrometric one. And its astrometric position does not come from its own path but from
+     * the general one: the heliocentric position at the instant the light left minus the
+     * Earth at this one. The own path applies no aberration because the Moon travels with us,
+     * and that is true of the SUM of the two corrections, not of each one: the light time of a
+     * Moon that moves with the Earth already eats the annual aberration, and what is left
+     * without it is not obtained by subtracting anything. Measured against Horizons with
+     * `VEC_CORR='LT'`, which is this very thing.
+     * - The Sun carries no light time, because it is at the origin of the frame it is counted
+     * in, nor deflection, because its light cannot be deviated by its own mass. It is the Swiss
+     * convention, measured: its geometric and its astrometric positions are the same.
      *
      * @param Body|DownloadableBody $body
      * @param float $jdTT
@@ -755,11 +755,11 @@ class Ephemeris
      * The whole engine works in the true one of date and changes ecliptic at the end, in a
      * single place, instead of having each chain written three times.
      *
-     * - **To the mean one** the nutation is removed, which in the ecliptic only moves the
-     *   longitude: it is subtracting exactly what was added.
-     * - **To J2000** you go from the mean one, with the same rotation the Moon and the JPL tables
-     *   use (`Precession::toJ2000`). Without removing the nutation first you would precess a
-     *   longitude that is not in the ecliptic the rotation starts from.
+     * - To the mean one the nutation is removed, which in the ecliptic only moves the
+     * longitude: it is subtracting exactly what was added.
+     * - To J2000 you go from the mean one, with the same rotation the Moon and the JPL tables
+     * use (`Precession::toJ2000`). Without removing the nutation first you would precess a
+     * longitude that is not in the ecliptic the rotation starts from.
      *
      * The distance does not change: rotating the reference frame brings nothing closer.
      *
@@ -802,7 +802,7 @@ class Ephemeris
      * It lives here and not in `Phenomena` because the delicate parts are two things only this
      * class knows.
      *
-     * **At which instant each side is measured.** The body is seen where it was when the light
+     * At which instant each side is measured. The body is seen where it was when the light
      * that arrives now left, so its distance to the Sun is measured at THAT instant and not at
      * this one. It sounds like a detail and in the Moon it is worth 0.08 degrees of phase angle:
      * the light of the Sun takes eight minutes to reach it and in eight minutes the Moon travels
@@ -810,7 +810,7 @@ class Ephemeris
      * Sun and not from here, the phase of the Moon came out systematically shifted and no
      * calculation gave an error.
      *
-     * **And that the angle comes from the VECTORS and not from the law of cosines.** The formula
+     * And that the angle comes from the VECTORS and not from the law of cosines. The formula
      * of the three sides is the one in every textbook and here it loses digits: its numerator is
      * `r² + Δ² − R²`, and in the Moon that subtracts two numbers worth 1.03 to give 0.0029, that
      * is, two and a half digits of precision go at once. With the angle between the two vectors,
@@ -821,7 +821,7 @@ class Ephemeris
      * @param Body|DownloadableBody $body
      * @param float $jdTT
      * @return array{alfa: float, r: float, delta: float, R: float} The angle in degrees and the
-     *                                                              three distances in AU.
+     * three distances in AU.
      */
     public static function phaseGeometry(Body|DownloadableBody $body, float $jdTT): array
     {
@@ -1030,7 +1030,7 @@ class Ephemeris
            for the usual reason: it is that there is no JPL to correct against, because these
            bodies do not exist.
 
-           **Two of the nineteen orbit the EARTH** (Selena and Waldemath's moon), so what
+           * *Two of the nineteen orbit the EARTH** (Selena and Waldemath's moon), so what
            `FictitiousBodies` returns for them is a geocentric vector and the Earth has to be
            added to it to take it to the origin everything else works in. Through
            `geometricHeliocentric` and not through `Vsop87` raw, exactly like the Moon, so that
@@ -1066,7 +1066,7 @@ class Ephemeris
      * The date and the size are looked at and not the content: reading five megabytes to
      * calculate a key would cost more than redoing the arithmetic.
      *
-     * **And the engine's classes come in too**, because a change of calculation moves what is
+     * And the engine's classes come in too, because a change of calculation moves what is
      * stored just as a change of data does and touches no file in `resources/astro`. It happened
      * when UTC was hooked up to the chart and the nutation was added to the nodes: the stored
      * stars, parans and solar return would have gone on being served with the instant and the
@@ -1142,7 +1142,7 @@ class Ephemeris
      * use, and the constant is twice the Schwarzschild radius of the Sun divided by the
      * astronomical unit.
      *
-     * **It is not applied to the Moon, nor to the Sun.** The light of the Moon does not pass
+     * It is not applied to the Moon, nor to the Sun. The light of the Moon does not pass
      * close to the Sun, it comes from right beside us, which is the same reason why it carries
      * no annual aberration either; and that of the Sun cannot be deviated by its own mass,
      * because it comes out of it.
@@ -1161,7 +1161,7 @@ class Ephemeris
      * The same arithmetic with the observer put in by hand, which is what is needed to look
      * from another planet (`planetocentric`).
      *
-     * **The deflection depends on where the observer is and not only on where the body is**:
+     * The deflection depends on where the observer is and not only on where the body is:
      * what produces it is the light passing close to the Sun ON ITS WAY TO HERE, so the
      * triangle carries the three vertices inside it. From Mars, the Sun is seen in another
      * direction and what is left almost behind it is something else.
@@ -1239,8 +1239,8 @@ class Ephemeris
      * difference is tabulated in `CorrectionTable`, in Chebyshev and in the same ecliptic of date
      * this class works in, so correcting is adding.
      *
-     * **Without a file or outside its range, nothing is added and the engine does exactly what
-     * it did before.** That is what separates a correction layer from a change of ephemerides:
+     * Without a file or outside its range, nothing is added and the engine does exactly what
+     * it did before. That is what separates a correction layer from a change of ephemerides:
      * there is no case in which the chart cannot be cast.
      *
      * @param string $key
@@ -1371,7 +1371,7 @@ class Ephemeris
      * The geocentric Moon is a separate case and it is decided where it is applied: it does not
      * carry it either, being from ELP.
      *
-     * **And a body with a correction table does not carry it either, for the exact same reason**:
+     * And a body with a correction table does not carry it either, for the exact same reason:
      * VSOP87 plus its correction is no longer VSOP87, it is a JPL position, that is, ICRF. That
      * includes the geocentric Sun, which is the Earth turned around, and the barycentric one. The
      * condition is asked and not written by hand: the day a body gains its table, it stops
@@ -1525,7 +1525,7 @@ class Ephemeris
      * The same tilt with the velocity of the observer put in by hand, to look from
      * another planet.
      *
-     * **Aberration is the OBSERVER's and not the body's**: the light tilts because the one who
+     * Aberration is the OBSERVER's and not the body's: the light tilts because the one who
      * looks moves. From Jupiter, which goes at 13 km/s instead of at 30, it is half as long and
      * points somewhere else.
      *

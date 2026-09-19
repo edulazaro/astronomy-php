@@ -34,7 +34,7 @@ final class Horizons
      * between attempts.
      *
      * It is measured: asking many times in a row, JPL stops answering for a few minutes and does it
-     * **with a 200 and an empty body**, not with an error. Without retries that kills a file's
+     * with a 200 and an empty body, not with an error. Without retries that kills a file's
      * download halfway through, and what Horizons really says when it has no data (that the body
      * does not exist, that it does not reach those dates) comes as text and is not retried, which
      * would be waiting for something that is not going to change.
@@ -46,7 +46,7 @@ final class Horizons
     /**
      * @param HttpClient $http
      * @param int $timeoutSeconds How long is waited between attempts. Zero in the tests, which have
-     *                            nobody at the other end to let breathe.
+     * nobody at the other end to let breathe.
      */
     public function __construct(
         private readonly HttpClient $http = new NativeHttpClient(),
@@ -138,11 +138,11 @@ final class Horizons
      *
      * It is the `QUANTITIES='36'` with which it was already decided whether Chiron and Pholus were
      * trustworthy, and here it matters more: anyone can ask for any asteroid, and a body discovered
-     * the day before yesterday has an orbit that going backwards is worth nothing. **Only small
-     * bodies with a fitted covariance declare it**: satellites and comets answer `n.a.`, just like
+     * the day before yesterday has an orbit that going backwards is worth nothing. Only small
+     * bodies with a fitted covariance declare it: satellites and comets answer `n.a.`, just like
      * the planets, because their ephemerides publish no covariance.
      *
-     * **It never throws, and that is on purpose.** It is one extra piece of data about data that is
+     * It never throws, and that is on purpose. It is one extra piece of data about data that is
      * already downloaded, so if Horizons does not answer, or answers with an error of its own, null
      * is returned and the download carries on. Measured: for some bodies Horizons itself returns
      * "unexpected error: please notify the webmaster" instead of a table.

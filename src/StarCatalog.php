@@ -8,25 +8,25 @@ use RuntimeException;
  * Builds the fixed star catalogue: which stars there are, and where each one is.
  *
  * It is the star half of what `Downloader` does for asteroids, and it lives in the package for
- * the same reason: **an engine has to be able to build its own data**. It used to be an Artisan
+ * the same reason: an engine has to be able to build its own data. It used to be an Artisan
  * command inside one application, so the package shipped a catalogue it could not regenerate.
  *
  * Two services, because they answer two different questions:
  *
- * - **SIMBAD** (CDS, Strasbourg) says WHICH star this is: its main identifier, its Hipparcos
- *   number, its V magnitude and its object type.
- * - **Hipparcos-2** (van Leeuwen 2007, catalogue `I/311/hip2` through VizieR) says where it is:
- *   position, proper motion and parallax. It is what Swiss Ephemeris uses, and for the bright
- *   stars, which are all of the ones anybody reads, it is still the reference: Gaia saturates
- *   on them.
+ * - SIMBAD (CDS, Strasbourg) says WHICH star this is: its main identifier, its Hipparcos
+ * number, its V magnitude and its object type.
+ * - Hipparcos-2 (van Leeuwen 2007, catalogue `I/311/hip2` through VizieR) says where it is:
+ * position, proper motion and parallax. It is what Swiss Ephemeris uses, and for the bright
+ * stars, which are all of the ones anybody reads, it is still the reference: Gaia saturates
+ * on them.
  *
- * **Nothing is asked for by name, and that is the whole trick of this class.** `star-names.php`
+ * Nothing is asked for by name, and that is the whole trick of this class. `star-names.php`
  * carries a J2000 position for each star, and the star is identified by a cone search around it.
  * Asking by name means trusting a spelling, and the published lists write the same star four
  * different ways; a position is unambiguous. The position is used only to ask the question: what
  * ends up in the file is Hipparcos-2's own astrometry.
  *
- * **If a single star does not resolve, nothing is written.** A catalogue missing one star gives
+ * If a single star does not resolve, nothing is written. A catalogue missing one star gives
  * no error anywhere: that star simply stops appearing in charts and nobody knows it should.
  */
 class StarCatalog
@@ -69,7 +69,7 @@ class StarCatalog
      *
      * Two things follow from that and both are measured, not assumed. They have no V magnitude
      * of their own in SIMBAD, because the magnitude of an extended object depends on how much of
-     * it you count. And **they have no proper motion**: M 31 moves forty microarcseconds a year,
+     * it you count. And they have no proper motion: M 31 moves forty microarcseconds a year,
      * which is zero for anything a chart does, and SIMBAD does not publish one.
      */
     private const EXTENDED = ['OpC', 'GlC', 'Cl*', 'G', 'GiG', 'GiC', 'AGN', 'SyG', 'Sy1', 'Sy2', 'LIN', 'IG'];
@@ -102,7 +102,7 @@ class StarCatalog
     /**
      * The stars whose letter names one constellation and whose position falls in another.
      *
-     * **It is not an error, it is the sky.** Bayer lettered his stars in 1603 and Flamsteed
+     * It is not an error, it is the sky. Bayer lettered his stars in 1603 and Flamsteed
      * numbered his in 1712, and Delporte did not draw the boundaries until 1930: a few stars
      * ended up on the wrong side of a line that did not exist when they were named. Measured
      * over the whole catalogue, there are exactly two of them in a thousand and eighty with a
@@ -213,7 +213,7 @@ class StarCatalog
     /**
      * The key each star of the list gets, by designation.
      *
-     * A key is the name, which is what anyone asking for a star writes. **But a name is not
+     * A key is the name, which is what anyone asking for a star writes. But a name is not
      * unique in the list and a designation is**, and that difference cost ten stars before it was
      * measured: ten names belong to two entries each, five of them a system and one of its
      * components (β and β¹ Cap are both Dabih) and five two components of a wide pair that share
@@ -425,11 +425,11 @@ class StarCatalog
      *
      * *«Identification of a Constellation From Position»*, PASP 99, 695 (1987), catalogue VI/42
      * at CDS. Three hundred and fifty-seven rows of «from this right ascension to that one, above
-     * this declination, this constellation», in **B1875**, which is the frame Delporte drew the
+     * this declination, this constellation», in B1875, which is the frame Delporte drew the
      * 1930 boundaries in and the reason they are all parallels and meridians there and crooked
      * anywhere else. Sorted so that the first row a position falls into is its constellation.
      *
-     * **It is downloaded and not typed, like everything else here**, and it is only needed while
+     * It is downloaded and not typed, like everything else here, and it is only needed while
      * the catalogue is being built: what ends up in `stars.php` is the name.
      *
      * @param HttpClient $http
@@ -523,7 +523,7 @@ class StarCatalog
      * and nothing else: an object also carries its HD, its HIP, its TYC and its Gaia number, and
      * none of those is something a person writes.
      *
-     * **They are asked for rather than written down**, and what that buys is measured: Swiss
+     * They are asked for rather than written down, and what that buys is measured: Swiss
      * calls M 44 «Praesepe Cluster» and alpha Centauri «Rigil Kentaurus», so `find('Praesepe')`
      * and `find('Toliman')` came back empty after the catalogue grew, and the clusters had no
      * alias in Swiss's list to fall back on.
@@ -599,7 +599,7 @@ class StarCatalog
     /**
      * The designation as a person writes it: from «* alf02 Lib» to «α² Lib».
      *
-     * **This is what gets read**, in the chart sheet and in the text the interpreter is handed,
+     * This is what gets read, in the chart sheet and in the text the interpreter is handed,
      * so it is the Bayer letter and not Swiss's own abbreviation: `alLeo` is an identifier and
      * «α Leo» is a designation. The identifier is still what the list is keyed by; what is
      * written down is this.
@@ -660,7 +660,7 @@ class StarCatalog
      * What the list names with a catalogue number, asked for by that number.
      *
      * Everything else goes by cone, because a Bayer designation is not something SIMBAD can look
-     * up. These can, and they have to: all eleven are extended objects, and **a cone around an
+     * up. These can, and they have to: all eleven are extended objects, and a cone around an
      * extended object finds the stars inside it**, each of them a valid-looking answer three
      * arcminutes from the thing that was asked for. An identifier has no such ambiguity.
      *
@@ -713,7 +713,7 @@ class StarCatalog
 
             unset($row['asked']);
 
-            /* **Asked for by its own catalogue number, what comes back IS the object**, so the
+            /* Asked for by its own catalogue number, what comes back IS the object, so the
                rule that a body with no proper motion is a datum that did not arrive does not
                apply to it: all eleven of these are extended and none of them moves. Said this way
                and not by adding to the list of SIMBAD types, which is where NGC 4194 was lost:
@@ -729,7 +729,7 @@ class StarCatalog
     /**
      * The candidates with the components dropped whose system is among them.
      *
-     * **Inside twenty arcseconds a system and its components are the same object written at two
+     * Inside twenty arcseconds a system and its components are the same object written at two
      * levels, and which level is meant is decided by what was asked for, not by which is closer
      * or brighter.** Swiss says `alCen` for the system and `ga-1Leo` for the component, and
      * SIMBAD writes the same difference as `* alf Cen` against `* alf Cen A`. So a candidate
@@ -740,7 +740,7 @@ class StarCatalog
      * are a tenth of an arcsecond apart and both about five arcseconds from where Swiss puts the
      * pair, so the closest of the two is decided by rounding.
      *
-     * **What it buys is measured and it is Toliman.** Alpha Centauri is an eighty-year double,
+     * What it buys is measured and it is Toliman. Alpha Centauri is an eighty-year double,
      * and Hipparcos-2 has no solution for the system: only the two components, each with its
      * instantaneous 1991 motion, which carries the orbital velocity inside and extrapolated a
      * century in a straight line leaves A twenty-eight arcseconds from where the system goes.
@@ -797,7 +797,7 @@ class StarCatalog
     /**
      * The identifier of the system a SIMBAD identifier is a component of, or null.
      *
-     * **SIMBAD writes a component in two ways and both had to be measured, because only the
+     * SIMBAD writes a component in two ways and both had to be measured, because only the
      * first is obvious.** One is a letter at the end, `* alf Cen A` under `* alf Cen`. The other
      * is the Bayer index, `* alf01 Cru` under `* alf Cru`, and missing it left Acrux, Mizar and
      * Mesarthim on a system with no published magnitude: their light is their bright component's
@@ -824,7 +824,7 @@ class StarCatalog
     /**
      * Whether the list's designation ends in a component letter, as `zePscA` and `61CygA` do.
      *
-     * **A trailing capital cannot be read as that letter on its own**, because ten constellation
+     * A trailing capital cannot be read as that letter on its own, because ten constellation
      * abbreviations end in one: `alCrB` is alpha Coronae Borealis and `alTrA` alpha Trianguli
      * Australis, neither of them a component B or A of anything. So the letter only counts when
      * what is left in front of it ends in an abbreviation the table knows.
@@ -993,7 +993,7 @@ class StarCatalog
      * Hipparcos-2's astrometry, carried from J1991.25 to J2000 with its own proper motion.
      *
      * It is the same computation `Stars` does to go from J2000 to a date, and the one Swiss did
-     * to write its file: **`pmRA` carries the cosine of the declination inside**, so turning it
+     * to write its file: `pmRA` carries the cosine of the declination inside, so turning it
      * into right ascension means DIVIDING by it. Checked against `sefstars.txt` star by star: it
      * agrees to three tenths of a milliarcsecond.
      *
@@ -1055,7 +1055,7 @@ class StarCatalog
      * clusters and the galaxies and a handful named after their catalogue, goes to null rather
      * than to a guess.
      *
-     * **An abbreviation that is there and is not the IAU's stops the catalogue**, which is what
+     * An abbreviation that is there and is not the IAU's stops the catalogue, which is what
      * this promised and did not do: it returned null, and that is indistinguishable from a
      * cluster with no designation. Two hundred and eighty-five stars came out with no sky and no
      * word said, because the constellation table had been written for a list a sixth this long.

@@ -44,7 +44,7 @@ final class Elp2000Series
     /**
      * Truncation level in radians, the `prec` of the original subroutine.
      *
-     * **It is 1e-8 because that is what the series that ship were built with**, and the same trap
+     * It is 1e-8 because that is what the series that ship were built with, and the same trap
      * as in `Vsop87Series`: the console command this came from defaulted to 1e-7 while the
      * committed files say «truncated to 1.0E-8, 2,246 terms kept out of 37,872», so a run with no
      * options rewrote the Moon coarser and nothing failed.
@@ -102,7 +102,7 @@ final class Elp2000Series
     private float $dtasm;
 
     /**
-     * **There is no completeness check on the download here, and it is not an oversight.**
+     * There is no completeness check on the download here, and it is not an oversight.
      *
      * `Vsop87Series` has one, because every VSOP87 block declares its own count in its header
      * («367 TERMS») and a short download leaves a block with fewer rows than it announces. ELP's

@@ -85,7 +85,7 @@ enum Body: string implements Translatable
        body: it is an orbit around the EARTH. Proserpina is another trans-Neptunian of
        astrology, with no source signing it.
 
-       **Vulcano is not Vulkanus**, which is right up here: that one is Sieggrün's fourth, at 77
+       * *Vulcano is not Vulkanus**, which is right up here: that one is Sieggrün's fourth, at 77
        astronomical units, and this one orbits inside Mercury and goes around in eighteen days.
        The names look so much alike that confusing them is easy and gives no error at all. */
     case Transpluto = 'isis-transpluto';
@@ -245,7 +245,7 @@ enum Body: string implements Translatable
             self::Nibiru => "\u{E001}",
             self::Harrington => "\u{E002}",
             self::Waldemath => "\u{E004}",
-            // Venus upside down: the cross on top and the circle below. 
+            // Venus upside down: the cross on top and the circle below.
             self::Earth => '♁',
         };
     }
@@ -255,7 +255,7 @@ enum Body: string implements Translatable
      * the disc.
      *
      * It is not `radiusKm`, and the difference is not a decimal: the giants spin fast and are
-     * flattened, so Saturn measures **60,268 km of radius at the equator and 58,232 of mean
+     * flattened, so Saturn measures 60,268 km of radius at the equator and 58,232 of mean
      * radius**, three and a half per cent. What is seen of a planet and what any ephemeris
      * publishes is the equatorial width, because it is the larger one and the one that gets
      * measured.
@@ -266,7 +266,7 @@ enum Body: string implements Translatable
      * seen.
      *
      * From the NASA Planetary Fact Sheet and, for the Sun, from the IAU's 2015 nominal radius
-     * (695,700 km). **There is no need to trust the transcription**: `FenomenosTest` compares
+     * (695,700 km). There is no need to trust the transcription: `FenomenosTest` compares
      * the apparent diameter of the ten bodies against the one Horizons publishes, so a
      * miscopied figure does not get anywhere.
      *
@@ -287,7 +287,7 @@ enum Body: string implements Translatable
                tables come from. Ceres and Vesta are measured and they are real ellipsoids: 482
                against 470 and 285 against 263, that is, here the flattening is not a decimal.
 
-               **Chiron disagrees by 63% with its `radiusKm`, and that is not shape: it is
+               * *Chiron disagrees by 63% with its `radiusKm`, and that is not shape: it is
                size.** The JPL gives it 166 km of diameter and the one that had been written
                above comes out of an older and larger estimate. The size of a centaur is
                measured by occultation or by infrared and the catalogues do not agree; the JPL's
@@ -301,8 +301,8 @@ enum Body: string implements Translatable
             self::Juno => 123.3,
             self::Vesta => 284.6,
             /* The Moon and Pluto are not measurably flattened, so their radius is a single one
-               and it is the one the eclipses already use: in this project **there is one lunar
-               radius**, which is the rule that is written down, and splitting it in two over
+               and it is the one the eclipses already use: in this project there is one lunar
+               radius, which is the rule that is written down, and splitting it in two over
                seven tenths of a kilometre would be creating the problem that rule avoids. */
             default => $this->radiusKm(),
         };

@@ -7,27 +7,27 @@ use RuntimeException;
 /**
  * The lunar nodes and Lilith.
  *
- * They are not bodies: they are **elements of the Moon's orbit**, and that is why they do not
+ * They are not bodies: they are elements of the Moon's orbit, and that is why they do not
  * come from a table or from a series of their own. The nodes are the two points where the lunar
  * orbit crosses the ecliptic; Lilith is its apogee, the farthest end.
  *
  * There are two versions of each one and they do not give the same thing:
  *
- * - **Mean**: the averaged value, which advances at a constant rate. The mean node moves
- *   backwards 1934.14 degrees per century, always, with no ups and downs.
- * - **True**: the one of the instantaneous orbit, computed from the position vector and the
- *   velocity vector of the Moon at that moment. It oscillates around the mean one, up to a degree
- *   and a half in the node and up to thirty degrees in Lilith.
+ * - Mean: the averaged value, which advances at a constant rate. The mean node moves
+ * backwards 1934.14 degrees per century, always, with no ups and downs.
+ * - True: the one of the instantaneous orbit, computed from the position vector and the
+ * velocity vector of the Moon at that moment. It oscillates around the mean one, up to a degree
+ * and a half in the node and up to thirty degrees in Lilith.
  *
- * And of Lilith there is a third one, the **interpolated** one, with its opposite Priapus. It is
+ * And of Lilith there is a third one, the interpolated one, with its opposite Priapus. It is
  * the one Astrodienst takes to be the physically correct one: the position of the Moon at its real
  * apogee (or perigee), followed continuously between one passage and the next. It oscillates five
  * degrees around the mean one at the apogee and twenty-five at the perigee, against the thirty of
  * the osculating one. How it is computed, and why it is not computed the way its name suggests, is
  * in `interpolatedLilith()`.
  *
- * The advantage of them being orbital elements and not bodies is that **they can be checked
- * against their own definition**, without asking anyone for anything: the true node has to match
+ * The advantage of them being orbital elements and not bodies is that they can be checked
+ * against their own definition, without asking anyone for anything: the true node has to match
  * the longitude of the Moon at the instant when its latitude crosses zero northwards, and the two
  * non-mean Liliths the longitude of the Moon at the instant of the apogee. That is exactly what
  * the tests do.
@@ -164,7 +164,7 @@ class LunarPoints
      * no interpolation in time can follow a feature narrower than its sampling. It is Nyquist,
      * not a bad method.
      *
-     * **What Swiss really does** (`swi_intp_apsides`, in `swemmoon.c`) is another thing: it takes
+     * What Swiss really does (`swi_intp_apsides`, in `swemmoon.c`) is another thing: it takes
      * the lunar arguments of the theory (mean anomaly, elongation, argument of latitude, mean
      * longitude) and shifts them ALL by the same angle until the mean anomaly sits at the apogee,
      * with the Sun and the planets where they are at the requested instant. That is, it moves the
@@ -198,7 +198,7 @@ class LunarPoints
      * the root ten degrees. With the extremum over δ, the perigee drifted twelve degrees from
      * Swiss; with the time derivative, 0.021.
      *
-     * **Measured against Swiss 2.10.03** (Moshier, without nutation, geometric), six hundred dates
+     * Measured against Swiss 2.10.03 (Moshier, without nutation, geometric), six hundred dates
      * between 1900 and 2100: apogee, worst 0.016 degrees and median 0.003; perigee, worst 0.021
      * and median 0.004. With no drift over the centuries. What is left is the difference between
      * Moshier's theory and ELP's, which in the Moon itself reaches three arcseconds. And at the

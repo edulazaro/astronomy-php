@@ -18,7 +18,7 @@ use Throwable;
  * that was the largest error the engine had left: more than the precession, more than the nutation
  * and more than the light time put together.
  *
- * **The position is not tabulated: the difference is.** Storing the JPL's positions for eight
+ * The position is not tabulated: the difference is. Storing the JPL's positions for eight
  * planets and eight hundred years would cost tens of megabytes, because a large number has to be
  * described exactly (Neptune runs at around 30 AU). The difference is a number a thousand times
  * smaller, so for the same ABSOLUTE error, which is the one that shows up in a chart, it needs far
@@ -27,7 +27,7 @@ use Throwable;
  * the same. See `CorrectionTable` for the format and `Ephemeris::corrected` for the wiring.
  *
  * The Earth is the most important of the eight bodies and the easiest one to forget, because it is
- * not drawn in any chart: **the geocentric Sun is minus the heliocentric Earth**, so correcting the
+ * not drawn in any chart: the geocentric Sun is minus the heliocentric Earth, so correcting the
  * Earth is correcting the Sun, which is what gets read the most. And the Moon comes free with it,
  * since the engine computes it as the Earth plus its geocentric position.
  *
@@ -35,21 +35,21 @@ use Throwable;
  * the JPL through their own tables. Correcting them towards the JPL would be correcting them
  * towards themselves.
  *
- * ## The path, which is the ephemeris tables' one with two more steps
+ * The path, which is the ephemeris tables' one with two more steps
  *
  * 1. Horizons is asked for the GEOMETRIC heliocentric vector (`VEC_CORR='NONE'`: no light time and
- *    no aberration, which the engine puts on afterwards) in the J2000 ecliptic.
+ * no aberration, which the engine puts on afterwards) in the J2000 ecliptic.
  * 2. It is turned to the ecliptic of date with `Precession::toDate`, which is what
- *    `EphemerisPositions::atDate` does with the tables for Pluto and the asteroids.
+ * `EphemerisPositions::atDate` does with the tables for Pluto and the asteroids.
  * 3. `Vsop87::rectangular` is subtracted from it, which is exactly the vector the correction layer
- *    is going to add this to.
+ * is going to add this to.
  * 4. The residual is fitted with Chebyshev in blocks and written.
  *
- * **The time is asked for in TT.** Asking in UT, Horizons converts with its delta T and we convert
+ * The time is asked for in TT. Asking in UT, Horizons converts with its delta T and we convert
  * with ours, and outside 1900 to 2050 what gets measured is the difference between the two delta T
  * and not the ephemeris. It is the same lesson the verification command already learnt.
  *
- * **The range is 1599 to 2401 and not 1600 to 2400**, which is what the Pluto table covers. The
+ * The range is 1599 to 2401 and not 1600 to 2400, which is what the Pluto table covers. The
  * extra year on each side is margin: outside the table the correction does not degrade, it switches
  * off entirely, and the velocity is derived by centred differences at six hours. Without that
  * margin, a chart of 1 January 1600 would ask for the correction six hours before the first block,
@@ -68,35 +68,35 @@ final class PlanetCorrectionTable
      *
      * `[identifier, days per block, degree, days between points]`.
      *
-     * **The three numbers are measured, not chosen.** Blocks and degrees were swept against the
+     * The three numbers are measured, not chosen. Blocks and degrees were swept against the
      * whole eight hundred years of residual, measuring the error of the fit in arcseconds of
      * GEOCENTRIC LONGITUDE, which is what gets read, and not in AU: the same distance in AU is
      * eleven times as many arcseconds on Mars, which comes to within 0.38 AU, as on Jupiter. What
      * came out of the sweep:
      *
      * - The residual has the shape of the ORBITAL PERIOD of the body, so the block is chosen of the
-     *   order of that period: Mercury asks for 176 days and Neptune takes forty years.
+     * order of that period: Mercury asks for 176 days and Neptune takes forty years.
      * - For the same coefficients per day, `(degree+1)/block`, it comes to almost the same whether
-     *   they are spread over short blocks of low degree or long blocks of high degree. The blocks
-     *   chosen are the ones where the degree stays below thirty, which is where the fit's normal
-     *   system is still well conditioned.
-     * - **The sampling step does not drive this.** With the same block and the same degree, asking
-     *   for a point a day or one every four days gives the same error to the fourth figure, as long
-     *   as the three times as many points as coefficients is respected. What drives it is the
-     *   coefficients per day.
+     * they are spread over short blocks of low degree or long blocks of high degree. The blocks
+     * chosen are the ones where the degree stays below thirty, which is where the fit's normal
+     * system is still well conditioned.
+     * - The sampling step does not drive this. With the same block and the same degree, asking
+     * for a point a day or one every four days gives the same error to the fourth figure, as long
+     * as the three times as many points as coefficients is respected. What drives it is the
+     * coefficients per day.
      * - Below one or two hundredths of an arcsecond the fit stops getting better: there the
-     *   polynomial stops being what dominates and what the truncated series left out starts to.
-     *   Spending more bytes there buys nothing, and all the less so because the engine's own floor
-     *   (the precession model against the JPL's) runs at around a tenth.
+     * polynomial stops being what dominates and what the truncated series left out starts to.
+     * Spending more bytes there buys nothing, and all the less so because the engine's own floor
+     * (the precession model against the JPL's) runs at around a tenth.
      *
-     * **A fit only says what it is worth where it has been looked at.** The sweep evaluated the
+     * A fit only says what it is worth where it has been looked at. The sweep evaluated the
      * error at the same points it fitted with, and that is measuring the fit against itself:
      * between two points it could be doing anything. It was measured again with steps of 7 and 11
      * days, which are not multiples of the 40 and 60 the outer ones are fitted with, and it comes
      * out the same (0.009″ on Jupiter and Uranus, 0.017″ on Saturn, 0.008″ on Neptune). That it
      * came out the same was not obvious, and that is why it is measured.
      *
-     * **A slow body's block is not chosen by how slowly it moves.** Neptune runs six arcseconds a
+     * A slow body's block is not chosen by how slowly it moves. Neptune runs six arcseconds a
      * day and takes blocks of forty years; Mercury runs an hour and a half of arc and asks for
      * blocks of six months. But what is being fitted is not the position but the RESIDUAL against
      * VSOP87, and that one has no reason to go at the planet's rate: it goes at the rate of the
@@ -108,12 +108,12 @@ final class PlanetCorrectionTable
      * range: it answers 200 with the body's data sheet and with no data block, the same as it does
      * with Pluto (`999`). The barycentre (`4`..`8`) it does, from 1550 to 2650, and for the outer
      * ones it is besides what VSOP87 represents. For Mercury and Venus the barycentre IS the body,
-     * they have no moons. **The Earth is the exception and goes as `399`**: its barycentre with the
+     * they have no moons. The Earth is the exception and goes as `399`: its barycentre with the
      * Moon lies 4700 kilometres from the centre of the planet, that is 6.8 arcseconds seen from
      * here, and VSOP87 gives the centre (measured: against `399` the residual is 0.09 arcseconds
      * and against `3` it is 6.8). Horizons serves `399` over the whole range.
      *
-     * **And the centre of a large planet is not «almost» its barycentre: it is another ephemeris.**
+     * And the centre of a large planet is not «almost» its barycentre: it is another ephemeris.
      * Horizons's `799` comes from the solution for the satellites of Uranus and its `7` from DE440,
      * and the two grow apart the further one gets from the epoch they were fitted at: measured,
      * 1.27 arcseconds in 1650 and 0.65 in 2190, crossing zero towards 2010. It is the same story
@@ -165,10 +165,10 @@ final class PlanetCorrectionTable
      * @param int|null $stepDays Days between points asked for; the measured one for that body by default.
      * @param bool $dryRun Measures the fit and writes nothing, for trying other parameters.
      * @return array{tables: list<array{body: string, horizons: string, blocks: int, block_days: int, degree: int, step_days: int, points_per_block: int, first_jd: float, last_jd: float, worst_residual: float, seam_jump: float, bytes: int, path: string|null}>, bytes: int, files: int}
-     *         `bytes` and `files` count only what was actually written, so they are zero on a dry run.
+     * `bytes` and `files` count only what was actually written, so they are zero on a dry run.
      *
      * @throws RuntimeException If the body is not one of the eight, the parameters do not add up or
-     *                          the series that arrives is not the one that was asked for.
+     * the series that arrives is not the one that was asked for.
      */
     public static function regenerate(
         ?HttpClient $http = null,
@@ -350,9 +350,9 @@ final class PlanetCorrectionTable
     /**
      * Fits the residual block by block and measures what the fit leaves out.
      *
-     * Two different things are measured and both matter. The **worst residual** is how far the
+     * Two different things are measured and both matter. The worst residual is how far the
      * polynomial strays from the real residual, that is, what the correction does not correct. The
-     * **seam jump** is how far two neighbouring blocks are apart at the boundary they share: a fit
+     * seam jump is how far two neighbouring blocks are apart at the boundary they share: a fit
      * by blocks is not continuous by construction, and a jump there does not show in the position
      * but it does in the VELOCITY, which `Ephemeris` gets by centred differences at six hours. A
      * jump of an arcsecond would give a spike of four arcseconds a day, and that is a planet that

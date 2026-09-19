@@ -13,25 +13,25 @@ use InvalidArgumentException;
  * sign ingress, a lunation, a solar return, an exact transit and the Moon's passage through
  * its node are the same computation with a different body and a different target.
  *
- * **It exists above all because it was written three times and none of them could be called
- * from outside.** `MoonPhase` solved it with regula falsi on the elongation,
+ * It exists above all because it was written three times and none of them could be called
+ * from outside. `MoonPhase` solved it with regula falsi on the elongation,
  * `SolarReturn` with a six-hour sweep and sixty bisections, and `Transits` with thirty
  * bisections on the longitude. All three answered correctly and none of them was any use for
  * asking "when does Saturn enter Pisces", which is the same question.
  *
- * ## The two traps of looking for a longitude crossing
+ * The two traps of looking for a longitude crossing
  *
- * **The folded deviation jumps 360 degrees at the opposite point, and that jump looks like a
+ * The folded deviation jumps 360 degrees at the opposite point, and that jump looks like a
  * crossing.** The longitude is compared against the target folded to [−180, 180) so that it
  * passes through zero at the crossing; the price is that on going past the antipode the
  * deviation jumps from +179 to −179, which is a sign change with every appearance of being
  * the crossing being looked for, and on top of that it falls half a zodiac away. That is why
  * an interval is only valid if the deviation has changed by less than half a turn.
  *
- * **A body can cross the same longitude three times**, because it retrogrades: it goes past,
+ * A body can cross the same longitude three times, because it retrogrades: it goes past,
  * comes back and goes past again. That forces the sweep step to be short enough that two
  * crossings cannot fit inside a single one, and there the number that rules is not the speed
- * of the body but **the width of its retrograde arc**, which is 2.8 degrees for Neptune and
+ * of the body but the width of its retrograde arc, which is 2.8 degrees for Neptune and
  * 16 for Venus. At half a degree per step there is no room for a there and back, and the
  * sweep cannot skip a pair.
  *
@@ -63,7 +63,7 @@ class Crossings
     /**
      * Cap on the step, in days, while the body is within one margin of the target.
      *
-     * **It is what keeps a GRAZE from being missed, and the margin in degrees is not enough
+     * It is what keeps a GRAZE from being missed, and the margin in degrees is not enough
      * for that.** A body can cross a boundary, poke a couple of arcminutes past it and come
      * back: those are two real crossings, and between them the body barely moves, so the step
      * derived from the distance covered shoots up and both fit inside a single one. The
@@ -71,8 +71,8 @@ class Crossings
      * bounds things is how far the body MOVES AWAY from the boundary, and that can be as
      * little as you like.
      *
-     * So the rule is one of position and not of speed: **while the body is within one margin
-     * of the boundary, it is looked at every five days at most**, whether it is moving fast or
+     * So the rule is one of position and not of speed: while the body is within one margin
+     * of the boundary, it is looked at every five days at most, whether it is moving fast or
      * not. That catches any excursion lasting more than ten days, which for Pluto near a
      * station is five thousandths of a degree deep, that is 19 arcseconds.
      *
@@ -99,7 +99,7 @@ class Crossings
      * @param float $jdTT Where the search starts from, in Terrestrial Time.
      * @param float $direction 1 towards the future, −1 towards the past.
      * @param float|null $limit Days of search at most; by default, however long the body takes
-     *                          to go once round the long way.
+     * to go once round the long way.
      * @param Ayanamsa|CustomAyanamsa|null $ayanamsa To search over sidereal longitudes.
      * @return float|null The Julian day TT of the crossing, or null if there is none in the window.
      */
@@ -166,7 +166,7 @@ class Crossings
      * When the Moon crosses the ecliptic, that is when it passes through one of its nodes.
      * This is `swe_mooncross_node`.
      *
-     * **It is not a longitude crossing but a LATITUDE one**, and that is why it does not go
+     * It is not a longitude crossing but a LATITUDE one, and that is why it does not go
      * through `ofLongitude`: what has to be zero is the Moon's ecliptic latitude, not its
      * longitude. The longitude returned is where the Moon was as it crossed, which is that of
      * the true node at that instant.
@@ -293,11 +293,11 @@ class Crossings
         $watch = self::canRetrograde($body);
         $ingresses = [];
 
-        /* **One single pass, not twelve.** The first thing written here looked for the next
+        /* One single pass, not twelve. The first thing written here looked for the next
            crossing of each of the twelve zero degrees and kept the nearest one, that is it ran
            through the whole window twelve times for every ingress found: twelve ingresses of
            the Sun in a year cost 783 milliseconds. And there is no need to ask about twelve
-           targets, because **changing sign is changing thirty-degree block**: it is enough to
+           targets, because changing sign is changing thirty-degree block: it is enough to
            look at which block the longitude falls in and see when that number changes. With
            that it is 57 milliseconds.
 
@@ -325,7 +325,7 @@ class Crossings
                    But the sign that is ENTERED is always the destination one, whichever way it
                    goes. Naming the ingress with the sign of the boundary, a planet retrograding
                    from Scorpio to Libra said "enters Scorpio", which is the sign it is leaving.
-                   **Pluto gave its three crossings of 1983 and 1984 all three as Scorpio.** It
+                   * *Pluto gave its three crossings of 1983 and 1984 all three as Scorpio.** It
                    gave no error: it gave a good-looking sign name. */
                 $forward = (fmod($current - $previousLongitude + 540.0, 360.0) - 180.0) > 0.0;
                 $boundary = ($forward ? $currentBlock : $previousBlock) * 30.0;
@@ -361,7 +361,7 @@ class Crossings
     /**
      * The zero of a function inside an interval that already has it cornered.
      *
-     * **Regula falsi with the Illinois correction, not bisection.** It is what `MoonPhase`
+     * Regula falsi with the Illinois correction, not bisection. It is what `MoonPhase`
      * already did and it is the best of the three implementations there were: the functions
      * here are almost straight over the interval (a body covers degrees per day with
      * hundredths of curvature), so the secant nails the zero in four or five evaluations where
@@ -372,7 +372,7 @@ class Crossings
      * Every evaluation is an ephemeris, and in the milestones of a life this is called
      * hundreds of times: the difference between five and thirty shows on the page.
      *
-     * **And the bracket is only returned if it has shrunk.** With regula falsi one endpoint can
+     * And the bracket is only returned if it has shrunk. With regula falsi one endpoint can
      * stay put very far away while the other sticks to the zero, so the midpoint of the
      * bracket is NOT the zero: it is halfway between the root and an endpoint that never moved.
      * That was the bug in the version that was in `MoonPhase`, which left the loop looking at
@@ -521,7 +521,7 @@ class Crossings
     /**
      * How much to advance in the next step, so that the body always covers the same arc.
      *
-     * **And the step can do no more than double at a time, which is what it cost to find.**
+     * And the step can do no more than double at a time, which is what it cost to find.
      * The natural rule is "if in this step it has covered half of what it should, double the
      * step", and that breaks exactly where it hurts most: at a STATION a planet stops, so what
      * it has covered tends to zero and the rule orders a step of hundreds of days. With that

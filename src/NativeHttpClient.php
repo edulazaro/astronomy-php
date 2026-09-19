@@ -12,7 +12,7 @@ final class NativeHttpClient implements HttpClient
 {
     /**
      * @param int $seconds How long to wait for a response. Horizons takes a few seconds for every
-     *                      fifty thousand rows, and a response like that is over ten megabytes.
+     * fifty thousand rows, and a response like that is over ten megabytes.
      */
     public function __construct(private readonly int $seconds = 300) {}
 

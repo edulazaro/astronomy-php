@@ -12,16 +12,16 @@ use LogicException;
  * fifty eight and four thousand of them. That does not ship with a package, so it is fetched from
  * JPL Horizons with `Downloader` and written into the data folder. A chart reads none of them.
  *
- * **This class holds no policy, and that is the whole design.** It does not know which bodies may be
+ * This class holds no policy, and that is the whole design. It does not know which bodies may be
  * downloaded, and it never goes to the network on its own. When a file is missing, `path()` throws
  * `MissingData`, which carries the body and the file that is missing, and whoever called decides
  * what to do with that:
  *
- *     try {
- *         $position = Ephemeris::position($eris, $jdTT);
- *     } catch (MissingData $missing) {
- *         Downloader::download($missing->body, $jdTT);
- *     }
+ * try {
+ * $position = Ephemeris::position($eris, $jdTT);
+ * } catch (MissingData $missing) {
+ * Downloader::download($missing->body, $jdTT);
+ * }
  *
  * The reason is that the decision depends on something only the application knows: whether it is
  * serving a web request, where waiting seconds for the JPL is unacceptable, or running a script,
@@ -32,7 +32,7 @@ use LogicException;
  * file carries the years it holds (`satellites/501/1980-1989.bin`), so whoever writes and whoever
  * reads have to agree on it.
  *
- * **The group is called `satellites` and not `moons`** because `Moon` is already the ELP theory of
+ * The group is called `satellites` and not `moons` because `Moon` is already the ELP theory of
  * our Moon and `Body::Moon` the body. Three things called the same that are not the same thing is
  * the confusion already noted with Vulcan and Vulkanus.
  *
@@ -45,19 +45,19 @@ final class Downloadables
     /**
      * How the data of each group is split into files.
      *
-     * **This is the only thing that is configured here, and it is not policy: it is the shape of
-     * the data on disk.** The file of a body is named after the years it carries
+     * This is the only thing that is configured here, and it is not policy: it is the shape of
+     * the data on disk. The file of a body is named after the years it carries
      * (`satellites/501/1980-1989.bin`), so whoever downloads and whoever reads have to agree or
      * the reader looks for a name that was never written.
      *
-     * **What is NOT here, on purpose: whether a body may be downloaded, and whether something
+     * What is NOT here, on purpose: whether a body may be downloaded, and whether something
      * missing should be fetched right now.** Both are decisions of the application, not of a
      * library: only the application knows whether it is serving a web request, where waiting for
      * the JPL is unacceptable, or running a script at night, where it is the whole point. The
      * package gives the tools and says what is missing; it takes no decision.
      *
      * @param array<string, int|null> $yearsPerGroup Years each file carries, by group. Null is
-     *        the whole range in one file.
+     * the whole range in one file.
      * @return void
      *
      * @throws InvalidArgumentException

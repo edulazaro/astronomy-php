@@ -260,7 +260,7 @@ final class HousesTest extends TestCase
      * What is left over is the truncation of measuring a bending curve across a whole hour, and
      * that it is truncation and not a wrong rate is shown here rather than asserted: shrinking
      * the window from half an hour to five minutes, a factor of six, cuts the residual by
-     * **thirty six**, which is what a second order difference does and what a systematic error
+     * thirty six, which is what a second order difference does and what a systematic error
      * would not.
      */
     public function test_the_cusp_speeds_are_the_motion_of_the_cusps(): void
@@ -396,15 +396,15 @@ final class HousesTest extends TestCase
      * Three of the seven are checked here, each by the thing that makes it checkable rather than
      * by an opinion:
      *
-     * - **Porphyry** has the anchor the wrong way round, and the arithmetic says so out loud. Its
-     *   cusp five is the imum coeli plus a third of the quadrant, so its derivative is
-     *   `MC' + (ASC' - MC')/3`; Swiss publishes `ASC' + (ASC' - MC')/3`, the same correction hung
-     *   on the other angle. Both are written out below from the two angle speeds, so the test
-     *   shows which one moves the cusp.
-     * - **Krusinski** returns exactly 0.0 on eight of its twelve, where the cusps are moving at
-     *   three hundred and fifty degrees a day.
-     * - **Whole sign** returns the angle speeds on cusps 1, 4, 7 and 10, where the cusps do not
-     *   move at all.
+     * - Porphyry has the anchor the wrong way round, and the arithmetic says so out loud. Its
+     * cusp five is the imum coeli plus a third of the quadrant, so its derivative is
+     * `MC' + (ASC' - MC')/3`; Swiss publishes `ASC' + (ASC' - MC')/3`, the same correction hung
+     * on the other angle. Both are written out below from the two angle speeds, so the test
+     * shows which one moves the cusp.
+     * - Krusinski returns exactly 0.0 on eight of its twelve, where the cusps are moving at
+     * three hundred and fifty degrees a day.
+     * - Whole sign returns the angle speeds on cusps 1, 4, 7 and 10, where the cusps do not
+     * move at all.
      *
      * pyswisseph 2.10.03, the same call as the test above.
      */
@@ -544,7 +544,7 @@ final class HousesTest extends TestCase
      * with `FLG_MOSEPH | FLG_TOPOCTR` for 2 to 5 and `FLG_MOSEPH` for 0 and 1, which is the
      * geocentric position our own method 0 places.
      *
-     * **The atmosphere has to be handed over and that is not a formality**: methods 3 and 5 carry
+     * The atmosphere has to be handed over and that is not a formality: methods 3 and 5 carry
      * the refraction, so giving Swiss its own default of 0 °C instead of the 10 °C of
      * `Horizon::TEMPERATURE` moves the sector by up to 0.12 at Tromsø. That is six hundred times
      * everything else in this test.

@@ -15,7 +15,7 @@ namespace Astronomy;
  * P4 leaves the penumbra. A partial one has no U2 or U3, and a penumbral one only has P1
  * and P4.
  *
- * **The magnitudes are NASA's**: the umbral one, how much of the Moon's diameter is inside
+ * The magnitudes are NASA's: the umbral one, how much of the Moon's diameter is inside
  * the umbra at maximum; the penumbral one, the same with the penumbra. They go above one
  * when the disc is inside with room to spare.
  */

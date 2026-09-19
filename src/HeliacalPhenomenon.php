@@ -6,7 +6,7 @@ namespace Astronomy;
  * A heliacal phenomenon that has been found: the day an object becomes visible again or
  * stops being visible.
  *
- * **It carries two instants, and both are needed.** `pass` is when the object crosses the
+ * It carries two instants, and both are needed. `pass` is when the object crosses the
  * geometric horizon, which is where the arc is MEASURED because that is where Schoch defines
  * it; there its altitude is zero and says nothing. `observation` is the moment it is SEEN:
  * when the sky reaches the required darkness, that is, when the Sun is

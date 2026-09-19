@@ -14,13 +14,13 @@ use RuntimeException;
  * fit in them, so they are taken off the published magnitude and what is left is `f(α)`, which is
  * the only thing that knows anything about each planet. That is fitted with Chebyshev and stored.
  *
- * **Why it is fitted instead of copying the published polynomials.** There are published ones, and
+ * Why it is fitted instead of copying the published polynomials. There are published ones, and
  * they are good (Mallama and Hilton, 2018), but they are several dozen coefficients written by hand
  * and one badly transcribed gives a magnitude that is believable and false. Fitting against the
  * source, the residual this reports IS the check: if the transcription were wrong, there would be
  * no transcription left to spoil.
  *
- * **Saturn takes two variables because it has rings.** Between the open ring and the edge-on ring
+ * Saturn takes two variables because it has rings. Between the open ring and the edge-on ring
  * there is almost a whole magnitude, and that is not a function of the phase angle: it is of the
  * ring opening, which Horizons publishes as the latitude of the observer. It is fitted apart and
  * added.
@@ -85,7 +85,7 @@ final class MagnitudeFit
      * @return array{bodies: array<string, array<string, mixed>>, path: string}
      *
      * @throws RuntimeException If Horizons does not answer with usable rows for some body, in which
-     *                          case nothing is written.
+     * case nothing is written.
      */
     public static function regenerate(?HttpClient $http = null, ?string $output = null): array
     {
@@ -114,7 +114,7 @@ final class MagnitudeFit
      * @return array{alpha: array{0: float, 1: float}, coefficients: list<float>, degree: int, residual: float, worst: float, points: int, ring?: array{range: array{0: float, 1: float}, coefficients: list<float>, degree: int, pole: array{0: float, 1: float, 2: float}}, flattening?: float, worstOpening?: float}
      *
      * @throws RuntimeException If there is no request for this body, or Horizons does not answer
-     *                          with usable rows.
+     * with usable rows.
      */
     public static function fitFor(Body $body, ?HttpClient $http = null): array
     {
@@ -352,7 +352,7 @@ final class MagnitudeFit
     /**
      * Fits f(α) and, if it is needed, the ring term.
      *
-     * **The degree is not picked by eye: it is measured.** It is fitted with half the points and the
+     * The degree is not picked by eye: it is measured. It is fitted with half the points and the
      * error is measured on the OTHER half, the one the fit has not seen, and the degree goes up
      * while that improves. Measuring on the fit's own points the error always falls as the degree
      * goes up, so that measurement does not say which one is right: it says the highest always
@@ -481,13 +481,13 @@ final class MagnitudeFit
      * computed by our own ephemerides and `B` published, `n` comes out of a linear fit with three
      * unknowns.
      *
-     * **And there is one turn more, which was discovered by measuring.** Fitting the pole as it
+     * And there is one turn more, which was discovered by measuring. Fitting the pole as it
      * comes gives a vector of modulus 1.16 instead of 1, and that 16% is not noise: Horizons
-     * publishes the **planetodetic** latitude, the one measured against the normal to the
+     * publishes the planetodetic latitude, the one measured against the normal to the
      * ellipsoid, and Saturn is flattened by almost ten per cent. The one the ring answers to is the
      * planetocentric one, and between the two there are five degrees. Since the two are related by
-     * `tan φc = (1−f)² · tan φd`, the flattening is obtained **by requiring the pole to come out
-     * unitary**: it is the only `f` that manages it, and it is found by bisection.
+     * `tan φc = (1−f)² · tan φd`, the flattening is obtained by requiring the pole to come out
+     * unitary: it is the only `f` that manages it, and it is found by bisection.
      *
      * That this fit gives Saturn's published flattening without having been told it is the check
      * that the model is the right one. The guard on the modulus is what caught this: without it,

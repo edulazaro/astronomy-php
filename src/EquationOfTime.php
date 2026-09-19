@@ -17,14 +17,14 @@ namespace Astronomy;
  * solar day into twelve and not the clock one; and underneath the analemma, that figure of
  * eight that comes out of photographing the Sun at the same hour for a year.
  *
- * ### What it is exactly, and why it is computed this way and not with a formula
+ * What it is exactly, and why it is computed this way and not with a formula
  *
  * Apparent solar time minus mean solar time, both at the same place. And both are already in
  * the engine, so no approximate series is needed here:
  *
  * - the apparent one is the hour angle of the real Sun, that is the apparent sidereal time
- *   minus the apparent right ascension of the Sun, plus half a turn because the civil day
- *   starts at midnight and not at noon;
+ * minus the apparent right ascension of the Sun, plus half a turn because the civil day
+ * starts at midnight and not at noon;
  * - the mean one is Universal Time itself, which is what a clock measures.
  *
  * A short four-term series by Meeus circulates everywhere, and it is not here for the usual
@@ -32,15 +32,15 @@ namespace Astronomy;
  * verified against JPL below two tenths of an arcsecond. Subtracting two things that are
  * already known is more exact and adds nothing to maintain.
  *
- * ### The two time scales, once again
+ * The two time scales, once again
  *
- * It is the trap of this codebase and here the two cross in the same subtraction: **sidereal
- * time goes in UT** (it measures how much the Earth has turned, and that is told by the
- * civil clock) and **the position of the Sun in TT** (it is an ephemeris). Using the same
+ * It is the trap of this codebase and here the two cross in the same subtraction: sidereal
+ * time goes in UT (it measures how much the Earth has turned, and that is told by the
+ * civil clock) and the position of the Sun in TT (it is an ephemeris). Using the same
  * scale for both puts the whole seventy seconds of delta T inside the result, that is more
  * than a minute of error in a number that is at most sixteen.
  *
- * ### Where this lives, and why not in `Time`
+ * Where this lives, and why not in `Time`
  *
  * Because `Time` does not know where the Sun is, and it has to stay that way. It is the only
  * class of the engine that does not depend on any other: scales, delta T, nutation,
@@ -49,9 +49,9 @@ namespace Astronomy;
  * that the two time scales do not get confused. The equation of time is not a property of
  * time: it is of the Sun.
  *
- * ### The sign
+ * The sign
  *
- * **Positive means that the real Sun runs AHEAD of the clock**, that is, the sundial reads
+ * Positive means that the real Sun runs AHEAD of the clock, that is, the sundial reads
  * later than the wristwatch and true noon has already passed. It is the usual convention
  * (apparent minus mean) and the one that makes the maximum of early November come out
  * positive. There is literature that writes it the other way round, so it is not inherited
@@ -130,7 +130,7 @@ final class EquationOfTime
     /**
      * The way back: from the time the sundial reads to the one on the wristwatch.
      *
-     * **And this one does have to iterate, which is the asymmetry of the pair.** The
+     * And this one does have to iterate, which is the asymmetry of the pair. The
      * equation of time is evaluated at the instant, and here the instant is exactly what is
      * being looked for. It converges very fast because the value changes at most half a
      * minute a day, that is, each turn divides the error by some three thousand: with two it
@@ -201,7 +201,7 @@ final class EquationOfTime
      * there to the mean time that corresponds to it goes `toMean`, which is the only one of
      * the two conversions that needs to iterate.
      *
-     * **And it is nobody's twelve o'clock**, not even taking the time zone away: in Madrid,
+     * And it is nobody's twelve o'clock, not even taking the time zone away: in Madrid,
      * with summer time, the Sun culminates past two. The time zone is a convention of bands,
      * the longitude of the place shifts noon four minutes per degree, and on top of that
      * there is this, which adds or takes away up to a quarter of an hour.

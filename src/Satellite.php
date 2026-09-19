@@ -7,7 +7,7 @@ use LogicException;
 /**
  * The satellites of the planets that have an ephemeris in JPL Horizons, from Mars to Pluto.
  *
- * **The cases are not written by hand: `SatelliteList::regenerate()` writes them**, which in
+ * The cases are not written by hand: `SatelliteList::regenerate()` writes them, which in
  * it is regenerated from the Horizons major body list, and between the two
  * markers below. What lies outside the markers is code and the command does not touch it. They
  * have to be regenerated when the JPL adds satellites and also when a provisional one is given a

@@ -6,14 +6,14 @@ namespace Astronomy;
  * The MEAN orbit of a planet: the averaged ellipse its mean node and its mean perihelion are taken
  * from. It is what Swiss returns with `SE_NODBIT_MEAN`.
  *
- * **It is not the same thing as `OsculatingOrbit` with different numbers, and that is why it is
+ * It is not the same thing as `OsculatingOrbit` with different numbers, and that is why it is
  * another class.** The osculating one comes from the position and the velocity of one instant, so
  * it is the ellipse the body would describe if at that moment the other planets stopped pulling on
  * it: it changes every day and carries every tug inside. The mean one comes from a TABLE of
  * averaged elements, and what it describes is where the orbit runs once the periodic perturbations
  * are taken away. They are two different questions, and in the outer bodies they separate
  * enormously: measured in the year 2000, Neptune's mean perihelion falls at degree 48.1 and the
- * osculating one at 37.3, **eleven degrees apart**, that is, a third of a sign.
+ * osculating one at 37.3, eleven degrees apart, that is, a third of a sign.
  *
  * That is why this class has neither the three anomalies nor the three periods of that one: the
  * mean orbit does not describe where the body is NOW, and a true anomaly taken from an averaged

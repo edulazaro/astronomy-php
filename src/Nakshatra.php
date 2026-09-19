@@ -10,20 +10,20 @@ namespace Astronomy;
  * rules it in the Vimshottari system. Every nakshatra is further cut into four padas of 3° 20′,
  * so the whole turn comes to 108.
  *
- * **They are measured in the SIDEREAL zodiac, and without that they are not nakshatras.** With
+ * They are measured in the SIDEREAL zodiac, and without that they are not nakshatras. With
  * today's tropical longitude you land almost two mansions further on, because the ayanamsa is
  * past twenty four degrees. This class does not choose an ayanamsa: it receives the longitude
  * already sidereal, and whoever calls it decides which one.
  *
- * **Neither the names nor the rulers are written from memory, and the order of the rulers is not
- * even written down: it is counted.** The names, in IAST transliteration, are those of the
+ * Neither the names nor the rulers are written from memory, and the order of the rulers is not
+ * even written down: it is counted. The names, in IAST transliteration, are those of the
  * Wikipedia table («Nakshatra»). The order of the rulers is Parāśara's as cited by Sanjay Rath
  * («Ketu, Venus, Sun, Moon, Mars, Rāhu, Jupiter, Saturn & Mercury are the lords of the nine
  * constellation as reckoned from Aswini»), and the two sources agree on all twenty seven. Nine
  * rulers for twenty seven mansions are three turns, so each one's comes out of the remainder of
  * dividing by nine: writing them by hand would be twenty seven places to get it wrong.
  *
- * **The deities and the meanings are not here, on purpose.** They change from one source to
+ * The deities and the meanings are not here, on purpose. They change from one source to
  * another (Viśākhā's is Indra, Agni or both depending on who you read), and an invented meaning
  * reads exactly as well as the right one. It is the same rule by which fixed stars without a
  * source are left with no planetary nature.

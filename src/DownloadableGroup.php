@@ -11,7 +11,7 @@ namespace Astronomy;
  * every month: an enum with a million and a half cases is a file PHP compiles whole in order to use
  * one of them, and that goes stale the same day it is generated.
  *
- * **They are stored in `downloads/`, inside the data folder, and that depth is not accidental.**
+ * They are stored in `downloads/`, inside the data folder, and that depth is not accidental.
  * `Ephemeris::dataFingerprint` looks at the files in the first two levels to invalidate the caches
  * when the series change, and whatever is downloaded lands in the third and the fourth. If it got
  * in, every download would throw away the caches of every chart, which read none of these bodies,
@@ -60,14 +60,14 @@ enum DownloadableGroup: string implements Translatable
     /**
      * How many years go in each file when nothing else is configured; null is the whole table.
      *
-     * Measured against Horizons on 14 September 2026. **Each request costs about 0.7 seconds even
+     * Measured against Horizons on 14 September 2026. Each request costs about 0.7 seconds even
      * when a single day is asked for**, so splitting into small chunks does not divide the time by
      * the same factor it divides the data:
      *
      * - An asteroid goes whole because it pays off: Eris from 1600 to 2400 is 3.2 seconds in a
-     *   single request, and a single decade already costs one.
+     * single request, and a single decade already costs one.
      * - A satellite goes by years. Io needs one point per hour: a year is 1.9 seconds, a decade six
-     *   and the eight hundred years seven and a half minutes. Titan, 1.3 against 2.3.
+     * and the eight hundred years seven and a half minutes. Titan, 1.3 against 2.3.
      * - A comet, by years as well, and besides it only makes sense near its passes.
      *
      * The usual thing is to ask for a single date, and with years the first wait is the shortest.

@@ -12,20 +12,20 @@ namespace Astronomy;
  * written with come from: the whole calendar rested on when a planet could be seen again.
  *
  * The four are two pairs, and what separates them is not the body but which side of the
- * Sun it is on. **On the morning side** the body rises BEFORE the Sun, so it is seen for
- * a while in the east before dawn; **on the evening side** it sets AFTER the Sun, so it
+ * Sun it is on. On the morning side the body rises BEFORE the Sun, so it is seen for
+ * a while in the east before dawn; on the evening side it sets AFTER the Sun, so it
  * is seen in the west after nightfall. On each side there is a first day and a last one:
  *
- * - **Heliacal rising** (`mfirst` in the literature): the first day it is seen again in
- *   the morning, rising before the Sun. It is the one that dates the Egyptian year with
- *   Sirius.
- * - **Heliacal setting** (`elast`): the last day it is seen in the evening before the Sun
- *   swallows it.
- * - **Evening first visibility** (`efirst`): the first day it is seen again in the
- *   evening.
- * - **Morning last visibility** (`mlast`): the last day it is seen in the morning.
+ * - Heliacal rising (`mfirst` in the literature): the first day it is seen again in
+ * the morning, rising before the Sun. It is the one that dates the Egyptian year with
+ * Sirius.
+ * - Heliacal setting (`elast`): the last day it is seen in the evening before the Sun
+ * swallows it.
+ * - Evening first visibility (`efirst`): the first day it is seen again in the
+ * evening.
+ * - Morning last visibility (`mlast`): the last day it is seen in the morning.
  *
- * **All four exist only for Mercury and Venus**, which pass both in front of the Sun and
+ * All four exist only for Mercury and Venus, which pass both in front of the Sun and
  * behind it, so they make two apparitions per cycle. An outer planet or a star has only
  * one: it appears in the morning (heliacal rising), crosses the sky for months and
  * disappears in the evening (heliacal setting). Asking Jupiter for an "evening first" is

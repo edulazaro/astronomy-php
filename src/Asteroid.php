@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * repository. This is for the rest, which are 1,563,747 counted on 14 September 2026, 895,910 of
  * them numbered.
  *
- * **Not by name, and that is on purpose.** «Eris» becomes 136199 by asking the JPL, and here there
+ * Not by name, and that is on purpose. «Eris» becomes 136199 by asking the JPL, and here there
  * is no network. And a name misleads in a way a number does not: there is an asteroid 1181 Lilith
  * that is not the Lilith of the chart, and a 763 Cupido and a 5731 Zeus that are not the Uranian
  * bodies.

@@ -8,23 +8,22 @@ use RuntimeException;
  * The files of the downloadable bodies: how they are written, how they are read and how they are
  * interpolated. The whole format lives here so that whoever writes and whoever reads cannot disagree.
  *
- * **Binary and not PHP**, for the same reason as the correction towards the JPL: a number in a PHP
+ * Binary and not PHP, for the same reason as the correction towards the JPL: a number in a PHP
  * array is some twenty bytes of text that have to be compiled on load, and here it is eight that are
- * only unpacked when they are read. **Eight and not four**, the other way round from the
+ * only unpacked when they are read. Eight and not four, the other way round from the
  * correction: that one is a small difference and this one is the whole position, and with four bytes
  * Eris, at a hundred astronomical units, would lose six millionths of a unit, which, seen from here,
  * are the 0.01″ that is meant to be guaranteed.
  *
- * | bytes | what |
- * |---|---|
- * | 8 | `ASTRODES` |
- * | 4 | format version |
- * | 4 | number of points |
- * | 8 | TT Julian day of the first point |
- * | 8 | step in days |
- * | 4 | length of the metadata |
- * | as many as it says | metadata in JSON: the body, where it was downloaded from, the range, the measured error |
- * | 24 per point | x, y, z in AU, in the J2000 ecliptic |
+ * bytes               what
+ * 8                   `ASTRODES`
+ * 4                   format version
+ * 4                   number of points
+ * 8                   TT Julian day of the first point
+ * 8                   step in days
+ * 4                   length of the metadata
+ * as many as it says  metadata in JSON: the body, where it was downloaded from, the range, the measured error
+ * 24 per point        x, y, z in AU, in the J2000 ecliptic
  *
  * Everything little-endian. The positions are relative to the centre they were downloaded from: the
  * Sun for asteroids and comets, and the barycentre of the system for a satellite.
@@ -229,8 +228,8 @@ final class DownloadedPositions
         }
 
         /* If the file of the instant is not there, this throws `MissingData` with the message about
-           how to get it. **And with "download on the fly" switched on it does not throw: it downloads
-           it and returns its path**, so whether it covers has to be checked again before giving up.
+           how to get it. And with "download on the fly" switched on it does not throw: it downloads
+           it and returns its path, so whether it covers has to be checked again before giving up.
            Taking for granted that it did not cover, the first read of a just-downloaded file died
            with a "the data runs from day such to such" that carried the instant asked for right in
            the middle. The test caught it when the option was switched on. */

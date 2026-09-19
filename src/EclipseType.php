@@ -6,14 +6,14 @@ namespace Astronomy;
  * The eclipse types, solar and lunar, in a single list because they share three names
  * and those names do not mean the same thing in each case.
  *
- * Solar: **partial** when the Moon covers part of the disc as seen from anywhere;
- * **annular** when a ring of Sun is left around it, because the Moon is far away and looks
- * small; **total** when it covers it whole; and **hybrid** when it is annular along some
+ * Solar: partial when the Moon covers part of the disc as seen from anywhere;
+ * annular when a ring of Sun is left around it, because the Moon is far away and looks
+ * small; total when it covers it whole; and hybrid when it is annular along some
  * stretches of the path and total along others, because the curvature of the Earth brings
  * the observer closer by exactly what was missing.
  *
- * Lunar: **penumbral** when it only enters the penumbra, which is barely noticeable;
- * **partial** when part of the disc enters the umbra; **total** when it enters whole.
+ * Lunar: penumbral when it only enters the penumbra, which is barely noticeable;
+ * partial when part of the disc enters the umbra; total when it enters whole.
  */
 enum EclipseType: string implements Translatable
 {

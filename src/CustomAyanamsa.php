@@ -18,11 +18,11 @@ use InvalidArgumentException;
  * would happen with another anchoring. Whoever wants one of the published ones has the 43 in the
  * enum, and those are besides verified against Swiss one by one.
  *
- * **The pair goes in Terrestrial Time**, like every instant that enters the engine. Swiss also
+ * The pair goes in Terrestrial Time, like every instant that enters the engine. Swiss also
  * allows giving it in UT with a separate bit (`SIDBIT_USER_UT`); not here, because the engine does
  * not have two doors for the same thing and going from one to the other is `Time::tt()`.
  *
- * **What it does not do, and it is on purpose: it does not go into `ChartCode`.** The link of a
+ * What it does not do, and it is on purpose: it does not go into `ChartCode`. The link of a
  * shared chart stores the ayanamsa by its key (`lahiri`), and this is two numbers that do not fit
  * into a key. There it blows up instead of being saved half-way, which would mean opening the chart
  * with another zodiac and everything looking fine, which is exactly the failure the chart code has

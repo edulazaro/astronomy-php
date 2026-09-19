@@ -11,8 +11,8 @@ namespace Astronomy;
  * contacts only exist when one disc gets entirely inside the other (or the small one
  * entirely inside the big one); for a partial they are null.
  *
- * The instants are given in the time zone of the place. **Everything is computed even if the
- * body is below the horizon** at some of the contacts, and which one is seen and which is not
+ * The instants are given in the time zone of the place. Everything is computed even if the
+ * body is below the horizon at some of the contacts, and which one is seen and which is not
  * is told in `visible`: an eclipse that starts before the Sun rises has its first contact all
  * the same, only nobody sees it from there.
  */
@@ -20,13 +20,13 @@ readonly class LocalCircumstances
 {
     /**
      * @param EclipseType $type What is seen from HERE: a total eclipse within its path is
-     *        partial a thousand kilometres to the side.
+     * partial a thousand kilometres to the side.
      * @param float $magnitude Fraction of the body's diameter covered at maximum, capped
-     *        at one. For the magnitude of a total one as NASA publishes it, which is the
-     *        ratio of diameters and goes past one, there is `nasaMagnitude()`.
+     * at one. For the magnitude of a total one as NASA publishes it, which is the
+     * ratio of diameters and goes past one, there is `nasaMagnitude()`.
      * @param float $diameterRatio Apparent diameter of the Moon divided by that of the body.
      * @param float $obscuration Fraction of the DISC covered, which is not the same thing:
-     *        at 50% magnitude, 40% of the surface is covered.
+     * at 50% magnitude, 40% of the surface is covered.
      * @param float $altitude True altitude of the body at maximum, in degrees.
      * @param array<string, bool> $visible By phase: maximum, contact1 to contact4.
      * @param UtInstant|null $rise Rise of the body if it falls within the eclipse.

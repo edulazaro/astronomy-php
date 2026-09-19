@@ -16,30 +16,30 @@ use DateTimeInterface;
  *
  * The path, from the catalogue entry to the chart:
  *
- * 1. **Proper motion** from J2000 to the date, in right ascension and declination.
- * 2. **From ICRS equatorial to J2000 ecliptic**, rotating by the obliquity of J2000.
- * 3. **Precession** to the ecliptic and the equinox of the date, with `Precession::toDate`,
- *    the same rotation that is applied to the Moon and to Pluto. Two precession models in
- *    the same engine would leave a systematic difference between the star and the planet it
- *    touches.
- * 4. **Annual aberration**, which the stars get too: the light is tilted because the Earth
- *    is moving, and it makes no difference where it comes from.
- * 5. **Nutation** in longitude, like everything else.
+ * 1. Proper motion from J2000 to the date, in right ascension and declination.
+ * 2. From ICRS equatorial to J2000 ecliptic, rotating by the obliquity of J2000.
+ * 3. Precession to the ecliptic and the equinox of the date, with `Precession::toDate`,
+ * the same rotation that is applied to the Moon and to Pluto. Two precession models in
+ * the same engine would leave a systematic difference between the star and the planet it
+ * touches.
+ * 4. Annual aberration, which the stars get too: the light is tilted because the Earth
+ * is moving, and it makes no difference where it comes from.
+ * 5. Nutation in longitude, like everything else.
  *
  * What is NOT applied, and why:
  *
- * - **Annual parallax.** The nearest star in the catalogue is Toliman (α Centauri), with
- *   0.75 arcseconds; Sirius has 0.38 and the rest less than 0.15. It is smaller than the
- *   engine's own error against the JPL, and only in two stars.
- * - **Radial velocity.** It changes the proper motion over time because the star is coming
- *   closer or moving away. In Sirius, which is the worst case, it is two hundredths of an
- *   arcsecond per century. Both are kept in the catalogue in case they are ever needed.
- * - **The FK5 correction** that `Ephemeris` applies to the planets. That one corrects the
- *   frame proper to VSOP87, and a star from SIMBAD is not in that frame: it is in ICRS. The
- *   difference between ICRS and the mean equator of J2000 is two hundredths of an
- *   arcsecond, which is not corrected either.
- * - **Gravitational deflection** by the Sun: thousandths of an arcsecond except within a degree
- *   of the Sun.
+ * - Annual parallax. The nearest star in the catalogue is Toliman (α Centauri), with
+ * 0.75 arcseconds; Sirius has 0.38 and the rest less than 0.15. It is smaller than the
+ * engine's own error against the JPL, and only in two stars.
+ * - Radial velocity. It changes the proper motion over time because the star is coming
+ * closer or moving away. In Sirius, which is the worst case, it is two hundredths of an
+ * arcsecond per century. Both are kept in the catalogue in case they are ever needed.
+ * - The FK5 correction that `Ephemeris` applies to the planets. That one corrects the
+ * frame proper to VSOP87, and a star from SIMBAD is not in that frame: it is in ICRS. The
+ * difference between ICRS and the mean equator of J2000 is two hundredths of an
+ * arcsecond, which is not corrected either.
+ * - Gravitational deflection by the Sun: thousandths of an arcsecond except within a degree
+ * of the Sun.
  *
  * With all that, the position agrees with Swiss Ephemeris to better than two arcseconds
  * between 1900 and 2100, and what is left is the engine's own (nutation truncated to four
@@ -99,7 +99,7 @@ class Stars
      * A star by its key, its name, its designation or any of its other names, without looking at
      * case or accents.
      *
-     * **A name is not a key and that is the whole reason this is more than one lookup.** Ten
+     * A name is not a key and that is the whole reason this is more than one lookup. Ten
      * names of the catalogue belong to two stars each: β Cap and β¹ Cap are both Dabih, π³ and
      * π⁴ Ori are both Tabit. Those key by their designation, so `find('Dabih')` would find
      * nothing if this only looked at keys, and `Ayanamsa::TrueRevati` asks for Revati by name.
@@ -108,7 +108,7 @@ class Stars
      * anyone writes: M 44 is «Praesepe Cluster» there and alpha Centauri is «Rigil Kentaurus»,
      * so Praesepe and Toliman are aliases and not names. They are looked up too.
      *
-     * A shared name resolves to **the brighter of the two**, which is what anyone writing it
+     * A shared name resolves to the brighter of the two, which is what anyone writing it
      * means and is measured rather than chosen. A star with no published magnitude never wins a
      * name it shares: unknown is not bright.
      *
@@ -167,11 +167,11 @@ class Stars
      * @param Star $star
      * @param float $jdTT Julian day in Terrestrial Time.
      * @param bool $apparent With aberration and nutation (what is seen). False gives the mean
-     *                       position: proper motion and precession only. That is the one that
-     *                       works for dating an ingress, because the apparent one is not
-     *                       monotonic in time: aberration comes and goes twenty arcseconds
-     *                       over the year, more than precession advances, so a star crosses
-     *                       the same degree three times within a few months.
+     * position: proper motion and precession only. That is the one that
+     * works for dating an ingress, because the apparent one is not
+     * monotonic in time: aberration comes and goes twenty arcseconds
+     * over the year, more than precession advances, so a star crosses
+     * the same degree three times within a few months.
      * @return StarPosition
      */
     public static function position(Star $star, float $jdTT, bool $apparent = true): StarPosition
@@ -222,7 +222,7 @@ class Stars
      * nothing and only refraction counts, which can be turned off. Circumpolar or invisible
      * from there, rising and setting to null and the culminations always.
      *
-     * **Parans do not go through here.** A paran is a star and a planet on an angle at the
+     * Parans do not go through here. A paran is a star and a planet on an angle at the
      * same time (the star rising when the planet culminates, for example), and comparing the
      * `RiseSet` of each star with that of each planet would be one sweep of the day per star:
      * seconds. A paran finder does the same calculation in closed form, with `Limb::Center` and
@@ -306,7 +306,7 @@ class Stars
     /**
      * A name reduced to a key: without accents, in lowercase and with hyphens.
      *
-     * Written here and not with a framework helper, which is what was here, **because this
+     * Written here and not with a framework helper, which is what was here, because this
      * engine depends on no framework and that was the only line that did**. Taking it out
      * to a pure PHP package is a matter of when and not of how, and a whole framework
      * dependency for a twenty-character transliteration is not worth it.

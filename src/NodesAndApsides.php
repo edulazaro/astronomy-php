@@ -10,31 +10,31 @@ use LogicException;
  * go round and the closest and the farthest it can ever get from us.
  *
  * It is three Swiss Ephemeris functions at once, `swe_nod_aps`, `swe_get_orbital_elements` and
- * `swe_orbit_max_min_true_distance`, and they are together because **the three of them come out
- * of the same state**: once you have the position and the velocity of an instant, everything else
+ * `swe_orbit_max_min_true_distance`, and they are together because the three of them come out
+ * of the same state: once you have the position and the velocity of an instant, everything else
  * is algebra. Splitting them would have meant asking three times for the five ephemerides that
  * the derivative costs.
  *
- * It is the same trade as `LunarPoints` and that one is worth reading first: **these are not
- * bodies, they are elements of an orbit**, and that is why there is no table and no series to
+ * It is the same trade as `LunarPoints` and that one is worth reading first: these are not
+ * bodies, they are elements of an orbit, and that is why there is no table and no series to
  * ask for. They come out of the position and the velocity, which `Ephemeris` already gives, with
  * the same computation that yields the lunar node there (from the angular momentum `r × v`) and
  * Lilith (from the eccentricity vector). What changes is the orbit being looked at: there, that
  * of the Moon around the Earth; here, that of each body around the Sun.
  *
- * ## Osculating, mean and barycentric: three questions, and they are not the same one
+ * Osculating, mean and barycentric: three questions, and they are not the same one
  *
- * - **`of()`, osculating.** The ellipse the body would describe if the other planets stopped
- *   pulling at it this very instant. It comes out entirely of the position and the velocity of
- *   that instant, so it changes every day and carries every tug inside it.
- * - **`mean()`.** The averaged orbit, without the periodic perturbations, which comes out of no
- *   state at all but out of a table of elements. In the outer bodies the two of them drift far
- *   apart: the mean perihelion of Neptune in the year 2000 falls on degree 48.1 and the
- *   osculating one on 37.3, **eleven degrees**, that is, a third of a sign.
- * - **`barycentric()`.** The osculating one again, but measured from the barycentre of the solar
- *   system instead of from the Sun, which is not standing still either.
+ * - `of()`, osculating. The ellipse the body would describe if the other planets stopped
+ * pulling at it this very instant. It comes out entirely of the position and the velocity of
+ * that instant, so it changes every day and carries every tug inside it.
+ * - `mean()`. The averaged orbit, without the periodic perturbations, which comes out of no
+ * state at all but out of a table of elements. In the outer bodies the two of them drift far
+ * apart: the mean perihelion of Neptune in the year 2000 falls on degree 48.1 and the
+ * osculating one on 37.3, eleven degrees, that is, a third of a sign.
+ * - `barycentric()`. The osculating one again, but measured from the barycentre of the solar
+ * system instead of from the Sun, which is not standing still either.
  *
- * **The mean ones went undone for a long time, and the reason written down was a good one**: this
+ * The mean ones went undone for a long time, and the reason written down was a good one: this
  * repository has VSOP87 (which publishes positions, not elements), ELP and JPL tables, and none of
  * them carries mean planetary elements; copying them from the Swiss code is ruled out by licence
  * and writing them from memory is what this engine does not do. What has changed is that the
@@ -46,68 +46,67 @@ use LogicException;
  * ELP publishes its mean longitudes (`w2` the perigee, `w3` the node) and with those the mean node
  * is a two-line computation.
  *
- * ## The five bodies that do not have this, and why it throws instead of returning a number
+ * The five bodies that do not have this, and why it throws instead of returning a number
  *
- * - **The Sun** is the origin of the frame: it has no orbit around itself.
- * - **The Earth** is the degenerate case and the easiest one to serve wrong. The ecliptic IS, by
- *   definition, the plane of the orbit of the Earth, so the inclination of its orbit on the
- *   ecliptic is zero but for the wobble the Moon and the planets put into it, and the line of
- *   nodes is the intersection of a plane with itself. A number comes out, it changes from one
- *   week to the next and it means nothing. Measured: its osculating inclination on the ecliptic
- *   of date goes from 1.5 to 7.4 arcseconds in four months and its node wanders from degree 134
- *   to 188 in three, that is, the number exists and says nothing.
- * - **The Moon** has real nodes and apsides, but of its orbit around the EARTH, and they are in
- *   `LunarPoints`. Those of its orbit around the Sun would be almost those of the Earth, that
- *   is, the same degeneracy.
- * - **The nodes and the Liliths** are not bodies: they have no orbit of their own to look at.
- * - **Selena and the Waldemath moon** are the two fictitious ones that orbit the EARTH. Their
- *   heliocentric vector is the Earth plus their own, so their heliocentric elements would
- *   describe an Earth orbit with a wobble on top: a planet that looks perfectly fine in any old
- *   sign.
+ * - The Sun is the origin of the frame: it has no orbit around itself.
+ * - The Earth is the degenerate case and the easiest one to serve wrong. The ecliptic IS, by
+ * definition, the plane of the orbit of the Earth, so the inclination of its orbit on the
+ * ecliptic is zero but for the wobble the Moon and the planets put into it, and the line of
+ * nodes is the intersection of a plane with itself. A number comes out, it changes from one
+ * week to the next and it means nothing. Measured: its osculating inclination on the ecliptic
+ * of date goes from 1.5 to 7.4 arcseconds in four months and its node wanders from degree 134
+ * to 188 in three, that is, the number exists and says nothing.
+ * - The Moon has real nodes and apsides, but of its orbit around the EARTH, and they are in
+ * `LunarPoints`. Those of its orbit around the Sun would be almost those of the Earth, that
+ * is, the same degeneracy.
+ * - The nodes and the Liliths are not bodies: they have no orbit of their own to look at.
+ * - Selena and the Waldemath moon are the two fictitious ones that orbit the EARTH. Their
+ * heliocentric vector is the Earth plus their own, so their heliocentric elements would
+ * describe an Earth orbit with a wobble on top: a planet that looks perfectly fine in any old
+ * sign.
  *
- * ## Precision, measured against JPL Horizons
+ * Precision, measured against JPL Horizons
  *
  * Against the osculating elements Horizons publishes (`EPHEM_TYPE='ELEMENTS'`, centre
  * `500@10`, ecliptic of J2000), fourteen bodies in 1700, 2000 and 2300:
  *
- * | | worst difference |
- * |---|---|
- * | Node, tabulated bodies (Pluto, Chiron, Pholus, the four asteroids) | 0.06″ |
- * | Node, VSOP87 planets | 5.8″ (Uranus in 2300) |
- * | Apsides, tabulated bodies | 0.60″ |
- * | Apsides, Mercury, Venus, Mars, Jupiter, Saturn, Uranus | 8.4″ |
- * | Apsides, Neptune | 64.7″ (in 2300) |
- * | Perihelion latitude | 0.65″ |
- * | Inclination | 0.09″ |
- * | Eccentricity | 6.6e-6 |
- * | Semi-major axis | 1.2e-4 AU |
- * | Perihelion and aphelion distance | 2.4e-4 AU |
- * | The three anomalies and the perihelion passage | 0.018° (Neptune in 2300) |
- * | Mean motion and sidereal period | 5.9e-6 relative |
+ * worst difference
+ * Node, tabulated bodies (Pluto, Chiron, Pholus, the four asteroids)  0.06″
+ * Node, VSOP87 planets                                                5.8″ (Uranus in 2300)
+ * Apsides, tabulated bodies                                           0.60″
+ * Apsides, Mercury, Venus, Mars, Jupiter, Saturn, Uranus              8.4″
+ * Apsides, Neptune                                                    64.7″ (in 2300)
+ * Perihelion latitude                                                 0.65″
+ * Inclination                                                         0.09″
+ * Eccentricity                                                        6.6e-6
+ * Semi-major axis                                                     1.2e-4 AU
+ * Perihelion and aphelion distance                                    2.4e-4 AU
+ * The three anomalies and the perihelion passage                      0.018° (Neptune in 2300)
+ * Mean motion and sidereal period                                     5.9e-6 relative
  *
  * The last two rows are the same measurement as the ones above seen from another side: the period
  * comes out of the semi-major axis by Kepler's third law, so it inherits its 1.2e-4 astronomical
  * units, and the anomalies come out of the eccentricity vector divided by the eccentricity, which
  * is where the worst case of this class always comes from.
  *
- * **What is read in degrees is not the error, it is the error divided by the eccentricity.** The
- * eccentricity vector, which is where the apside comes from, stays below **6.7e-6** in all
+ * What is read in degrees is not the error, it is the error divided by the eccentricity. The
+ * eccentricity vector, which is where the apside comes from, stays below 6.7e-6 in all
  * forty-two cases; what happens is that this vector measures `e`, so the angle it defines is
  * known with an error of 6.7e-6 divided by `e`. Neptune has 0.0085 in 2300 and out of that come
  * those 64.7 arcseconds, which are 1.1 minutes: the apside of an almost round orbit is ill
  * defined, just like the apogee of Lilith. The nodes do not have that problem because they come
  * out of the angular momentum, which is not divided by anything.
  *
- * ## The three periods, and the Earth the third one needed
+ * The three periods, and the Earth the third one needed
  *
- * The **sidereal** one is a turn against the stars and comes out of Kepler's third law. The
- * **tropical** one is a turn against the equinox, which comes to meet the body because it
+ * The sidereal one is a turn against the stars and comes out of Kepler's third law. The
+ * tropical one is a turn against the equinox, which comes to meet the body because it
  * precesses, so it is somewhat shorter: it is the same computation that separates the tropical
  * year from the sidereal year, and that is its check. The rate comes out of differentiating
  * `Time::generalPrecession`, the same precession with which the engine rotates everything else,
  * and not out of a constant written here.
  *
- * The **synodic** one is from one opposition to the next, that is, against the Earth, and that is
+ * The synodic one is from one opposition to the next, that is, against the Earth, and that is
  * where the real work turned up. **The Earth has to come in through its barycentre with the
  * Moon**, and it is not a refinement: the centre of the planet goes round that barycentre at 12.5
  * metres per second, the semi-major axis comes out of the energy and therefore out of the square
@@ -123,35 +122,35 @@ use LogicException;
  * orbit is remembered per instant, because whoever asks for this asks for the nine bodies of the
  * same date.
  *
- * ## The extreme distances
+ * The extreme distances
  *
  * `distances()` is `swe_orbit_max_min_true_distance`: the closest and the farthest this body and
- * the Earth can ever get. **They really are the extrema between the two ELLIPSES**, searched on
+ * the Earth can ever get. They really are the extrema between the two ELLIPSES, searched on
  * both at once with their inclinations in place, and not the aphelion of one plus the aphelion of
  * the other: two aphelia only add up if they fall in opposite directions, and the lines of apsides
  * are where they are. On Jupiter in the year 2000, the quick computation gives 6.4748 astronomical
  * units and the good one 6.4574.
  *
- * Against Swiss, the eight planets in the year 2000: **worst 2.3e-3 astronomical units in the
- * extrema (Pluto) and 1e-4 in today's distance**. What is left is the ephemeris, because
+ * Against Swiss, the eight planets in the year 2000: worst 2.3e-3 astronomical units in the
+ * extrema (Pluto) and 1e-4 in today's distance. What is left is the ephemeris, because
  * pyswisseph runs here without files, that is, with Moshier: the distance of Jupiter today, which
  * does not go through any ellipse, agrees to 2.8e-7.
  *
- * ## The fictitious ones, which do come out and do not return what they have written down
+ * The fictitious ones, which do come out and do not return what they have written down
  *
  * The seventeen of `FictitiousBodies` that do not orbit the Earth go through here and give their
- * four points, but **the osculating one does not have to return the element that
- * `resources/astro/fictitious.php` has written down, and when it does not match it is not a bug**.
+ * four points, but the osculating one does not have to return the element that
+ * `resources/astro/fictitious.php` has written down, and when it does not match it is not a bug.
  * It happens in two cases and in both for the same reason, which is that their orbit is not a
  * fixed ellipse:
  *
  * - The ones that carry the angles as polynomials in time (Vulcan is the only one of these that
- *   gets this far) have the perihelion and the node turning 1,670 degrees per century, so their
- *   motion is not Keplerian and the osculating ellipse is not the written one: eccentricity
- *   0.0212 against the 0.019 of the file.
+ * gets this far) have the perihelion and the node turning 1,670 degrees per century, so their
+ * motion is not Keplerian and the osculating ellipse is not the written one: eccentricity
+ * 0.0212 against the 0.019 of the file.
  * - The ones referred to the ecliptic of date (`JDATE`, with no equinox of their own) precess
- *   with the equinox by definition, and that is motion too. Proserpina has an eccentricity of
- *   zero written down and its osculating orbit comes out with 0.054.
+ * with the equinox by definition, and that is motion too. Proserpina has an eccentricity of
+ * zero written down and its osculating orbit comes out with 0.054.
  *
  * The ones referred to a fixed equinox do return their own to the decimal, because the rotation
  * `FictitiousBodies` puts into them to carry them to the date is exactly the one that is undone
@@ -227,7 +226,7 @@ class NodesAndApsides
      * whereabouts in it the body is.
      *
      * It is `swe_nod_aps` and `swe_get_orbital_elements` at once, and they go together because
-     * **they come out of the same state**: once you have the position and the velocity, the three
+     * they come out of the same state: once you have the position and the velocity, the three
      * anomalies, the mean motion and the three periods are arithmetic on what is already computed.
      * Splitting them would have meant asking twice for the five ephemerides the derivative costs.
      *
@@ -244,7 +243,7 @@ class NodesAndApsides
      * The same osculating orbit, but measured with respect to the BARYCENTRE of the solar system
      * instead of with respect to the Sun. It is the `SE_NODBIT_OSCU_BAR` of Swiss.
      *
-     * **It is not a refinement of the heliocentric one: it is another orbit, and it shows at a
+     * It is not a refinement of the heliocentric one: it is another orbit, and it shows at a
      * glance.** Measured against Horizons in the year 2000, Jupiter has semi-major axis 5.2043
      * around the Sun and 5.1889 around the barycentre, fifteen thousandths of an astronomical unit
      * of difference, and its eccentricity goes from 0.0488 to 0.0476. The reason is that the Sun
@@ -254,12 +253,12 @@ class NodesAndApsides
      * forces the Earth to come in through its barycentre with the Moon so that its osculating year
      * does not come out at 365.50 days.
      *
-     * **What it is really good for: the distant bodies.** From a few hundred astronomical units
+     * What it is really good for: the distant bodies. From a few hundred astronomical units
      * onwards the Sun and the planets are seen as a single mass and what the body orbits is the
      * barycentre; that is why the published elements of Sedna and of the other sednoids are
      * barycentric, and comparing them with heliocentric ones is comparing two different things.
      *
-     * **Against Swiss it cannot be checked, and it is worth saying why**: pyswisseph without
+     * Against Swiss it cannot be checked, and it is worth saying why: pyswisseph without
      * ephemeris files does not compute the barycentric one and returns the heliocentric one
      * without warning, measured on Jupiter, Saturn, Neptune and Pluto, where the four of them give
      * exactly the same numbers with `NODBIT_OSCU_BAR` as with `NODBIT_OSCU`. The reference here is
@@ -385,18 +384,18 @@ class NodesAndApsides
      * against. Here only what that table cannot do on its own is done, which is to carry its
      * angles to the frame of the engine.
      *
-     * **And that is not precessing the angles: it is rotating the VECTORS and cutting again.** The
+     * And that is not precessing the angles: it is rotating the VECTORS and cutting again. The
      * elements are referred to the ecliptic of J2000, which is a fixed plane, and here the work is
      * in the one of date; a node is the cut of the orbit with the ecliptic, and there are two
      * ecliptics. It is measured against Swiss and the difference is not subtle: cutting with the
-     * ecliptic of date, the mean node of Uranus in 1700 lands within **0.01 arcseconds**; rotating
-     * the Ω of the table as if it were a point of the sky, within **10,274**. And the one that
+     * ecliptic of date, the mean node of Uranus in 1700 lands within 0.01 arcseconds; rotating
+     * the Ω of the table as if it were a point of the sky, within 10,274. And the one that
      * strays the most is precisely the one with the most tilted orbit, because the angle between
      * the two planes is divided by the tangent of the inclination. It is the same trap `ellipse()`
      * already has written down for the osculating orbit.
      *
-     * Against Swiss, the seven planets with a node in 1700, 2000 and 2300: **node 0.98 arcseconds
-     * worst case and perihelion latitude 0.09**. The perihelion differs by 12.45 on Neptune, and
+     * Against Swiss, the seven planets with a node in 1700, 2000 and 2300: node 0.98 arcseconds
+     * worst case and perihelion latitude 0.09. The perihelion differs by 12.45 on Neptune, and
      * that one is not a frame error nor truncation but a difference of constant between its table
      * and Simon's: it is worth the same in the three epochs. It is broken down in `MeanElements`.
      *
@@ -483,7 +482,7 @@ class NodesAndApsides
      * The closest and the farthest this body and the Earth can ever get, and how far apart they
      * are now. It is `swe_orbit_max_min_true_distance`.
      *
-     * **The extrema are really geometric: the greatest and the smallest distance between the two
+     * The extrema are really geometric: the greatest and the smallest distance between the two
      * ELLIPSES**, searched on both orbits at once and with their inclinations in place. They are
      * not the aphelion of one plus the aphelion of the other, which is the quick computation and
      * comes out too big: two aphelia only add up if they fall in opposite directions, and the
@@ -521,7 +520,7 @@ class NodesAndApsides
      * The raw osculating ellipse: the state in the ecliptic of date and what comes out of it
      * without any angle taking part.
      *
-     * It goes apart from `of()` because **the Earth has to go through here and cannot go through
+     * It goes apart from `of()` because the Earth has to go through here and cannot go through
      * there**. Its ellipse is perfectly well defined (it is the one that gives the year) and what
      * does not exist are its nodes on the ecliptic, which is half of what `of()` returns. The
      * synodic period of any planet is measured against the year of the Earth and the extreme
@@ -538,8 +537,8 @@ class NodesAndApsides
 
         /* The state is built in J2000 because the derivative needs a frame that stands still (see
            `state`), and it is taken to the ecliptic of date BEFORE anything is drawn out of it.
-           It is not the same as drawing the elements in J2000 and precessing the angles: **a node
-           is the cut of the orbit with the ecliptic, and there are two ecliptics**. The plane of
+           It is not the same as drawing the elements in J2000 and precessing the angles: a node
+           is the cut of the orbit with the ecliptic, and there are two ecliptics. The plane of
            J2000 and the one of date differ by almost fifty arcseconds per century, and that angle
            is divided by the tangent of the inclination when it is carried into a node: on
            Jupiter, which is tilted 1.3 degrees, precessing the node from J2000 instead of cutting
@@ -621,7 +620,7 @@ class NodesAndApsides
      * The orbit of the Earth at this instant, drawn like that of any other body and not out of a
      * constant.
      *
-     * **The last one is remembered, and that is enough**: whoever asks for this asks for the nine
+     * The last one is remembered, and that is enough: whoever asks for this asks for the nine
      * bodies of the same instant, so the Earth is computed once and the other eight find it
      * done. Without the memo, each orbit would cost twice as much, because the state of the Earth
      * is the same five ephemerides as that of the body.
@@ -732,7 +731,7 @@ class NodesAndApsides
     /**
      * The greatest and the smallest distance between two ellipses.
      *
-     * It is done in two stages, and the first one cannot be skipped: **a coarse sweep of both
+     * It is done in two stages, and the first one cannot be skipped: a coarse sweep of both
      * orbits at once** to know which zone each extremum is in, and then local refinement. The
      * comfortable alternative, starting the refinement from a reasonable configuration (the two
      * aphelia facing each other, say), falls on the wrong extremum as soon as the two lines of
@@ -835,7 +834,7 @@ class NodesAndApsides
     /**
      * Heliocentric position and velocity, geometric and in the ecliptic of J2000.
      *
-     * **The frame has to be INERTIAL, and that is the bug you step on without noticing.** The
+     * The frame has to be INERTIAL, and that is the bug you step on without noticing. The
      * ecliptic of date rotates: precession moves it fifty arcseconds a year and nutation shakes it
      * seventeen from one side to the other every eighteen years and a half. Differentiating
      * positions written in a frame that rotates puts the rotation of the frame INSIDE the
@@ -903,14 +902,14 @@ class NodesAndApsides
      * Two things that have to be undone to `Ephemeris::heliocentric`, and both because an orbital
      * element describes where the orbit IS and not where it is looked at from:
      *
-     * **The light time.** `heliocentric` returns the body where it was when the light that now
+     * The light time. `heliocentric` returns the body where it was when the light that now
      * reaches the Sun set out, which on Neptune is four hours and on Pluto five and a half.
      * Undoing it needs no new datum, because the answer itself carries the distance: the instant
      * asked for is the one being looked for PLUS the delay, and it converges in two turns. Without
      * undoing it, the perihelion of Neptune comes out 16.4 arcseconds off and the semi-major axis
      * of Pluto 1.8e-4 astronomical units.
      *
-     * **The nutation, and at the instant the engine applies it.** `heliocentric` rotates the
+     * The nutation, and at the instant the engine applies it. `heliocentric` rotates the
      * longitude by the nutation of the REQUESTED instant, not the one of the instant the position
      * corresponds to, which is the requested one minus the delay. That is the right thing for an
      * apparent position, because the frame is the true equinox of the date of observation, and it
@@ -1071,8 +1070,8 @@ class NodesAndApsides
      * heliocentric orbit is the one of the RELATIVE motion of the two, and its constant is the sum
      * of the two masses. The eccentricity vector carries mu dividing, so a mu with a relative
      * error `d` shifts the perihelion by `d` divided by the eccentricity. Measured in the year
-     * 2000 with the bare GM of the Sun: **Jupiter goes off by 0.39 degrees, Neptune 0.26 and
-     * Saturn 0.20**, and all of them with a perfectly believable sign and value. It is also what
+     * 2000 with the bare GM of the Sun: Jupiter goes off by 0.39 degrees, Neptune 0.26 and
+     * Saturn 0.20, and all of them with a perfectly believable sign and value. It is also what
      * Horizons does, which prints the sum in the header of its elements ("Keplerian GM").
      *
      * The masses are the DE440 ones `astronomy masses` downloads, the same ones `Ephemeris` computes
@@ -1082,17 +1081,17 @@ class NodesAndApsides
      * GM" for an asteroid is the bare one of the Sun. And the nineteen fictitious ones have no
      * mass because they do not exist.
      *
-     * ## And the one of a BARYCENTRIC orbit, which is neither of the two things one would write
+     * And the one of a BARYCENTRIC orbit, which is neither of the two things one would write
      *
      * Around the barycentre there is no mass at all, so neither the GM of the Sun nor the one of
      * everything together is any good there. What there is is the same two-body problem seen from
      * the centre of mass: the body on one side and EVERYTHING ELSE on the other, going round each
      * other. With `M` the mass of the whole solar system and `m` the one of the body, the rest
      * weighs `M - m` and the orbit of the body with respect to the barycentre comes out with
-     * **`μ = (M - m)³ / M²`**.
+     * `μ = (M - m)³ / M²`.
      *
-     * It is not an armchair deduction: **it agrees to nine figures with the "Keplerian GM" that
-     * Horizons itself prints when it is asked for elements with `CENTER='500@0'`**. Neptune,
+     * It is not an armchair deduction: it agrees to nine figures with the "Keplerian GM" that
+     * Horizons itself prints when it is asked for elements with `CENTER='500@0'`. Neptune,
      * 2.96263547e-4 computed against 2.96263547e-4 published; Saturn, 2.96055556e-4 against
      * 2.96055556e-4. And in passing it explains what otherwise looks like nonsense: the barycentric
      * μ of Jupiter, 2.9546e-4, is SMALLER than the GM of the Sun, because Jupiter is discounted

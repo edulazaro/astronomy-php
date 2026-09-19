@@ -13,94 +13,93 @@ namespace Astronomy;
  * and, for the Moon, Yallop's q-test. Everything here is a single instant, chosen by whoever
  * calls; nothing is searched for.
  *
- * ### Where the reckoning comes from
+ * Where the reckoning comes from
  *
- * The geometry is this engine's own, and the crescent is **Yallop (1997), NAO Technical Note
- * 69**, `SOURCE` below, read from the paper. Four of its equations are used and they are quoted
+ * The geometry is this engine's own, and the crescent is Yallop (1997), NAO Technical Note
+ * 69, `SOURCE` below, read from the paper. Four of its equations are used and they are quoted
  * where they are applied:
  *
- * - **(2.1)** `cos ARCL = cos ARCV · cos DAZ`, which defines the arc of light out of the arc of
- *   vision and the difference in azimuth. **It is a definition to copy, not an approximation to
- *   improve.** It is not the true angular separation of the two directions, and it is not meant
- *   to be: it is exact in the limit of small angles, which is where a crescent lives, and it
- *   drifts away from there. Measured at Madrid on three evenings of 2000, against the true
- *   separation of the very same two directions: at an arc of light of 6.36 degrees they differ
- *   by 0.0005, at 19.17 by 0.058 and at 31.89 by 0.288. Yallop's whole calibration, the 295
- *   observations of his Table 4 and the six class boundaries of his Table 5, rests on this
- *   ARCL. Replacing it with the true separation would leave the criterion measuring something
- *   the criterion was never calibrated on. Far from a crescent the two part company for good,
- *   and that is not a failure either: measured on Saturn from Babylon at an arc of 107 degrees,
- *   107.00 against 118.33.
- * - **(3.8)** `SD = 0.27245 π`, **(3.9)** `SD' = SD (1 + sin h · sin π)` and **(3.10)**
- *   `W' = SD' (1 − cos ARCL)`, the topocentric width of the crescent. See `crescentWidth` for
- *   which parallax goes into (3.8), which is the one place where Swiss and the paper part.
- * - **(6.1)** the q-test, and **Table 5**, its six classes. See `yallopQ` and `yallopClass`.
- * - **(4.1)** `Tb = Ts + (4/9) Lag`, the best time to look. See `bestTime`.
+ * - (2.1) `cos ARCL = cos ARCV · cos DAZ`, which defines the arc of light out of the arc of
+ * vision and the difference in azimuth. It is a definition to copy, not an approximation to
+ * improve. It is not the true angular separation of the two directions, and it is not meant
+ * to be: it is exact in the limit of small angles, which is where a crescent lives, and it
+ * drifts away from there. Measured at Madrid on three evenings of 2000, against the true
+ * separation of the very same two directions: at an arc of light of 6.36 degrees they differ
+ * by 0.0005, at 19.17 by 0.058 and at 31.89 by 0.288. Yallop's whole calibration, the 295
+ * observations of his Table 4 and the six class boundaries of his Table 5, rests on this
+ * ARCL. Replacing it with the true separation would leave the criterion measuring something
+ * the criterion was never calibrated on. Far from a crescent the two part company for good,
+ * and that is not a failure either: measured on Saturn from Babylon at an arc of 107 degrees,
+ * 107.00 against 118.33.
+ * - (3.8) `SD = 0.27245 π`, (3.9) `SD' = SD (1 + sin h · sin π)` and (3.10)
+ * `W' = SD' (1 − cos ARCL)`, the topocentric width of the crescent. See `crescentWidth` for
+ * which parallax goes into (3.8), which is the one place where Swiss and the paper part.
+ * - (6.1) the q-test, and Table 5, its six classes. See `yallopQ` and `yallopClass`.
+ * - (4.1) `Tb = Ts + (4/9) Lag`, the best time to look. See `bestTime`.
  *
- * ### The thirty values, and which ones are not here
+ * The thirty values, and which ones are not here
  *
  * Swiss returns an array of fifty floats of which it documents the first thirty. The names below are after what each one IS, so
  * that nobody needs Swiss's manual open; this table is for whoever wants to compare anyway.
  *
- * | here | Swiss | index |
- * |---|---|---|
- * | `topocentricAltitude` | AltO | 0 |
- * | `apparentAltitude` | AppAltO | 1 |
- * | `geocentricAltitude` | GeoAltO | 2 |
- * | `azimuth` | AziO | 3 |
- * | `sunAltitude` | AltS | 4 |
- * | `sunAzimuth` | AziS | 5 |
- * | `topocentricArcOfVision` | TAVact | 6 |
- * | `arcOfVision` | ARCVact | 7 |
- * | `azimuthDifference` | DAZact | 8 |
- * | `arcOfLight` | ARCLact | 9 |
- * | `extinctionCoefficient` | kact | 10 |
- * | `minimumTopocentricArc` | minTAV | 11 |
- * | `firstVisible` | TfistVR | 12 |
- * | `bestVisibleByContrast` | TbVR | 13 |
- * | `lastVisible` | TlastVR | 14 |
- * | `bestTime` | TbYallop | 15 |
- * | `crescentWidth` | WMoon | 16 |
- * | `yallopQ` | qYal | 17 |
- * | `yallopClass` | qCrit | 18 |
- * | `parallax` | ParO | 19 |
- * | `magnitude` | Magn | 20 |
- * | `objectPass` | RiseO | 21 |
- * | `sunPass` | RiseS | 22 |
- * | `lag` | Lag | 23 |
- * | `visibilityDuration` | TvisVR | 24 |
- * | `crescentLength` | LMoon | 25 |
- * | `crescentVisibilityAngle` | CVAact | 26 |
- * | `illuminatedPercent` | Illum | 27 |
- * | not carried | CVAact (28), MSk (29) | 28, 29 |
+ * here                       Swiss                  index
+ * `topocentricAltitude`      AltO                   0
+ * `apparentAltitude`         AppAltO                1
+ * `geocentricAltitude`       GeoAltO                2
+ * `azimuth`                  AziO                   3
+ * `sunAltitude`              AltS                   4
+ * `sunAzimuth`               AziS                   5
+ * `topocentricArcOfVision`   TAVact                 6
+ * `arcOfVision`              ARCVact                7
+ * `azimuthDifference`        DAZact                 8
+ * `arcOfLight`               ARCLact                9
+ * `extinctionCoefficient`    kact                   10
+ * `minimumTopocentricArc`    minTAV                 11
+ * `firstVisible`             TfistVR                12
+ * `bestVisibleByContrast`    TbVR                   13
+ * `lastVisible`              TlastVR                14
+ * `bestTime`                 TbYallop               15
+ * `crescentWidth`            WMoon                  16
+ * `yallopQ`                  qYal                   17
+ * `yallopClass`              qCrit                  18
+ * `parallax`                 ParO                   19
+ * `magnitude`                Magn                   20
+ * `objectPass`               RiseO                  21
+ * `sunPass`                  RiseS                  22
+ * `lag`                      Lag                    23
+ * `visibilityDuration`       TvisVR                 24
+ * `crescentLength`           LMoon                  25
+ * `crescentVisibilityAngle`  CVAact                 26
+ * `illuminatedPercent`       Illum                  27
+ * not carried                CVAact (28), MSk (29)  28, 29
  *
- * **The last row is measured, not assumed**: Swiss 2.10.03 declares indices 28 and 29 and
+ * The last row is measured, not assumed: Swiss 2.10.03 declares indices 28 and 29 and
  * leaves them at exactly 0.0. Checked over 108 combinations of four objects, three dates, three
  * hours and two event kinds: the set of values returned there has one element, `(0.0, 0.0)`.
  * There is nothing to map, so there is no field for them rather than a field that would always
  * be null.
  *
- * **Eight of the thirty come back null, and every one of them says why in its own docblock.**
+ * Eight of the thirty come back null, and every one of them says why in its own docblock.
  * They fall into three groups and only the first was expected:
  *
- * - **Five need Schaefer's contrast model**: `minimumTopocentricArc`, `firstVisible`,
- *   `bestVisibleByContrast`, `lastVisible` and `visibilityDuration`. Measured: sweeping the
- *   observer's age from 20 to 80 and the Snellen ratio from 0.5 to 2.0, those five move and the
- *   other twenty-five do not, `crescentWidth` and `yallopQ` among them.
- * - **One needs an atmosphere this package does not carry**: `extinctionCoefficient`. It does
- *   not move with the observer, but it does move with the relative humidity, which is the half
- *   of Schaefer that `ArcusVisionis` already writes down as a thing this engine will not
- *   invent. That one was not expected, and it is not the observer's eyes: it is the air.
- * - **Two have no published definition**: `crescentLength` and `crescentVisibilityAngle`, and
- *   Swiss's own values for them contradict their own names. Measured at Madrid at 19:30 UT: the
- *   «crescent length» comes out NEGATIVE, −13.91 arcminutes, on 2000-08-29 at an arc of light
- *   of 6.48 degrees, and on 2000-09-05, at an arc of 87.08, it comes out at 30.57 arcminutes
- *   against a topocentric lunar diameter of 26.79, that is 14 % longer than the disc it is
- *   drawn on. A length is neither of those things.
+ * - Five need Schaefer's contrast model: `minimumTopocentricArc`, `firstVisible`,
+ * `bestVisibleByContrast`, `lastVisible` and `visibilityDuration`. Measured: sweeping the
+ * observer's age from 20 to 80 and the Snellen ratio from 0.5 to 2.0, those five move and the
+ * other twenty-five do not, `crescentWidth` and `yallopQ` among them.
+ * - One needs an atmosphere this package does not carry: `extinctionCoefficient`. It does
+ * not move with the observer, but it does move with the relative humidity, which is the half
+ * of Schaefer that `ArcusVisionis` already writes down as a thing this engine will not
+ * invent. That one was not expected, and it is not the observer's eyes: it is the air.
+ * - Two have no published definition: `crescentLength` and `crescentVisibilityAngle`, and
+ * Swiss's own values for them contradict their own names. Measured at Madrid at 19:30 UT: the
+ * «crescent length» comes out NEGATIVE, −13.91 arcminutes, on 2000-08-29 at an arc of light
+ * of 6.48 degrees, and on 2000-09-05, at an arc of 87.08, it comes out at 30.57 arcminutes
+ * against a topocentric lunar diameter of 26.79, that is 14 % longer than the disc it is
+ * drawn on. A length is neither of those things.
  *
- * ### The floor of any comparison against Swiss, which is Swiss's and not ours
+ * The floor of any comparison against Swiss, which is Swiss's and not ours
  *
- * **Swiss's heliacal internals disagree with Swiss's own `swe_azalt` at the same instant.**
+ * Swiss's heliacal internals disagree with Swiss's own `swe_azalt` at the same instant.
  * Measured at Madrid on 2000-08-30 19:30 UT: its AltS is 7.34 arcseconds above the geocentric
  * altitude that `swe_azalt` gives for the Sun, its AltO is 7.29 arcseconds above the
  * topocentric one it gives for the Moon, and the two azimuths are off by 32 and 14 arcseconds.
@@ -109,8 +108,8 @@ namespace Astronomy;
  * comparison of these numbers against Swiss, and it is thirty-five to a hundred and sixty times
  * this engine's own 0.2-arcsecond floor against the JPL.
  *
- * **It largely cancels in the differences, which is the good news and worth knowing before
- * anybody goes hunting.** The two altitudes carry the same offset, so the arcs built out of
+ * It largely cancels in the differences, which is the good news and worth knowing before
+ * anybody goes hunting. The two altitudes carry the same offset, so the arcs built out of
  * them do not: measured over the three Madrid crescents, `arcOfVision` and
  * `topocentricArcOfVision` land within 0.43 arcseconds of Swiss while the altitudes they are
  * made of are 7 to 8 arcseconds away from it.
@@ -148,7 +147,7 @@ readonly class HeliacalDetails
          * Which crossing of the horizon `lag` and `bestTime` are measured over, and therefore
          * which side of the Sun the object is on.
          *
-         * **It is not asked for: it is read off the geometry**, and that is why this method
+         * It is not asked for: it is read off the geometry, and that is why this method
          * takes no event where Swiss takes one. An object east of the Sun in longitude sets
          * after it and is an evening object; one west of it rises before it and is a morning
          * object. That is the old distinction between the evening star and the morning star,
@@ -177,13 +176,13 @@ readonly class HeliacalDetails
          * Altitude of the Sun, in degrees, geometric and GEOCENTRIC. Negative after sunset,
          * which is when any of this is worth measuring.
          *
-         * **Geocentric because that is how Yallop defines ARCV**, «the geocentric difference in
+         * Geocentric because that is how Yallop defines ARCV, «the geocentric difference in
          * altitude between the centre of the Sun and the centre of the Moon ... ignoring the
          * effects of refraction», section 2 of the paper. The Sun's own parallax in altitude is
          * 8.6 arcseconds, measured at Madrid, worth 0.0002 in a q whose class boundaries are
          * spaced between 0.05 and 0.2: it cannot move a class.
          *
-         * **And Swiss's AltS is labelled «topocentric altitude of Sun» and measured it is not.**
+         * And Swiss's AltS is labelled «topocentric altitude of Sun» and measured it is not.
          * At Madrid on three evenings of 2000 it sits 7.29 to 7.88 arcseconds from the
          * geocentric altitude `swe_azalt` gives and 15.93 to 16.52 from the topocentric one,
          * where the parallax itself is 8.6: it is the geocentric one, carrying the offset the
@@ -205,7 +204,7 @@ readonly class HeliacalDetails
          */
         public float $arcOfVision,
         /**
-         * Yallop's DAZ, in degrees: the difference in azimuth, **Sun minus object**, wrapped to
+         * Yallop's DAZ, in degrees: the difference in azimuth, Sun minus object, wrapped to
          * [-180, 180). The sign is Yallop's, section 2, and Swiss keeps it.
          */
         public float $azimuthDifference,
@@ -224,14 +223,14 @@ readonly class HeliacalDetails
          * The object's crossing of the horizon that brackets the observation: its setting for
          * an evening object, its rising for a morning one. Yallop's Tm.
          *
-         * **With the almanac convention, the upper limb and with refraction**, which is what
+         * With the almanac convention, the upper limb and with refraction, which is what
          * `RiseSet` gives by default and what «sunset» and «moonset» mean in the table Yallop
          * calibrated on. Swiss's heliacal code takes the CENTRE of the disc instead. Measured
          * against `swe_rise_trans` asked for that same convention, Swiss's own value sits
          * within 0.9 to 2.5 seconds of it, so that is what it is; measured against this,
          * a body with a disc comes out 80 to 123 seconds later here.
          *
-         * **What that does downstream is not the same for the Moon and for a planet.** The two
+         * What that does downstream is not the same for the Moon and for a planet. The two
          * semi-diameters are nearly equal, so for the Moon the shift very largely cancels in
          * `lag`: measured over five crescents, from −1.4 to +7.0 seconds against Swiss. A planet
          * has no disc worth the name, so only the Sun's end moves and the whole 80 seconds
@@ -245,7 +244,7 @@ readonly class HeliacalDetails
         /** The Sun's crossing of the same night, same convention: Yallop's Ts. */
         public ?UtInstant $sunPass,
         /**
-         * Yallop's Lag, **in minutes**: from the Sun's crossing to the object's. Positive for
+         * Yallop's Lag, in minutes: from the Sun's crossing to the object's. Positive for
          * an evening object, which sets after the Sun, and NEGATIVE for a morning one, which
          * rises before it. That sign is Yallop's own: the morning entries of his Table 4 carry
          * negative lags.
@@ -264,7 +263,7 @@ readonly class HeliacalDetails
          * expression and nothing else was checked rather than assumed: `RiseS + (4/9)·Lag`
          * reproduces its own TbYallop to 4e-5 seconds.
          *
-         * **It is given for every object, and Swiss gives it only for the Moon**, which returns
+         * It is given for every object, and Swiss gives it only for the Moon, which returns
          * its 99999999.0 sentinel for everything else. The rule was published for the new
          * crescent and the curves behind it are the Moon's, so for a planet it is Yallop's
          * geometry carried over rather than Yallop's result; the geometry it describes, a sky
@@ -272,10 +271,10 @@ readonly class HeliacalDetails
          */
         public ?UtInstant $bestTime,
         /**
-         * Yallop's W', the topocentric width of the crescent, **in ARCMINUTES**. Null for
+         * Yallop's W', the topocentric width of the crescent, in ARCMINUTES. Null for
          * anything but the Moon, because a crescent is what this measures.
          *
-         * **Equation (3.8) takes the HORIZONTAL parallax, and Swiss takes the parallax in
+         * Equation (3.8) takes the HORIZONTAL parallax, and Swiss takes the parallax in
          * altitude.** That is the one place where this class and Swiss part, and it is
          * measurable rather than arguable: 0.27245 is the ratio of the two radii,
          * 1737.4 / 6378.1366 = 0.272394, so (3.8) only yields a semi-diameter when it is fed
@@ -298,7 +297,7 @@ readonly class HeliacalDetails
          *
          * None of the five changed Yallop class.
          *
-         * **Yallop as published is what is implemented**, which is the same choice this package
+         * Yallop as published is what is implemented, which is the same choice this package
          * already makes with the 1976 precession over Vondrák's and with Simon's mean elements
          * over Swiss's table: take the source, and write the residual down.
          */
@@ -307,12 +306,12 @@ readonly class HeliacalDetails
          * Yallop's q, equation (6.1), dimensionless and scaled by ten to sit roughly between
          * -1 and +1. Null for anything but the Moon.
          *
-         * **W' goes into (6.1) in ARCMINUTES**, and this is where somebody comparing gets
+         * W' goes into (6.1) in ARCMINUTES, and this is where somebody comparing gets
          * bitten: Swiss returns WMoon in DEGREES while computing its own qYal from the same
          * number in arcminutes. Feeding Swiss's WMoon straight into (6.1) gives a q that is
          * wrong by a factor nobody would spot.
          *
-         * **And q is defined AT THE BEST TIME**, not at any instant. This returns it for the
+         * And q is defined AT THE BEST TIME, not at any instant. This returns it for the
          * instant that was asked for, which is what Swiss does too; whoever wants Yallop's q
          * reads `bestTime` here and asks again there.
          */
@@ -321,7 +320,7 @@ readonly class HeliacalDetails
          * The class of Yallop's Table 5, a letter from 'A' to 'F'. Null for anything but the
          * Moon. `yallopRemark()` gives the wording.
          *
-         * **Swiss calls this one «qCrit, q-test criterion of Yallop» and returns a float**,
+         * Swiss calls this one «qCrit, q-test criterion of Yallop» and returns a float,
          * which reads as though it were a threshold value. It is not: measured, it takes the
          * values 1.0 and 6.0, and those are the ordinals of the classes. A crescent at
          * q = +0.553 comes back 1.0 and one at q = -0.549 comes back 6.0, which are exactly A
@@ -337,8 +336,8 @@ readonly class HeliacalDetails
          * answer for Uranus and Neptune outside the range of phase angles they were fitted
          * with, and for the catalogue's clusters, which have no published V magnitude.
          *
-         * **Against Swiss it agrees for planets and parts company for the Moon, and the Moon is
-         * the one to be careful with.** Measured on four planets, the two agree to 0.009
+         * Against Swiss it agrees for planets and parts company for the Moon, and the Moon is
+         * the one to be careful with. Measured on four planets, the two agree to 0.009
          * magnitudes or better. On the Moon at a phase angle of 173.6 degrees this gives −4.66
          * where `swe_pheno` gives −1.77, and the published Allen (1963) lunar curve, which is
          * what Yallop's paper cites for exactly this, gives −4.58. This model is the one fitted
@@ -349,7 +348,7 @@ readonly class HeliacalDetails
          * Percentage of the object's disc seen lit, from 0 to 100. Null for a star, which has
          * no phase and no disc.
          *
-         * **Geocentric, and Swiss's Illum is topocentric.** It is `Phenomena`, which is this
+         * Geocentric, and Swiss's Illum is topocentric. It is `Phenomena`, which is this
          * package's one definition of a phase and is geocentric, rather than a second phase
          * reckoning grown inside a heliacal class. What that costs was measured rather than
          * waved at: for a planet, nothing (Venus 92.6737 against 92.6740); for the Moon near
@@ -360,7 +359,7 @@ readonly class HeliacalDetails
          */
         public ?float $illuminatedPercent,
         /**
-         * Swiss's kact. **Always null**, and it is the one of the eight that was not expected.
+         * Swiss's kact. Always null, and it is the one of the eight that was not expected.
          *
          * It is the total atmospheric extinction coefficient, and it does not depend on the
          * observer: measured, it does not move with age or with the Snellen ratio. It moves
@@ -375,14 +374,14 @@ readonly class HeliacalDetails
          */
         public ?float $extinctionCoefficient = null,
         /**
-         * Swiss's minTAV. **Always null**: the smallest topocentric arc at which the object
+         * Swiss's minTAV. Always null: the smallest topocentric arc at which the object
          * would still be seen, which is Schaefer's contrast model and nothing else.
          *
          * That model asks for the observer's age and the acuity of their eyes, and this package
-         * does not invent an observer. **How much that is worth is measured, and it is not
-         * small.** At Madrid on 2000-08-30, moving the Snellen ratio from 0.5 to 2.0 and
+         * does not invent an observer. How much that is worth is measured, and it is not
+         * small. At Madrid on 2000-08-30, moving the Snellen ratio from 0.5 to 2.0 and
          * touching nothing else moves this very number from 8.936 degrees to 5.629, and it
-         * moves Swiss's own `swe_vis_limit_mag` from −3.7364 to −0.7261, that is **3.01
+         * moves Swiss's own `swe_vis_limit_mag` from −3.7364 to −0.7261, that is 3.01
          * magnitudes on the acuity of one pair of eyes**; the observer's age from 20 to 80 is
          * worth another 1.05 degrees of arc. A number that swings by three magnitudes on a
          * parameter nobody entered would read exactly like a measured one.
@@ -391,20 +390,20 @@ readonly class HeliacalDetails
          * Schoch's published table read backwards, with its four conditions written out.
          */
         public ?float $minimumTopocentricArc = null,
-        /** Swiss's TfistVR. **Always null**, Schaefer: see `minimumTopocentricArc`. */
+        /** Swiss's TfistVR. Always null**, Schaefer: see `minimumTopocentricArc`. */
         public ?UtInstant $firstVisible = null,
         /**
-         * Swiss's TbVR. **Always null**, Schaefer: the best moment by contrast rather than by
+         * Swiss's TbVR. Always null, Schaefer: the best moment by contrast rather than by
          * Yallop's rule. `bestTime` is the one that can be computed here, and it is the one
          * Yallop published.
          */
         public ?UtInstant $bestVisibleByContrast = null,
-        /** Swiss's TlastVR. **Always null**, Schaefer: see `minimumTopocentricArc`. */
+        /** Swiss's TlastVR. Always null**, Schaefer: see `minimumTopocentricArc`. */
         public ?UtInstant $lastVisible = null,
-        /** Swiss's TvisVR. **Always null**, Schaefer: how long the object stays visible. */
+        /** Swiss's TvisVR. Always null**, Schaefer: how long the object stays visible. */
         public ?float $visibilityDuration = null,
         /**
-         * Swiss's LMoon. **Always null**, and not for want of a model but for want of a
+         * Swiss's LMoon. Always null, and not for want of a model but for want of a
          * definition: no published source gives it, and Swiss's own value contradicts its name
          * twice over.
          *
@@ -418,7 +417,7 @@ readonly class HeliacalDetails
          */
         public ?float $crescentLength = null,
         /**
-         * Swiss's CVAact. **Always null**, same reason as `crescentLength`: it has no published
+         * Swiss's CVAact. Always null, same reason as `crescentLength`: it has no published
          * definition, and measured it exceeds the arc of light it is supposed to sit inside, by
          * 4.18 degrees at an arc of light of 87.08.
          */
@@ -435,7 +434,7 @@ readonly class HeliacalDetails
      *
      * @param float $arcOfVision Degrees.
      * @param float $azimuthDifference Degrees, Sun minus object. Only its cosine is used, so
-     *        the sign and the branch it is wrapped into do not matter here.
+     * the sign and the branch it is wrapped into do not matter here.
      * @return float Degrees.
      */
     public static function arcOfLightOf(float $arcOfVision, float $azimuthDifference): float
@@ -446,7 +445,7 @@ readonly class HeliacalDetails
     }
 
     /**
-     * Yallop's topocentric crescent width W', **in arcminutes**, out of his (3.8), (3.9) and
+     * Yallop's topocentric crescent width W', in arcminutes, out of his (3.8), (3.9) and
      * (3.10):
      *
      * ```
@@ -455,7 +454,7 @@ readonly class HeliacalDetails
      * W'  = SD' (1 − cos ARCL)
      * ```
      *
-     * **π is the HORIZONTAL parallax**, which is the one thing here that Swiss does otherwise;
+     * π is the HORIZONTAL parallax, which is the one thing here that Swiss does otherwise;
      * the measurement that settles it is in `$crescentWidth`.
      *
      * @param float $parallax The horizontal parallax of the Moon, in DEGREES.
@@ -477,8 +476,8 @@ readonly class HeliacalDetails
      * ten so that it sits roughly between -1 and +1.
      *
      * @param float $arcOfVision Degrees.
-     * @param float $crescentWidth **Arcminutes**, which is the trap: Swiss carries the same
-     *        quantity in degrees.
+     * @param float $crescentWidth Arcminutes, which is the trap: Swiss carries the same
+     * quantity in degrees.
      * @return float
      */
     public static function qOf(float $arcOfVision, float $crescentWidth): float

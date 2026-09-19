@@ -14,8 +14,8 @@ use InvalidArgumentException;
  * tables, and Swiss Ephemeris does not have it: it gives the point of maximum and the local
  * circumstances, but not the band.
  *
- * **Everything comes out of the same geometry `Eclipses` already uses, not from Besselian
- * elements.** The shadow axis is the straight line joining the centre of the Sun with the
+ * Everything comes out of the same geometry `Eclipses` already uses, not from Besselian
+ * elements. The shadow axis is the straight line joining the centre of the Sun with the
  * centre of the Moon, and the central line is where that line cuts the ellipsoid. That cut
  * is already done by `Eclipses::shadow()`, so here it is asked of it: the point of the
  * central line at the instant of maximum has to be the eclipse's own `maximumLatitude` and
@@ -24,40 +24,39 @@ use InvalidArgumentException;
  * one that breaks the day somebody rewrites the cut here instead of asking for it: two
  * different computations for the same point are two places to get it wrong.
  *
- * **Flattening is not a decimal, it is kilometres.** The Earth is 21 km shorter from pole
+ * Flattening is not a decimal, it is kilometres. The Earth is 21 km shorter from pole
  * to pole than from equator to equator, and treating it as a sphere shifts the central line
  * by tens of kilometres at middle latitudes. The same WGS84 as `Horizon::observerVector` is
  * used here, and along two paths that are best not mixed: the axis is cut with the trick of
  * `Eclipses::shadow`, which stretches the z of both bodies to turn the ellipsoid into a
- * sphere, and **the cone is not**, because a stretched straight line is still a straight
+ * sphere, and the cone is not, because a stretched straight line is still a straight
  * line but a stretched circular cone is no longer circular. The outline of the umbra is cut
  * against the real ellipsoid, solving a quadratic.
  *
- * ## Against NASA's tables
+ * Against NASA's tables
  *
  * Measured against the published tables of three total eclipses, comparing at the SAME UT
  * instants NASA tabulates and keeping the WORST point of each whole path:
  *
- * | | rows | central line | edges | width | duration |
- * |---|---|---|---|---|---|
- * | 2017 Aug 21 (USA) | 96 | 3.01 km | 3.54 km | 0.67 km | 0.19 s |
- * | 2024 Apr 08 (Mexico) | 96 | 10.20 km | 11.67 km | 0.68 km | 0.28 s |
- * | 2026 Aug 12 (Iceland and Spain) | 45 | 9.45 km | 23.86 km | 32.48 km | 0.19 s |
+ * rows  central line  edges     width     duration
+ * 2017 Aug 21 (USA)                96    3.01 km       3.54 km   0.67 km   0.19 s
+ * 2024 Apr 08 (Mexico)             96    10.20 km      11.67 km  0.68 km   0.28 s
+ * 2026 Aug 12 (Iceland and Spain)  45    9.45 km       23.86 km  32.48 km  0.19 s
  *
- * **The worst ones are always right at the two ends of the path**, which is where the Sun
+ * The worst ones are always right at the two ends of the path, which is where the Sun
  * is on the horizon, the shadow stretches over the ground and runs off the globe. Those
  * 32.48 km of width in 2026 are a single row, the last one; the previous one stays at 8.17
  * and the rest of the path below 5.6. In 2017 and in 2024, which begin and end with the Sun
  * higher up, there is not a single row above 0.7.
  *
- * **And those kilometres of the central line are delta T, not geometry.** Espenak computed
+ * And those kilometres of the central line are delta T, not geometry. Espenak computed
  * each eclipse with the delta T that was estimated back then; we use the observed one,
  * which for 2017 is already measured and for 2026 is still a prediction. Giving the engine
  * the same delta T NASA declares in each case, the worst point of the whole path goes from
- * 9.75 to **0.66 km** in 2017, from 18.09 to 3.49 in 2024 and from 32.48 to 7.79 in 2026.
+ * 9.75 to 0.66 km in 2017, from 18.09 to 3.49 in 2024 and from 32.48 to 7.79 in 2026.
  * And in 2017, which is the only one of the three NASA computed with a JPL ephemeris
- * (DE405) instead of with VSOP87 and ELP2000-85, the bulk of the path falls **below 0.1
- * km**. One second of delta T moves the shadow a good half kilometre over the ground, and
+ * (DE405) instead of with VSOP87 and ELP2000-85, the bulk of the path falls below 0.1
+ * km. One second of delta T moves the shadow a good half kilometre over the ground, and
  * there is no way of knowing today what it will be worth in 2026.
  *
  * Width and duration hardly notice that: they depend on the size of the shadow and on how
@@ -117,12 +116,12 @@ final class CentralPath
      *
      * @param SolarEclipse $eclipse It has to be central: `$eclipse->central` says so.
      * @param float $stepMinutes Separation between points. Two minutes is the step of
-     *        NASA's tables, which is what it was compared against.
+     * NASA's tables, which is what it was compared against.
      * @return self
      *
      * @throws InvalidArgumentException If the eclipse is partial. Then the shadow axis
-     *         passes by without touching the Earth and there is no band at all: returning
-     *         an empty list would let one believe the path was computed and came out short.
+     * passes by without touching the Earth and there is no band at all: returning
+     * an empty list would let one believe the path was computed and came out short.
      */
     public static function of(SolarEclipse $eclipse, float $stepMinutes = 2.0): self
     {
@@ -175,7 +174,7 @@ final class CentralPath
      *
      * @param float $jdUt
      * @return PathPoint|null Null if at that instant the shadow axis passes by without
-     *         touching the Earth, which is what happens before and after the path.
+     * touching the Earth, which is what happens before and after the path.
      */
     public static function pointAt(float $jdUt): ?PathPoint
     {
@@ -300,7 +299,7 @@ final class CentralPath
      * not a copy: that way the point of maximum of the band and the eclipse's
      * `maximumLatitude` are the same number and not two approximations to the same place.
      *
-     * **The condition is that the axis touches the ellipsoid, not the `central` flag.**
+     * The condition is that the axis touches the ellipsoid, not the `central` flag.
      * `central` is stricter (it asks for `r0` below `a·cos f1`, not below `a`) and it is
      * precisely the one `Eclipses` uses to place the two ends of the path: asking it, those
      * two instants fall right on the equality and rounding decides whether there is a point
@@ -354,7 +353,7 @@ final class CentralPath
      *
      * The radius of the cone at the height of the point comes out of its vertex: at `s`
      * from the Moon outwards the radius is `r/cos f - s·tan f`, which becomes zero at the
-     * vertex and changes sign behind it. **It is compared against the absolute value**, and
+     * vertex and changes sign behind it. It is compared against the absolute value, and
      * that absolute value is what makes the same function hold for an annular one: past the
      * vertex the cone opens up again and what is left is the antumbra, where the ring is
      * seen.
@@ -410,13 +409,13 @@ final class CentralPath
      * Where a straight line cuts the ellipsoid, in km. The cut that is returned is the one
      * facing the Moon, that is, the one on the lit side.
      *
-     * **The trick of stretching the z that `Eclipses::shadow` uses does not hold here**, not
+     * The trick of stretching the z that `Eclipses::shadow` uses does not hold here, not
      * entirely: it is stretched so that the ellipsoid becomes a sphere and the quadratic is
      * solved, yes, but the cone has been built beforehand, in real coordinates, because
      * stretched it would stop being circular. What gets stretched here is only the straight
      * line, and a stretched straight line is still a straight line.
      *
-     * **And the right cut is not the one with the smaller parameter.** In a total one the
+     * And the right cut is not the one with the smaller parameter. In a total one the
      * vertex of the cone falls behind the Earth, so the generatrices arrive from the night
      * side and the first cut is the one at the back, where there is no eclipse to see. It is
      * chosen by the distance to the Moon measured along the axis, which does not depend on
@@ -462,7 +461,7 @@ final class CentralPath
     /**
      * The two edges of the band at an instant and what there is from one to the other.
      *
-     * **An edge of the band is NOT the furthest point of the shadow at that moment**, and
+     * An edge of the band is NOT the furthest point of the shadow at that moment, and
      * that was the first version. The band is what the shadow leaves swept, so its edge is
      * the ENVELOPE of all the shadows: the place where the shadow grazes and leaves, that
      * is, where the central phase lasts zero. The condition is that the distance to the edge
@@ -470,8 +469,8 @@ final class CentralPath
      * derivative. With the instantaneous extremes the 2026 eclipse went 425 km off NASA's
      * tables in the stretch where the path turns quickly; with the envelope it stays at 5.
      *
-     * **And the width is not the distance between those two points, but their projection
-     * perpendicular to the motion.** The two edges are touched at different instants of the
+     * And the width is not the distance between those two points, but their projection
+     * perpendicular to the motion. The two edges are touched at different instants of the
      * path, so when the shadow runs sideways they end up stretched lengthwise: in that same
      * stretch of 2026 there are 424 km from one limit to the other and NASA publishes 318 km
      * of band, which is what comes out of projecting.
@@ -673,7 +672,7 @@ final class CentralPath
      * How long the central phase lasts for whoever stands still at a point of the ground, in
      * seconds.
      *
-     * **It is computed for a fixed GEOGRAPHIC point, which turns with the Earth**, and not
+     * It is computed for a fixed GEOGRAPHIC point, which turns with the Earth, and not
      * by dividing the width of the shadow by how fast it runs. The Earth turns the same way
      * the shadow goes, so the ground flees from it: at the equator and with the Sun high
      * that lengthens the totality by almost a minute over what a shadow passing above still

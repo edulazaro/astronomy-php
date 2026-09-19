@@ -9,17 +9,17 @@ namespace Astronomy;
  * For a long time this was not here, and the reason written down was a good one: this repository has
  * VSOP87 (which publishes positions, not elements), ELP and JPL tables, and none of them carries
  * mean planetary elements; copying them from the Swiss source is ruled out by licence, and writing
- * them from memory is what this engine does not do. **What changed is that the source turned up**,
+ * them from memory is what this engine does not do. What changed is that the source turned up,
  * which was the condition that was missing: Simon, Bretagnon, Chapront, Chapront-Touzé, Francou and
  * Laskar (1994), *Astronomy and Astrophysics* 282, 663-683.
  *
- * And it does not have to be typed in, which is what makes it acceptable here: **ERFA publishes
- * it**. `plan94.c` is the reference reimplementation of that same paper, BSD licensed, and it is the
+ * And it does not have to be typed in, which is what makes it acceptable here: ERFA publishes
+ * it. `plan94.c` is the reference reimplementation of that same paper, BSD licensed, and it is the
  * same place the IAU 2000B nutation series is already downloaded from. So the table is written by
  * `astronomy mean-elements`, parsing the C source and checking the count, just like
  * `astronomy nutation`, and there is not a single hand-written coefficient here.
  *
- * ## What it brings and what it does not
+ * What it brings and what it does not
  *
  * Six polynomials per planet, capped at the t² term the way ERFA caps them: semi-major axis, mean
  * longitude, eccentricity, longitude of perihelion, inclination and longitude of the node. **The
@@ -29,26 +29,26 @@ namespace Astronomy;
  * That they are superfluous is measured and not assumed: without them the mean node and the mean
  * perihelion agree with Swiss's (see below); with them they would stop being mean.
  *
- * **Time goes in Julian MILLENNIA from J2000, not in centuries**, which is the unit of the paper and
+ * Time goes in Julian MILLENNIA from J2000, not in centuries, which is the unit of the paper and
  * the one ERFA uses. It is the only place in the engine where that happens, and confusing it with
  * `Time::centuries` gives a factor-of-ten error that in the year 2000 is exactly zero and in 1700 is
  * three thousand years of motion: the class of failure that passes any test done at J2000. That is
  * why the conversion lives here and is not done by the caller.
  *
- * **And the angles are referred to the ecliptic and equinox of J2000**, which is fixed. It shows in
+ * And the angles are referred to the ecliptic and equinox of J2000, which is fixed. It shows in
  * the Earth's row alone: its inclination is exactly zero at J2000 and grows 470 arcseconds per
  * millennium, something that could not happen if the reference plane were the ecliptic of date,
  * because the ecliptic IS the Earth's orbit. Taking them to the ecliptic of date is
  * `NodesAndApsides`'s job, which rotates the vectors and intersects again, not the angles.
  *
- * ## Against Swiss
+ * Against Swiss
  *
  * The seven planets with a node (the Earth has none, see `NodesAndApsides`) in 1700, 2000 and 2300,
- * comparing the mean node and the mean perihelion already rotated to the ecliptic of date: **node
- * 0.98 arcseconds worst case, latitude of the perihelion 0.09 and perihelion 12.45**. The first
+ * comparing the mean node and the mean perihelion already rotated to the ecliptic of date: node
+ * 0.98 arcseconds worst case, latitude of the perihelion 0.09 and perihelion 12.45. The first
  * three are noise; the last one has an owner and it is worth saying which.
  *
- * **That 12.45 is Neptune's and it is a CONSTANT, not a drift**: it is 12.45 in 1700, 12.30 in 2000
+ * That 12.45 is Neptune's and it is a CONSTANT, not a drift: it is 12.45 in 1700, 12.30 in 2000
  * and 11.84 in 2300, so it does not grow with time and therefore it is not ERFA's truncation at t²,
  * which at J2000 would be zero. It is that Swiss's table and Simon's do not carry the same constant
  * term for Neptune. The same happens, and also flat, to the perihelion distance: Neptune is off by

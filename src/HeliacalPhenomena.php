@@ -16,33 +16,33 @@ use InvalidArgumentException;
  * astronomy. The four events and what each one means are in `HeliacalEvent`; the visibility
  * criterion and where its numbers come from, in `ArcusVisionis`.
  *
- * ### The calculation, which fits in three lines
+ * The calculation, which fits in three lines
  *
- * For each day the **arcus visionis** is measured: the depression of the Sun below the
+ * For each day the arcus visionis is measured: the depression of the Sun below the
  * horizon at the instant the object crosses the horizon, rising (morning events) or setting
  * (evening ones). That number grows day by day while the object moves away from the Sun and
  * shrinks when it comes back towards it. The event is the first day (or the last, depending
  * on the event) on which the arc reaches the minimum the table demands.
  *
- * **No refraction on either of the two bodies**, because that is how Schoch defines it and
+ * No refraction on either of the two bodies, because that is how Schoch defines it and
  * because if it goes into one it has to go into the other. The 34 arcminutes of refraction
  * at the horizon shift the instant of the crossing by some two minutes, and in those two
  * minutes the Sun rises half a degree: half a day of date.
  *
- * ### Why the arc is measured at the horizon and not at the moment of best visibility
+ * Why the arc is measured at the horizon and not at the moment of best visibility
  *
  * Because that is the definition: «measured in the vertical circle for the moment when the
  * star sets on the last evening when it is visible or rises on the first morning when it is
  * visible». Swiss, which goes by Schaefer's contrast model, measures its topocentric arc at
  * the moment of best visibility, with the object between half a degree and six and a half
  * high. The arc changes little while the object rises, but not nothing, and how much depends
- * on where the Sun and the object rise: measured in Madrid in the year 2000, **four
+ * on where the Sun and the object rise: measured in Madrid in the year 2000, four
  * hundredths of a degree in the heliacal rising of Sirius and seven tenths in that of
- * Aldebaran**. That, at the eight tenths of a degree per day that the arc moves, is where
+ * Aldebaran. That, at the eight tenths of a degree per day that the arc moves, is where
  * almost all of the difference in date between the two programs comes from, measured in
- * `FenomenosHeliacosTest`: **from zero to two days in 97 % of the cases**.
+ * `FenomenosHeliacosTest`: from zero to two days in 97 % of the cases.
  *
- * ### The search goes by days, not by minutes
+ * The search goes by days, not by minutes
  *
  * A heliacal phenomenon is a calendar DAY, not an instant: either it was seen that morning
  * or it was not. So it advances day by day and only within the day is the instant refined.
@@ -50,7 +50,7 @@ use InvalidArgumentException;
  * the same as in `RiseSet`, so that both of them say «that day» about
  * the same thing.
  *
- * **And the ephemeris is sampled, it is not asked for one day after another.** A year of
+ * And the ephemeris is sampled, it is not asked for one day after another. A year of
  * searching is some four hundred crossings of the horizon, each one with two or three
  * fixed-point iterations, plus the position of the Sun at each one: asking the ephemeris
  * every time is several thousand calls and seconds of clock time. The geocentric position is
@@ -62,16 +62,16 @@ use InvalidArgumentException;
  * Mercury and 5.4 with Saturn (a closed form pass finder, which as a bonus gets the four crossings of
  * the day and not one).
  *
- * ### What is not here
+ * What is not here
  *
- * - **The Moon.** Swiss calculates its first evening visibility and its last morning one,
- *   but that is the visibility of the crescent, which is another problem and has its own
- *   literature (Yallop, Caldwell and Laney, Hoffman) because what decides it is not the
- *   depression of the Sun but the width of the crescent. Schoch gives it no entry in his
- *   table. It is rejected with an exception instead of returning a date that would look good.
- * - **The acronychal risings and settings** (the object rising as the Sun sets, and the other
- *   way round), which Swiss does not have either. They would be two more events of
- *   `HeliacalEvent`, with their arc: the machinery here would serve in full.
+ * - The Moon. Swiss calculates its first evening visibility and its last morning one,
+ * but that is the visibility of the crescent, which is another problem and has its own
+ * literature (Yallop, Caldwell and Laney, Hoffman) because what decides it is not the
+ * depression of the Sun but the width of the crescent. Schoch gives it no entry in his
+ * table. It is rejected with an exception instead of returning a date that would look good.
+ * - The acronychal risings and settings (the object rising as the Sun sets, and the other
+ * way round), which Swiss does not have either. They would be two more events of
+ * `HeliacalEvent`, with their arc: the machinery here would serve in full.
  */
 class HeliacalPhenomena
 {
@@ -81,7 +81,7 @@ class HeliacalPhenomena
     /**
      * How many samples go into each Lagrange interpolation.
      *
-     * **The two numbers are measured together, and what has to be raised is the ORDER, not
+     * The two numbers are measured together, and what has to be raised is the ORDER, not
      * the frequency.** What is expensive is each sample, because each one is an ephemeris
      * (Saturn costs two milliseconds); the points of the polynomial are arithmetic and cost
      * nothing. Measured against the crossing calculated by asking the ephemeris on every
@@ -89,14 +89,13 @@ class HeliacalPhenomena
      * in here (two degrees a day in right ascension), with the cost of a year of searching
      * for Saturn alongside:
      *
-     * | step | points | worst Mercury | Saturn |
-     * |---|---|---|---|
-     * | 2 days | 6 | 0.018 s | 423 ms |
-     * | 4 days | 6 | 0.577 s | 262 ms |
-     * | 4 days | 8 | 0.154 s | 245 ms |
-     * | **4 days** | **10** | **0.062 s** | **238 ms** |
-     * | 3 days | 10 | 0.007 s | 318 ms |
-     * | 6 days | 8 | 1.479 s | 176 ms |
+     * step        points  worst Mercury  Saturn
+     * 2 days      6       0.018 s        423 ms
+     * 4 days      6       0.577 s        262 ms
+     * 4 days      8       0.154 s        245 ms
+     * 4 days  10  0.062 s    238 ms
+     * 3 days      10      0.007 s        318 ms
+     * 6 days      8       1.479 s        176 ms
      *
      * With four days and ten points, Mercury stays at six hundredths of a second of clock
      * time, which is nine tenths of an arcsecond of Sun, and everything else below two
@@ -124,7 +123,7 @@ class HeliacalPhenomena
      * The next phenomenon of a kind from an instant on, or null if there is none in the
      * window.
      *
-     * **It returns the FIRST one it finds, and that is not always what Swiss returns.**
+     * It returns the FIRST one it finds, and that is not always what Swiss returns.
      * `swe_heliacal_ut` anchors its search on the next conjunction with the Sun, and with
      * Mercury, which makes three appearances a year, that makes it skip some: searching from
      * 1 January 2000 for its last morning visibility in Madrid, here the one of 4 April comes
@@ -134,10 +133,10 @@ class HeliacalPhenomena
      * @param Body|Star $object
      * @param Place $place
      * @param float $jdUt From when it is searched. The civil day of the place it falls in
-     *        counts.
+     * counts.
      * @param HeliacalEvent $event
      * @param float|null $arcusVisionis The arc demanded, in degrees. By default, the one from
-     *        Schoch's table for that object and that event.
+     * Schoch's table for that object and that event.
      * @param float $heightMetres Height of the observer above sea level.
      * @param int $days How many days are looked ahead.
      * @return HeliacalPhenomenon|null
@@ -204,7 +203,7 @@ class HeliacalPhenomena
      * @param Place $place
      * @param DateTimeInterface $day Only the date counts, in the time zone of the place.
      * @param HeliacalEvent $event Only which side it falls on is looked at: morning or
-     *        evening.
+     * evening.
      * @param float $heightMetres
      * @return array{0: float, 1: UtInstant}|null [arc in degrees, instant of the crossing]
      */
@@ -279,12 +278,12 @@ class HeliacalPhenomena
      * Down to what magnitude one sees that day, in that place, at the instant of the crossing
      * of the object.
      *
-     * **It is not `swe_vis_limit_mag`, and it is important not to sell it as if it were.**
+     * It is not `swe_vis_limit_mag`, and it is important not to sell it as if it were.
      * That one answers what magnitude is visible at any point of the sky and at any hour,
      * with Schaefer's contrast model; this one answers what Schoch's table knows, which is a
      * narrower question and the only one that can be answered here without inventing an
      * observer. The conditions are in `ArcusVisionis::limitMagnitude`, and the underlying one
-     * is that it holds **at the horizon and at the moment of the crossing**, not for the whole
+     * is that it holds at the horizon and at the moment of the crossing, not for the whole
      * sky.
      *
      * Why an object is needed in order to ask about a magnitude, which seems odd: the arcus
@@ -298,8 +297,8 @@ class HeliacalPhenomena
      * @param HeliacalEvent $event
      * @param float $heightMetres
      * @return array{arco: float, magnitud: float|null, instante: UtInstant}|null Null if there
-     *         is no crossing that day. The magnitude is null when the arc falls outside the
-     *         table: see `ArcusVisionis::range`, which says on which side.
+     * is no crossing that day. The magnitude is null when the arc falls outside the
+     * table: see `ArcusVisionis::range`, which says on which side.
      */
     public static function magnitudeLimit(
         Body|Star $object,
@@ -325,13 +324,13 @@ class HeliacalPhenomena
      * Everything that is measured at ONE instant in order to decide whether an object can be
      * seen: this is `swe_heliacal_pheno_ut`, and what it gives back is in `HeliacalDetails`.
      *
-     * **The instant is chosen by whoever calls, and that is the whole shape of this method.**
+     * The instant is chosen by whoever calls, and that is the whole shape of this method.
      * Nothing is searched for and no day is decided: the caller says when, and this says what
      * the sky was doing then. It is the counterpart of `find()`, which answers «on what day».
      * A caller after Yallop's own numbers reads `bestTime` from a first call and asks again
      * there, because his q is defined at the best time and not at any instant.
      *
-     * **The Moon is allowed here and it is not allowed in `find()`**, and that is not an
+     * The Moon is allowed here and it is not allowed in `find()`, and that is not an
      * oversight in either place. `find()` looks for a heliacal date, and the Moon's first
      * visibility is the crescent's, which is decided by the width of the crescent and not by
      * the depression of the Sun, so there it throws. Here the crescent IS the subject: Yallop's
@@ -341,7 +340,7 @@ class HeliacalPhenomena
      * the object is on is read off its longitude, and `HeliacalDetails::$pass` says which side
      * came out. See that field.
      *
-     * **Where the time goes, measured, because it is not where one would guess**: a call for the
+     * Where the time goes, measured, because it is not where one would guess: a call for the
      * Moon costs 77 milliseconds and the geometry is 3 of them. The other 40-odd are Yallop's two
      * horizon crossings, 28 for the Moon's and 12 for the Sun's, because a crossing is found by
      * sampling the ephemeris every hour across two days while everything else here is a single
@@ -351,7 +350,7 @@ class HeliacalPhenomena
      * that do not move.
      *
      * @param Body|Star $object The Moon included. The Sun is not: the arc is measured against
-     *        it.
+     * it.
      * @param Place $place
      * @param float $jdUt The instant, in Universal Time.
      * @param float $heightMetres Height of the observer above sea level.
@@ -437,13 +436,13 @@ class HeliacalPhenomena
      * Yallop's Ts, Tm, Lag and Tb: the two crossings of the horizon that bracket the
      * observation, and the best moment between them.
      *
-     * **The crossings are the almanac's, the upper limb and with refraction**, which is what
+     * The crossings are the almanac's, the upper limb and with refraction, which is what
      * `RiseSet` gives by default and what «sunset» and «moonset» mean in Yallop's Table 4.
      * Swiss's heliacal code takes the CENTRE of the disc instead; the difference and what it
      * costs are written in `HeliacalDetails::$objectPass`.
      *
-     * **And they are the crossings that bracket the instant, not the ones that share its civil
-     * date**, which is the one place where this parts from the day-by-day doctrine of the rest
+     * And they are the crossings that bracket the instant, not the ones that share its civil
+     * date, which is the one place where this parts from the day-by-day doctrine of the rest
      * of the class. An observation is made between sunset and the object's setting, and that
      * pair straddles midnight as often as not: Saturn near opposition sets at three in the
      * morning, and that setting belongs to the evening before, not to the calendar day it
@@ -500,8 +499,8 @@ class HeliacalPhenomena
      *
      * The equations themselves live in `HeliacalDetails`, next to the docblocks that cite them,
      * so that a test can check them against Yallop's own Table 4 without going through an
-     * ephemeris. What is decided here is the one thing they need from this side: **the
-     * HORIZONTAL parallax**, which is what (3.8) is written for and the one place where this
+     * ephemeris. What is decided here is the one thing they need from this side: the
+     * HORIZONTAL parallax, which is what (3.8) is written for and the one place where this
      * parts from Swiss.
      *
      * @param Body|Star $object
@@ -556,7 +555,7 @@ class HeliacalPhenomena
      * What has no phenomenon to measure at all, and why. It throws instead of returning null
      * because it is an error of whoever calls, not a case the reckoning fails to find.
      *
-     * **It is `check()` with the Moon let through**, and the two differ on exactly that one
+     * It is `check()` with the Moon let through, and the two differ on exactly that one
      * case: there the Moon has no heliacal DATE to look for, here its crescent is the subject.
      * Everything else is rejected for the same reasons in both.
      *
@@ -669,7 +668,7 @@ class HeliacalPhenomena
      * @param Closure(float): Equatorial $position Topocentric position of the object, by jdUt.
      * @param Closure(float): Equatorial $sun Topocentric position of the Sun, by jdUt.
      * @param bool $morning Whether it is measured at the rising (morning) or at the setting
-     *        (evening).
+     * (evening).
      * @param float $from
      * @param float $to
      * @return array{0: float, 1: float}|null [arc in degrees, jdUt of the crossing]
@@ -792,7 +791,7 @@ class HeliacalPhenomena
      * The instant at which the object crosses the geometric horizon within a civil day, or
      * null if it does not cross it that day.
      *
-     * **Mirror of the closed form pass finder**, with two differences: here the
+     * Mirror of the closed form pass finder, with two differences: here the
      * position comes interpolated instead of being asked of the ephemeris on every iteration,
      * and a crossing that does not converge returns null instead of throwing, because in a
      * search of four hundred days one odd day cannot bring the whole calculation down. The

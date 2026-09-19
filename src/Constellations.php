@@ -6,7 +6,7 @@ namespace Astronomy;
  * The eighty-eight constellations, by the abbreviation the IAU gives them.
  *
  * It is here so that the catalogue does not have to write down which constellation each star is
- * in: **the Bayer designation carries it inside** («* alf Leo» is in Leo), so it is deduced and
+ * in: the Bayer designation carries it inside («* alf Leo» is in Leo), so it is deduced and
  * not copied. Writing it star by star would be a thousand chances to put one in the wrong sky,
  * and nobody catches that by reading.
  *
@@ -14,7 +14,7 @@ namespace Astronomy;
  * thing that can be checked against a catalogue. Translating them is the job of whoever shows
  * them.
  *
- * **All eighty-eight are here and not only the ones the list happens to reach**, which is what
+ * All eighty-eight are here and not only the ones the list happens to reach, which is what
  * it held while the catalogue had a hundred and seventy-four stars: forty-nine, «the zodiac and
  * its neighbours». The complete catalogue walks into forty more, and they came out with an empty
  * constellation rather than with the failure this file's own docblock promised: two hundred and

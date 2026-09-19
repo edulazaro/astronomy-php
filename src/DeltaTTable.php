@@ -21,19 +21,19 @@ use ZipArchive;
  * public and none of them typed in by hand:
  *
  * - Before 1955: the cubic spline fit of Stephenson, Morrison and Hohenkerk («Measurement of the
- *   Earth's Rotation: 720 BC to AD 2015», Proc. R. Soc. A, 2016), which is their reconstruction
- *   from Babylonian, Chinese and Arab eclipses and from telescopic occultations. It is the 54
- *   segments of Table S15 of the paper's supplementary material, which is open access and served
- *   by Europe PMC. The table of yearly values from 1620 of the Astronomical Almanac, which is
- *   what Swiss used up to 2.05, no longer rules over any range.
+ * Earth's Rotation: 720 BC to AD 2015», Proc. R. Soc. A, 2016), which is their reconstruction
+ * from Babylonian, Chinese and Arab eclipses and from telescopic occultations. It is the 54
+ * segments of Table S15 of the paper's supplementary material, which is open access and served
+ * by Europe PMC. The table of yearly values from 1620 of the Astronomical Almanac, which is
+ * what Swiss used up to 2.05, no longer rules over any range.
  * - From 1955 to 1973: the USNO's semestral values (`historic_deltat.data`), which are the ones
- *   from the Astronomical Almanac. From 1955 there are atomic clocks and delta T stops depending
- *   on any lunar theory.
+ * from the Astronomical Almanac. From 1955 there are atomic clocks and delta T stops depending
+ * on any lunar theory.
  * - From February 1973: one value per month reconstructed from the IERS series, which is who
- *   measures the rotation of the Earth: `delta T = 32.184 + (TAI-UTC) - (UT1-UTC)`, with UT1-UTC
- *   from the `finals2000A.all` file and the leap seconds from `Leap_Second.dat`. The file also
- *   carries the IERS's own prediction for the following year, and it is written down marking how
- *   far what was measured reaches.
+ * measures the rotation of the Earth: `delta T = 32.184 + (TAI-UTC) - (UT1-UTC)`, with UT1-UTC
+ * from the `finals2000A.all` file and the leap seconds from `Leap_Second.dat`. The file also
+ * carries the IERS's own prediction for the following year, and it is written down marking how
+ * far what was measured reaches.
  *
  * And the leap second table is written as well, which until now was used for the computation and
  * thrown away. Delta T carries it ALREADY SUMMED IN inside each monthly value, so with the old
@@ -481,7 +481,7 @@ final class DeltaTTable
     /**
      * The contents of `deltat.php`.
      *
-     * **The header names `astronomy delta-t` and it stays that way**: what is written here
+     * The header names `astronomy delta-t` and it stays that way: what is written here
      * has to come out byte for byte like the file that is committed, and a regenerated data file
      * that differs from the one in the repository is indistinguishable from one whose numbers
      * moved. The same goes for the two Spanish keys of `sources`, which are what the committed

@@ -12,7 +12,7 @@ namespace Astronomy;
  * duration is that of the central phase for someone standing still on the central line:
  * from second to third contact.
  *
- * **The three numbers of the band can be missing even when there is a central line**, and
+ * The three numbers of the band can be missing even when there is a central line, and
  * that is why they go as null and not as zero. At the two ends of the path the axis arrives
  * grazing: the Sun is on the horizon, the shadow stretches over the ground until it runs off
  * the globe and the edge stops being a closed curve. A zero there would be a band of zero

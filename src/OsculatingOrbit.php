@@ -11,7 +11,7 @@ namespace Astronomy;
  * same frame in which `Ephemeris::position()` gives the planets: so Mars's node and Mars are
  * read on the same wheel without translating anything. Distances, in astronomical units.
  *
- * **Of the four points only two are stored, and the other two are derived**, which is the same
+ * Of the four points only two are stored, and the other two are derived, which is the same
  * rule by which the Moon's south node does not exist as a body: the descending node is always
  * half a turn from the ascending one, and the aphelion half a turn from the perihelion with the
  * latitude's sign flipped. Storing all four would be storing the same number twice and leaving
@@ -27,20 +27,20 @@ namespace Astronomy;
  * Moon's, and for the same reason; a node on an orbit lying almost flat in the ecliptic,
  * likewise. That is why `LunarPoints` also exposes its eccentricity.
  *
- * ## The three anomalies, which are three ways of telling the same time
+ * The three anomalies, which are three ways of telling the same time
  *
  * The three measure the same thing, how far the body has travelled since perihelion, and they
- * only agree at perihelion and at aphelion. The **mean** one is the clock's: it grows at a
- * constant rate and corresponds to no angle anyone can see. The **true** one is the real angle,
+ * only agree at perihelion and at aphelion. The mean one is the clock's: it grows at a
+ * constant rate and corresponds to no angle anyone can see. The true one is the real angle,
  * the one the body makes with the perihelion seen from the Sun, and that is why it runs fast
- * near perihelion and slow at aphelion. The **eccentric** one is what joins them, and means
+ * near perihelion and slow at aphelion. The eccentric one is what joins them, and means
  * nothing on its own: it is the auxiliary angle on the circle that encloses the ellipse, and it
  * exists because that is where Kepler's equation is written.
  *
  * On Pluto, with eccentricity 0.24, the three are ten degrees apart; on Venus, with 0.0068,
  * half a degree. And the order in which they are worked out matters: the mean comes from the
- * eccentric and that one from the true, so **an eccentricity error is amplified towards the
- * mean**.
+ * eccentric and that one from the true, so an eccentricity error is amplified towards the
+ * mean.
  */
 readonly class OsculatingOrbit
 {
@@ -125,16 +125,16 @@ readonly class OsculatingOrbit
      * The distance from the Sun to the SECOND FOCUS of the ellipse, the empty focus, in
      * astronomical units. It is Swiss's `SE_NODBIT_FOPOINT`.
      *
-     * **No new angle is needed, and that is all there is to it: the empty focus lies in the
-     * direction of the APHELION.** The two foci and the two apsides fall on the same straight
+     * No new angle is needed, and that is all there is to it: the empty focus lies in the
+     * direction of the APHELION. The two foci and the two apsides fall on the same straight
      * line, which is the major axis, so its longitude is `aphelion()` and its latitude
      * `aphelionLatitude()`; the only thing that changes is how far away it is, `2ae` instead of
      * `a(1+e)`. Measured against Swiss in heliocentric coordinates, eight bodies and three
-     * epochs from 1700 to 2300: longitude and latitude agree with the aphelion's to **0.15
+     * epochs from 1700 to 2300: longitude and latitude agree with the aphelion's to 0.15
      * arcseconds worst case** (Saturn in 2300, and that is an internal difference of its own)
      * and the distance to 1e-6 astronomical units.
      *
-     * **Watch out for what Swiss returns by default, which is where the confusion comes from.**
+     * Watch out for what Swiss returns by default, which is where the confusion comes from.
      * Its apsides come out GEOCENTRIC, and there Neptune's empty focus appears 36 degrees from
      * its aphelion: it is not another point in the sky, it is the same point in space seen from
      * here, and what separates them is that one is at 30 astronomical units and the other at
@@ -158,13 +158,13 @@ readonly class OsculatingOrbit
      * The longitude of perihelion of the textbooks, the one written ϖ: the node plus the
      * argument of perihelion.
      *
-     * **It is NOT `$perihelion`, and confusing them is no small error.** ϖ is a BROKEN angle:
+     * It is NOT `$perihelion`, and confusing them is no small error. ϖ is a BROKEN angle:
      * one piece is measured on the ecliptic, from the Aries point to the node, and the other
      * on the plane of the orbit, from the node to the perihelion. Adding them is a convenient
      * convention, not the longitude of any point in the sky. The ecliptic longitude of the
      * perihelion, which is where it is seen in the zodiac, is the real projection, and the two
      * separate as much as the orbit is inclined: measured in the year 2000, two hundredths of a
-     * degree on Saturn, 0.98 on Pluto and **5.64 on Pallas**, which is inclined 35 degrees. It
+     * degree on Saturn, 0.98 on Pluto and 5.64 on Pallas, which is inclined 35 degrees. It
      * is exposed because it is what any published table of elements carries (`OM + W` in JPL
      * Horizons) and without it there is no way to check this against one.
      *

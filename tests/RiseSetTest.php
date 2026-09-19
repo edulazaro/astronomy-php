@@ -38,7 +38,7 @@ final class RiseSetTest extends TestCase
      * The two roads agree.
      *
      * Ten bodies, three places and three days, which is 360 passes counting the ones that do not
-     * exist. **The worst disagreement is 0.038 seconds of clock time**, and it is the Moon setting
+     * exist. The worst disagreement is 0.038 seconds of clock time, and it is the Moon setting
      * in Oslo: the Moon is the one whose declination moves fastest, so it is the one where
      * estimating from the position at midnight and converging has the most to correct.
      *

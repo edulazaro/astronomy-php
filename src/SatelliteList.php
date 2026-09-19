@@ -17,7 +17,7 @@ use RuntimeException;
  * (55501 is Jupiter's). Our Moon, 301, does not go in: it is `Body::Moon`. And careful, «ends in 99, it
  * is the planet» only holds with three digits: 65199 is S/2019 S 42.
  *
- * **The columns are read by the position of the header and not by splitting on spaces**, because there
+ * The columns are read by the position of the header and not by splitting on spaces, because there
  * are satellites with no name and their designation would fall into the name column. And even so the
  * list is not uniform: some provisional ones carry the designation in its own column (`S2004_S34`),
  * others in the name one (`S2002_N5`) and one carries it in the name column without the S or the

@@ -9,11 +9,11 @@ namespace Astronomy;
  * from: `SEFLG_NOABERR`, `SEFLG_NOGDEFL`, `SEFLG_ASTROMETRIC` and `SEFLG_TRUEPOS`. The light that
  * arrives from a body goes through three things, and each case says which ones are accounted for:
  *
- * - **Light time**: what is seen is where the body was when the light left it, not where it is.
- * - **Deflection**: the mass of the Sun bends it as it passes close by.
- * - **Aberration**: the motion of the observer tilts it.
+ * - Light time: what is seen is where the body was when the light left it, not where it is.
+ * - Deflection: the mass of the Sun bends it as it passes close by.
+ * - Aberration: the motion of the observer tilts it.
  *
- * **There is no case without light time and with aberration, and that is on purpose.** Swiss does
+ * There is no case without light time and with aberration, and that is on purpose. Swiss does
  * not have one either: measured, `SEFLG_TRUEPOS` gives exactly the same as `SEFLG_TRUEPOS |
  * SEFLG_NOABERR | SEFLG_NOGDEFL`. And it makes sense, because aberration and light time are the two
  * halves of the same computation (the observer moves while the light travels), and keeping just one

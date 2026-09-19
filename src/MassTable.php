@@ -70,7 +70,7 @@ final class MassTable
      * @return array{ephemeris: string, path: string, au: string, emrat: string, bodies: array<string, array{constant: string, value: string, sun_ratio: float}>}
      *
      * @throws RuntimeException If the header does not arrive, or does not carry the two groups
-     *                          with the count they declare, in which case nothing is written.
+     * with the count they declare, in which case nothing is written.
      */
     public static function regenerate(?HttpClient $http = null, string $source = self::HEADER): array
     {

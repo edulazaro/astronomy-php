@@ -10,13 +10,13 @@ namespace Astronomy;
  * umbra and for the central line. What is seen from a specific place is given by
  * `Eclipses::localSolar()`.
  *
- * **Gamma** is the distance from the shadow axis to the centre of the Earth at the moment
+ * Gamma is the distance from the shadow axis to the centre of the Earth at the moment
  * of maximum, in Earth radii and signed: positive if it passes to the north. It is the
  * number that defines an eclipse in any canon: with |gamma| smaller than one the umbra or
  * the antumbra touch the surface and the eclipse is central; up to 1.55 only the penumbra
  * arrives and it is partial.
  *
- * **The magnitude is that of the point of greatest eclipse**, which is the one NASA
+ * The magnitude is that of the point of greatest eclipse, which is the one NASA
  * publishes: for a partial one, the fraction of the Sun's diameter that is covered; for a
  * total or an annular one, the ratio of the apparent Moon/Sun diameters (greater than one
  * in total eclipses). And the ecliptic longitude of the Sun at maximum is what astrology

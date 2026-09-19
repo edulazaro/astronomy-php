@@ -8,28 +8,28 @@ use RuntimeException;
 /**
  * Downloads the data of an asteroid, a satellite or a comet from the JPL and leaves it in its file.
  *
- * **It is plain PHP**: it knows nothing of any framework. A host application's download command
+ * It is plain PHP: it knows nothing of any framework. A host application's download command
  * only calls it, and outside the application it is used just the same:
  *
- *     Downloader::download(Asteroid::number(136199), $jdTT);
- *     Downloader::downloadBetween(Satellite::Io, $fromTT, $toTT);
+ * Downloader::download(Asteroid::number(136199), $jdTT);
+ * Downloader::downloadBetween(Satellite::Io, $fromTT, $toTT);
  *
- * **Whether a body may be downloaded at all is NOT decided here, and that is the whole point.** The JPL
+ * Whether a body may be downloaded at all is NOT decided here, and that is the whole point. The JPL
  * has a million and a half asteroids; which of them an application is willing to fetch, and whether it
  * fetches them at all, is that application's policy and not this engine's. There was an allow-list in
  * here and it was taken out: a library that reads a configuration is a library that has opinions about
  * a program it has never seen. This downloads what it is asked for.
  *
- * **Every file picks its step by measuring, and not per group.** There is no step that works for all of
+ * Every file picks its step by measuring, and not per group. There is no step that works for all of
  * them: measured against Horizons on 14 September 2026, with the same nine-point interpolation the engine
  * uses, Juno needs a point every 10 days (error of 1.6e-9 AU; with 20, 6.6e-8), Io every 2.7 hours
  * (1.3e-8; with 5.3 hours, 4.5e-6), Phobos every 32 minutes (7e-10; with 64, 4.9e-7) and Phaethon, near
  * its perihelion, every 8 hours. So it is downloaded with a fine step, how far off the interpolation
- * would be with twice that step is measured **against the JPL points that are dropped**, and the longest
+ * would be with twice that step is measured against the JPL points that are dropped, and the longest
  * step that meets the tolerance is saved. If not even twice the step meets it, a finer step is estimated
  * and it is downloaded again. The error saved in the file is measured, not assumed.
  *
- * **The tolerance is 0.01 arcseconds at the closest distance from which the body can be seen**, which is
+ * The tolerance is 0.01 arcseconds at the closest distance from which the body can be seen, which is
  * where an error in astronomical units buys the most angle: its shortest distance to the Sun minus the
  * Earth's aphelion, and for a satellite that of its planet. With a floor of 0.05 AU: an asteroid that
  * comes closer to the Earth than that is guaranteed the tolerance at 0.05 AU, and closer in, the angular
@@ -117,8 +117,8 @@ final class Downloader
             $table = self::measure($horizons, $body, $from, $to);
 
             /* The uncertainty the JPL declares for that body over that span, which is the figure that
-               says whom to trust: with it Chiron and Pholus were judged good enough. **It is only
-               asked for asteroids**, and that is measured: satellites and comets answer `n.a.`, like
+               says whom to trust: with it Chiron and Pholus were judged good enough. It is only
+               asked for asteroids, and that is measured: satellites and comets answer `n.a.`, like
                the planets, because their ephemerides publish no covariance. It is one extra request
                over data that is already downloaded, so if it fails nothing happens: it goes to null. */
             $uncertainty = $body instanceof Asteroid

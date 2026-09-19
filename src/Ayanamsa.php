@@ -16,34 +16,34 @@ namespace Astronomy;
  * way, and that is where the forty-odd ayanamsas Swiss Ephemeris offers come from. Seen up
  * close they are only three families:
  *
- * - **Anchored to an epoch**: "at instant t0 the ayanamsa was a0". These are the majority, and
- *   it is a definition about the equinox of t0, not about any star. To carry it to another date
- *   it is not enough to add the general precession in longitude: take the vernal point of the
- *   date, carry it through J2000 to the ecliptic of t0 with the same rotations that are applied
- *   to Pluto (`Precession::toJ2000` and `toDate`), and the ayanamsa is a0 minus its longitude
- *   there. This is what Swiss calls the traditional algorithm, and what separates the two
- *   computations is hundredths of an arcsecond over this range of dates.
- * - **Anchored to a star**: "such and such a star is always at such and such a sidereal
- *   longitude". The ayanamsa is the apparent tropical longitude of the star (`Stars::position`,
- *   with proper motion, precession, aberration and nutation) minus that fixed longitude. The
- *   star moves, so these ayanamsas do not grow exactly at the rate of precession.
- * - **Anchored to the galaxy**: to the galactic centre as if it were a star, or to the node of
- *   the galactic equator with the ecliptic, which is an intersection of two planes and is
- *   computed as such.
+ * - Anchored to an epoch: "at instant t0 the ayanamsa was a0". These are the majority, and
+ * it is a definition about the equinox of t0, not about any star. To carry it to another date
+ * it is not enough to add the general precession in longitude: take the vernal point of the
+ * date, carry it through J2000 to the ecliptic of t0 with the same rotations that are applied
+ * to Pluto (`Precession::toJ2000` and `toDate`), and the ayanamsa is a0 minus its longitude
+ * there. This is what Swiss calls the traditional algorithm, and what separates the two
+ * computations is hundredths of an arcsecond over this range of dates.
+ * - Anchored to a star: "such and such a star is always at such and such a sidereal
+ * longitude". The ayanamsa is the apparent tropical longitude of the star (`Stars::position`,
+ * with proper motion, precession, aberration and nutation) minus that fixed longitude. The
+ * star moves, so these ayanamsas do not grow exactly at the rate of precession.
+ * - Anchored to the galaxy: to the galactic centre as if it were a star, or to the node of
+ * the galactic equator with the ecliptic, which is an intersection of two planes and is
+ * computed as such.
  *
- * **With nutation.** `value()` returns the true ayanamsa, that is with the nutation in
+ * With nutation. `value()` returns the true ayanamsa, that is with the nutation in
  * longitude inside, because that is what has to be subtracted from a tropical longitude of this
  * engine, which is referred to the true equinox of date. `mean()` is the same one without
  * nutation, which is the one to compare against the literature, where almost everything goes in
  * mean values. It is the same pair Swiss offers with and without `SEFLG_NONUT`.
  *
- * **The numbers come from the Swiss Ephemeris documentation and from the literature**, not from
+ * The numbers come from the Swiss Ephemeris documentation and from the literature, not from
  * its source code, which is AGPL and is precisely the licence this engine exists in order not
  * to have. Each case says where its pair (t0, a0) or its star comes from. And each one is
  * verified against pyswisseph in `AyanamsaTest`: an ayanamsa with a wrong number drifts
  * arcseconds away from Swiss and there it shows.
  *
- * **What does not match Swiss, and why it is right that it does not.** Swiss computes
+ * What does not match Swiss, and why it is right that it does not. Swiss computes
  * precession with the Vondrák model (2011) and this engine with the IAU 1976 one in longitude,
  * which is VSOP87's and the one the JPL uses. They differ by 0.3 arcseconds per century: the
  * same ayanamsa comes out 0.8 arcseconds apart in 1700 and in 2300. But the SIDEREAL longitude,
@@ -412,7 +412,7 @@ enum Ayanamsa: string implements Translatable
      * arcsecond in inclination across sixteen centuries of DE406. It is a fixed plane, which is the
      * whole point of it.
      *
-     * **And Swiss uses this same plane, measured**: fitting inclination and node to the latitudes
+     * And Swiss uses this same plane, measured: fitting inclination and node to the latitudes
      * Swiss returns with the flag set, for the ten classical bodies, gives back this inclination
      * unchanged to four decimal places of an arcsecond and a node 1.08" away. With the published
      * pair the worst latitude residual against Swiss is 0.029", five times below the engine's own
@@ -712,7 +712,7 @@ return match ($this) {
      * (2.8.12) acknowledges that this mixes two planes and keeps it by tradition. This is the
      * other one: carrying the whole position to the ecliptic of t0 and measuring it there.
      *
-     * **That is why it returns both coordinates and not an offset**: besides the longitude, the
+     * That is why it returns both coordinates and not an offset: besides the longitude, the
      * latitude changes too, and that is what does not fit into the chart's path.
      *
      * What it is really used for, which is what justifies having it: it is the piece behind
@@ -721,7 +721,7 @@ return match ($this) {
      * How much it is worth, measured against Swiss with Lahiri on 10 June 1985: Pluto moves −3.4
      * arcseconds in longitude and +8.3 in latitude, and the Sun's longitude does not change by so
      * much as a millionth of a degree, because it is on the ecliptic and turning the plane barely
-     * moves it. **What it measures is the distance between the date and t0**, not the date: with
+     * moves it. What it measures is the distance between the date and t0, not the date: with
      * Hipparchus's ayanamsa, anchored twenty-one centuries back, it is −263 arcseconds.
      *
      * @param float $longitude TROPICAL longitude in the true ecliptic of date, as `Ephemeris` gives it.
@@ -749,7 +749,7 @@ return match ($this) {
      * The arithmetic of `projected()`, with the pair (t0, a0) passed loose so that
      * `CustomAyanamsa` can use it too.
      *
-     * **It starts from the MEAN ecliptic of date**: the nutation belongs to the true equinox and
+     * It starts from the MEAN ecliptic of date: the nutation belongs to the true equinox and
      * the rotation to J2000 comes out of the mean one, just as in `Ephemeris::inEcliptic`. Without
      * removing it first, a longitude that is not in the ecliptic the rotation starts from would be
      * precessed.
@@ -790,39 +790,39 @@ return match ($this) {
      * ecliptic is one body's orbit and it tilts, this is the whole system's and it is fixed. That
      * is the argument for using it as a reference plane, and it goes back to Laplace.
      *
-     * **This is not more precision, it is another zodiac**, and the numbers say so rather than the
+     * This is not more precision, it is another zodiac, and the numbers say so rather than the
      * adjective. Lahiri, 10 June 1985: Pluto moves −400.51 arcseconds in longitude, and its
      * latitude goes from +17.083° to +15.555°, that is −1.528°. The Sun, which is on the ecliptic
-     * by construction, goes from −0.00018° of latitude to **+0.73875°**: three quarters of a degree
+     * by construction, goes from −0.00018° of latitude to +0.73875°: three quarters of a degree
      * off the plane it defines. Nothing that moves a body by a degree is a refinement.
      *
-     * **The POSITIONS only, and the houses deliberately not.** Swiss applies the flag to house
+     * The POSITIONS only, and the houses deliberately not. Swiss applies the flag to house
      * cusps as well; this gives `swe_calc` parity and stops there. The house side is real work
      * inside `Houses` rather than a rotation of a direction, and it is not dimensioned here, so it
      * is left out on purpose and not by oversight.
      *
-     * **Which zero point, and the one that was not taken.** Once the plane is turned there are two
+     * Which zero point, and the one that was not taken. Once the plane is turned there are two
      * defensible places to start counting, and they differ by half an arcminute:
      *
-     * - **Swiss's, which is the one implemented here**: the origin is the vernal point of t0
-     *   carried into this plane, and a0 is then subtracted as a plain arc OF THIS PLANE. The
-     *   ayanamsa was measured along the ecliptic of t0 and is being spent along the invariable
-     *   plane, which is the same mixing of two planes the Swiss documentation owns up to for
-     *   `SE_SIDBIT_ECL_T0` in 2.8.12.
-     * - **The coherent one**: carry the sidereal zero point itself, the direction that lies at
-     *   longitude a0 on the ecliptic of t0, into this plane and measure from there.
+     * - Swiss's, which is the one implemented here: the origin is the vernal point of t0
+     * carried into this plane, and a0 is then subtracted as a plain arc OF THIS PLANE. The
+     * ayanamsa was measured along the ecliptic of t0 and is being spent along the invariable
+     * plane, which is the same mixing of two planes the Swiss documentation owns up to for
+     * `SE_SIDBIT_ECL_T0` in 2.8.12.
+     * - The coherent one: carry the sidereal zero point itself, the direction that lies at
+     * longitude a0 on the ecliptic of t0, into this plane and measure from there.
      *
-     * Measured across the thirty-two ayanamsas that have an epoch, the two differ by **30.42
-     * arcseconds with Lahiri** and by at most **39.01 arcseconds**, which is Skydram. The
+     * Measured across the thirty-two ayanamsas that have an epoch, the two differ by 30.42
+     * arcseconds with Lahiri and by at most 39.01 arcseconds, which is Skydram. The
      * difference is a function of a0 and of nothing else: it is the convergence of two great
      * circles crossing at 1.58°, so it is exactly zero for the ten ayanamsas whose a0 is zero and
      * it grows with a0, reaching 39" at Skydram's 30°. Half an arcminute is invisible to any reader
      * of a chart, so it cannot be the tie-breaker; the only reason to have this at all is parity
      * with Swiss, so parity decides.
      *
-     * **How close it lands, and what is being compared.** Swiss's own tropical positions fed
+     * How close it lands, and what is being compared. Swiss's own tropical positions fed
      * through this rotation, ten bodies at seven dates from 1600 to 2400 with eight ayanamsas, 560
-     * cases: latitude to **0.057 arcseconds**, and longitude adding at most **0.021 arcseconds** to
+     * cases: latitude to 0.057 arcseconds, and longitude adding at most 0.021 arcseconds to
      * the difference the ORDINARY sidereal longitude of the same body already carries, which is the
      * 1976 precession model against Vondrák and is accounted for at the top of this enum. Comparing
      * whole positions instead would measure the two ephemerides, since pyswisseph without files
@@ -854,10 +854,10 @@ return match ($this) {
      * The arithmetic of `projectedOnSolarSystemPlane()`, with the pair (t0, a0) passed loose so
      * that `CustomAyanamsa` can use it too, exactly as `onEclipticOfT0` is passed loose.
      *
-     * **It starts from the MEAN ecliptic of date**, for the same reason as its sibling: the
+     * It starts from the MEAN ecliptic of date, for the same reason as its sibling: the
      * nutation belongs to the true equinox and the rotation to J2000 starts from the mean one.
      *
-     * **The origin is anchored at t0 and therefore does not move**, which is a check and not a
+     * The origin is anchored at t0 and therefore does not move, which is a check and not a
      * remark: Swiss's own offset between the raw invariable-plane longitude and what it returns
      * comes out the same to 0.001 arcseconds at 1700, 1900, 1985, 2100 and 2300. A zero point that
      * drifted would mean the ayanamsa had been spent twice.
@@ -904,7 +904,7 @@ return match ($this) {
      * tradition; the consistent variant differs from this one by less than three hundredths of an
      * arcsecond between 1700 and 2300.
      *
-     * **It is not the same as adding `Time::generalPrecession`.** The general precession is an
+     * It is not the same as adding `Time::generalPrecession`. The general precession is an
      * angle on an ecliptic that tilts; measured in the frame of t0 it comes out as something else,
      * and the difference grows with the square of time. With the two rotations, the J2000 ayanamsa
      * matches Swiss's in everything but the precession model.

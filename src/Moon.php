@@ -12,7 +12,7 @@ namespace Astronomy;
  * precision that is needed.
  *
  * And it is kept apart for another reason, which is the one that really matters here:
- * **annual aberration is not applied to the Moon**. Aberration tilts the direction of the
+ * annual aberration is not applied to the Moon. Aberration tilts the direction of the
  * light because the observer moves, and the Moon moves with us: it travels in the same
  * orbit around the Sun. Applying it to the Moon as if it were a planet shifts it twenty
  * arcseconds. What it does carry is the light delay, which is a little over a second but

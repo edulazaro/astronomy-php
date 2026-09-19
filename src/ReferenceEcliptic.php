@@ -8,12 +8,12 @@ namespace Astronomy;
  * These are Swiss's `SEFLG_NONUT` and `SEFLG_J2000`. The chart uses the true ecliptic of date:
  * the plane and the origin of that same day with nutation applied, which is where the sky is seen.
  *
- * **The mean one and the true one are the same plane**, and all they differ by is the nutation in
+ * The mean one and the true one are the same plane, and all they differ by is the nutation in
  * longitude, up to seventeen arcseconds: the nutation in obliquity tilts the equator, not the
  * ecliptic. The J2000 one is another plane and another origin, and what it differs from the one of
  * date by is the whole precession: 4.19 degrees over three hundred years.
  *
- * **In J2000 there is no nutation**, the same as in Swiss, and it is measured: `SEFLG_J2000` and
+ * In J2000 there is no nutation, the same as in Swiss, and it is measured: `SEFLG_J2000` and
  * `SEFLG_J2000 | SEFLG_NONUT` give the same thing down to the last decimal. Nutation is a wobble
  * of the axis at the date, and J2000 is a fixed snapshot of another day.
  *

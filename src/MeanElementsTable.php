@@ -15,16 +15,16 @@ use RuntimeException;
  * down in `MeanElements`: there was no source in the repository, and copying it from the Swiss code
  * is ruled out by licence.
  *
- * The source is **ERFA**, the same one the nutation is already downloaded from: `plan94.c` is its
+ * The source is ERFA, the same one the nutation is already downloaded from: `plan94.c` is its
  * BSD-licensed reimplementation of the paper by Simon, Bretagnon, Chapront, Chapront-Touzé, Francou
  * and Laskar, *Astronomy and Astrophysics* 282, 663-683 (1994), and it carries inside the six
  * tables of mean elements with their three coefficients each.
  *
- * **The C is parsed and the count is checked**, as with the nutation and for the same reason: a
+ * The C is parsed and the count is checked, as with the nutation and for the same reason: a
  * lost row gives no error, it gives a planet with its node somewhere else. And two specific numbers
  * are checked as well, because the count can add up with rows read half way.
  *
- * **What is NOT downloaded are the trigonometric terms** (`kp`, `ca`, `sa`, `kq`, `cl`, `sl`), and
+ * What is NOT downloaded are the trigonometric terms (`kp`, `ca`, `sa`, `kq`, `cl`, `sl`), and
  * it is worth saying so in order that nobody misses them: they are the periodic corrections
  * `plan94` adds to the semi-major axis and to the mean longitude in order to compute a position,
  * that is, exactly the perturbations a MEAN element exists in order not to carry. Measured: without
@@ -75,7 +75,7 @@ final class MeanElementsTable
      * @return array{bodies: int, elements: int, source: string, path: string}
      *
      * @throws RuntimeException If the download fails, the format of the source has changed or a
-     *                          sentinel does not match, in which case nothing is written.
+     * sentinel does not match, in which case nothing is written.
      */
     public static function regenerate(?HttpClient $http = null, string $source = self::ERFA): array
     {

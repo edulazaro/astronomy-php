@@ -16,7 +16,7 @@ use DateTimeZone;
  * how much the atmosphere widens the Earth's shadow, which is an empirical adjustment and its
  * source is stated.
  *
- * **The search goes by syzygies and not by brute force.** A solar eclipse can only happen at
+ * The search goes by syzygies and not by brute force. A solar eclipse can only happen at
  * new Moon and a lunar one only at full Moon, and there are twelve or thirteen of those a
  * year. Each one is computed with the ephemeris (starting from the mean phase, which gives the
  * date to within half a day, and refining with the real elongation), the latitude of the Moon
@@ -24,7 +24,7 @@ use DateTimeZone;
  * the whole geometry built. With that, a decade is some thirty candidates and not four
  * thousand days.
  *
- * **The instants are found from the projected motion, not by blind bisection.** The distance
+ * The instants are found from the projected motion, not by blind bisection. The distance
  * from the shadow axis to the centre of the Earth is, over a few hours, the hypotenuse of a
  * rectilinear motion: its square is an almost exact parabola. Three evaluations give the
  * vertex, and the contacts come out of that same parabola and are refined with two secant
@@ -183,12 +183,12 @@ class Eclipses
      * partial and an occultation is not seen at all.
      *
      * @param Body|Star|callable(float): Equatorial $object What is covered: the Sun, a
-     *        planet, a star from the catalogue or a bare direction.
+     * planet, a star from the catalogue or a bare direction.
      * @param float $approximateJdUt An instant near the maximum (the geocentric one will do).
      * @param Place $place
      * @param float $heightMetres
      * @return LocalCircumstances|null Null if from there the discs never get to touch each
-     *         other, or if no phase catches the body above the horizon.
+     * other, or if no phase catches the body above the horizon.
      */
     public static function localOccultation(Body|Star|callable $object, float $approximateJdUt, Place $place, float $heightMetres = 0.0): ?LocalCircumstances
     {
@@ -329,7 +329,7 @@ class Eclipses
      * occultation: the radius changes and nothing else, and that is why `Occultations` uses
      * this same function.
      *
-     * **The flattening of the Earth is put in by stretching the z coordinate of the two
+     * The flattening of the Earth is put in by stretching the z coordinate of the two
      * bodies** instead of squashing the Earth: that way the ellipsoid becomes a sphere of
      * equatorial radius and the question «does the axis touch the Earth?» is comparing a
      * distance with a number. It is the trick of the Besselian elements and the one Swiss
@@ -339,11 +339,11 @@ class Eclipses
      * @param float $bodyRadiusKm
      * @param array{0: float, 1: float, 2: float} $moonKm Geocentric.
      * @return array{
-     *     r0: float, gamma: float, d0: float, D0: float, cosf1: float, cosf2: float,
-     *     central: bool, umbra: bool, penumbra: bool, anular: bool, nucleo: float,
-     *     superficie: array{0: float, 1: float, 2: float}
+     * r0: float, gamma: float, d0: float, D0: float, cosf1: float, cosf2: float,
+     * central: bool, umbra: bool, penumbra: bool, anular: bool, nucleo: float,
+     * superficie: array{0: float, 1: float, 2: float}
      * } Distances in km. `superficie` is the point of the Earth where the eclipse is greatest,
-     *   no longer stretched, in the same axes.
+     * no longer stretched, in the same axes.
      */
     public static function shadow(array $bodyKm, float $bodyRadiusKm, array $moonKm): array
     {
@@ -456,7 +456,7 @@ class Eclipses
      * @param Closure(float): float $function
      * @param float $t Starting point.
      * @return array{0: float, 1: float, 2: float} [instant, minimum value, curvature of the
-     *         parabola of the square in units²/day²]
+     * parabola of the square in units²/day²]
      */
     public static function minimum(Closure $function, float $t): array
     {
