@@ -1,0 +1,45 @@
+{
+    "name": "edulazaro/astronomy",
+    "description": "A pure PHP astronomical engine: planetary and lunar ephemerides, fixed stars, eclipses, occultations and rise and set times, verified against JPL Horizons.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Edu Lazaro",
+            "homepage": "https://edulazaro.com"
+        }
+    ],
+    "keywords": [
+        "astronomy",
+        "ephemeris",
+        "vsop87",
+        "elp2000",
+        "eclipses",
+        "jpl",
+        "horizons"
+    ],
+    "bin": [
+        "bin/astronomy"
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Astronomy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Astronomy\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

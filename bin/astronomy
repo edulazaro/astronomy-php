@@ -1,0 +1,236 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * The engine's command line, so that downloading a body does not need a framework.
+ *
+ * Everything it does lives in classes (`Downloader`, `SatelliteList`): this file only reads
+ * arguments and writes what happened, which is the same shape an Artisan command has in an
+ * application that installs the package. Two thin wrappers over one implementation, never two
+ * implementations.
+ *
+ *     vendor/bin/astronomy download asteroids 136199 --from=1980 --to=1989
+ *     vendor/bin/astronomy download satellites Io Titan --data=/var/data/astro
+ *     vendor/bin/astronomy satellites
+ *
+ * **Where it writes is asked for and not guessed.** The engine reads its series from inside the
+ * package, and writing there is wrong twice over: in an application the package is a copy that
+ * Composer replaces, and what is downloaded belongs to whoever downloads it, not to the engine.
+ * So `--data` says where, and without it the folder is `astro/` under the current directory.
+ */
+
+namespace Astronomy\Cli;
+
+use Astronomy\DataFolder;
+use Astronomy\Downloadables;
+use Astronomy\DownloadableGroup;
+use Astronomy\Downloader;
+use Astronomy\SatelliteList;
+use Astronomy\StarCatalog;
+use Astronomy\Time;
+use Throwable;
+
+foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+
+        break;
+    }
+}
+
+if (! class_exists(Downloader::class)) {
+    fwrite(STDERR, "The autoloader was not found: install the dependencies with composer install.\n");
+
+    exit(1);
+}
+
+/**
+ * @param string $message
+ * @return never
+ */
+function fail(string $message): never
+{
+    fwrite(STDERR, $message."\n");
+
+    exit(1);
+}
+
+/**
+ * @return never
+ */
+function usage(): never
+{
+    $groups = implode(', ', array_map(fn (DownloadableGroup $g) => $g->value, DownloadableGroup::cases()));
+
+    fwrite(STDOUT, <<<TEXT
+    Astronomy, a pure PHP astronomical engine.
+
+    Usage:
+      astronomy <what> <name>... [options]
+
+    Fetches what does not ship with the package and writes it into the data folder.
+
+      astronomy asteroids 136199 --from=1980 --to=1989   from JPL Horizons
+      astronomy satellites Io Titan --data=/var/data/astro
+      astronomy comets 1P
+      astronomy stars                                    the whole catalogue, from SIMBAD and Hipparcos-2
+      astronomy stars Regulus Aldebaran                  only those
+
+    Bodies go in groups: {$groups}. Stars go by name or by the designation the list gives them.
+
+    Options:
+      --from=YEAR     First year to cover. Default 1600.
+      --to=YEAR       Last year to cover. Default 2400.
+      --data=PATH     Where the data folder is. Default ./astro
+      --refresh       Download again what is already on disk.
+      --years=N       Years per file for the group, instead of its default.
+
+    A body is a number or a designation for asteroids and comets (136199, "2024 YR4", 1P) and
+    the name of its case for satellites (Io, Titan, Phobos).
+
+    TEXT);
+
+    exit(0);
+}
+
+$argv = $_SERVER['argv'];
+array_shift($argv);
+
+$options = [];
+$arguments = [];
+
+foreach ($argv as $argument) {
+    if (str_starts_with($argument, '--')) {
+        [$name, $value] = array_pad(explode('=', substr($argument, 2), 2), 2, true);
+        $options[$name] = $value;
+
+        continue;
+    }
+
+    $arguments[] = $argument;
+}
+
+$what = array_shift($arguments) ?? 'help';
+
+if ($what === 'help' || isset($options['help'])) {
+    usage();
+}
+
+/* The data folder, which is the one thing this has to be told. Default: `astro/` under the
+   current directory, which is the only writable place a library can take for granted. It is
+   created if it is not there, because refusing to create a folder you were explicitly given is
+   a riddle and not a guard. */
+$folder = is_string($options['data'] ?? null) ? $options['data'] : getcwd().'/astro';
+
+if (! is_dir($folder) && ! @mkdir($folder, 0755, true) && ! is_dir($folder)) {
+    fail("Cannot create the data folder {$folder}.");
+}
+
+DataFolder::useFolder($folder);
+
+/* Regenerating the cases of the `Satellite` enum is not something whoever installs the package
+   does: it rewrites this package's own source. It lives here because it is the same list and the
+   same JPL request, and it is named apart so it cannot be confused with fetching a satellite. */
+if ($what === 'satellite-list') {
+    try {
+        $report = SatelliteList::regenerate();
+    } catch (Throwable $error) {
+        fail($error->getMessage());
+    }
+
+    foreach ($report['removed'] as $case) {
+        fwrite(STDOUT, "Gone: {$case}. If it was named, it has another case and another identifier.\n");
+    }
+
+    foreach ($report['added'] as $case) {
+        fwrite(STDOUT, "New: {$case}\n");
+    }
+
+    fwrite(STDOUT, sprintf("%d satellites written into Satellite.\n", count($report['satellites'])));
+
+    exit(0);
+}
+
+/* The stars are not a group of bodies and do not come from Horizons: which ones there are is in
+   the package, and where each one is comes from SIMBAD and Hipparcos-2. Same verb because from
+   outside it is the same thing, fetching what does not ship. */
+if ($what === 'stars') {
+    try {
+        $report = StarCatalog::regenerate(only: $arguments);
+    } catch (Throwable $error) {
+        fail($error->getMessage());
+    }
+
+    fwrite(STDOUT, sprintf(
+        "%d stars written into %s: %d with astrometry from Hipparcos-2 and %d from SIMBAD.\n",
+        $report['stars'], $report['path'], $report['hipparcos'], $report['simbad']
+    ));
+
+    exit(0);
+}
+
+$group = DownloadableGroup::tryFrom($what);
+
+if ($group === null) {
+    fail("«{$what}» is not one of the groups: ".implode(', ', array_map(fn (DownloadableGroup $g) => $g->value, DownloadableGroup::cases())).'. Try: astronomy help');
+}
+
+if ($arguments === []) {
+    fail("Say which {$group->value} to fetch: this command has no default list.");
+}
+
+if (isset($options['years']) && $options['years'] !== true) {
+    Downloadables::useYearsPerFile([$group->value => (int) $options['years']]);
+}
+
+$from = (int) ($options['from'] ?? 1600);
+$to = (int) ($options['to'] ?? 2400);
+
+if ($to < $from) {
+    fail('The interval runs backwards.');
+}
+
+$failures = 0;
+
+foreach ($arguments as $entry) {
+    try {
+        $body = Downloadables::body($group, is_numeric($entry) ? (int) $entry : $entry);
+
+        $paths = Downloader::downloadBetween(
+            $body,
+            Time::civilJulianDay($from, 1, 1.5),
+            Time::civilJulianDay($to, 12, 31.5),
+            isset($options['refresh']),
+        );
+    } catch (Throwable $error) {
+        fwrite(STDERR, $error->getMessage()."\n");
+        $failures++;
+
+        continue;
+    }
+
+    foreach ($paths as $path) {
+        $meta = \Astronomy\DownloadedPositions::metadata($path);
+        $uncertainty = $meta['uncertaintySeconds'] ?? null;
+
+        fwrite(STDOUT, sprintf(
+            "%s · %s · one point every %d minutes · interpolation error %.4f arcsec at its closest · the JPL declares %s\n",
+            $body->name(),
+            substr($path, strlen(DataFolder::folder()) + 1),
+            $meta['stepMinutes'],
+            0.01 * $meta['errorAu'] / $meta['toleranceAu'],
+            $uncertainty === null ? 'no uncertainty for it' : sprintf('%.3f arcsec of uncertainty', $uncertainty)
+        ));
+
+        /* One arcminute, which is the unit a chart is read in. Below that the body is where it
+           says; above it, what gets drawn is a guess. */
+        if ($uncertainty !== null && $uncertainty > 60) {
+            fwrite(STDOUT, sprintf(
+                "  Careful: %s goes beyond an arcminute over that span, so there its position cannot be read on a chart.\n",
+                $body->name()
+            ));
+        }
+    }
+}
+
+exit($failures === 0 ? 0 : 1);
