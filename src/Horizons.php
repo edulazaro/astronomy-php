@@ -22,7 +22,7 @@ final class Horizons
      * How many rows are asked for at most in one go.
      *
      * Horizons once cut off at ten thousand rows without warning (recorded in
-     * `GenerarTablaEfemerides`), and on 14 September 2026 it sent 87,673 in a single response. It is
+     * `PositionTables`), and on 14 September 2026 it sent 87,673 in a single response. It is
      * not known what changed, so it is asked for in chunks and, above all, each chunk starts at the
      * row after the last one that arrived: if Horizons cuts off, the next request carries on where
      * it left off instead of leaving a hole.
@@ -259,7 +259,7 @@ final class Horizons
     private static function rows(string $response, string $command): array
     {
         // With `strpos` and not with a lazy regular expression: over more than a megabyte,
-        // `preg_match` returns false without throwing anything (recorded in `GenerarTablaEfemerides`).
+        // `preg_match` returns false without throwing anything (recorded in `PositionTables`).
         $start = strpos($response, '$$SOE');
         $end = strpos($response, '$$EOE');
 

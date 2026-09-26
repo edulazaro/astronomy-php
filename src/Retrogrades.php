@@ -73,7 +73,7 @@ class Retrogrades
      * @param Body|DownloadableBody $body
      * @param float $from Julian day in Terrestrial Time.
      * @param float $to Ditto.
-     * @return list<array{jd: float, longitud: float, retrograda: bool}> `retrograda` tells
+     * @return list<array{jd: float, longitude: float, retrograde: bool}> `retrograde` tells
      * whether from that instant on the body starts going backwards.
      */
     public static function stations(Body|DownloadableBody $body, float $from, float $to): array
@@ -132,7 +132,7 @@ class Retrogrades
      * @param Body|DownloadableBody $body
      * @param float $from
      * @param float $to
-     * @return list<array{inicio: float|null, fin: float|null, longitudInicio: float|null, longitudFin: float|null}>
+     * @return list<array{start: float|null, end: float|null, startLongitude: float|null, endLongitude: float|null}>
      * A null endpoint means that the station falls outside the widening, which can only
      * happen with very large windows.
      */
@@ -157,8 +157,8 @@ class Retrogrades
             $periods[] = [
                 'start' => $open['jd'] ?? null,
                 'end' => $station['jd'],
-                'longitudInicio' => $open['longitude'] ?? null,
-                'longitudFin' => $station['longitude'],
+                'startLongitude' => $open['longitude'] ?? null,
+                'endLongitude' => $station['longitude'],
             ];
 
             $open = null;
@@ -168,8 +168,8 @@ class Retrogrades
             $periods[] = [
                 'start' => $open['jd'],
                 'end' => null,
-                'longitudInicio' => $open['longitude'],
-                'longitudFin' => null,
+                'startLongitude' => $open['longitude'],
+                'endLongitude' => null,
             ];
         }
 
@@ -200,7 +200,7 @@ class Retrogrades
      *
      * @param Body|DownloadableBody $body
      * @param float $jdTT
-     * @return array{enCurso: bool, inicio: float|null, fin: float|null, longitudInicio: float|null, longitudFin: float|null}|null
+     * @return array{underWay: bool, start: float|null, end: float|null, startLongitude: float|null, endLongitude: float|null}|null
      */
     public static function around(Body|DownloadableBody $body, float $jdTT): ?array
     {
@@ -211,13 +211,13 @@ class Retrogrades
 
         foreach ($periods as $period) {
             if (($period['start'] ?? -INF) <= $jdTT && ($period['end'] ?? INF) >= $jdTT) {
-                return ['enCurso' => true] + $period;
+                return ['underWay' => true] + $period;
             }
         }
 
         foreach ($periods as $period) {
             if (($period['start'] ?? INF) > $jdTT) {
-                return ['enCurso' => false] + $period;
+                return ['underWay' => false] + $period;
             }
         }
 

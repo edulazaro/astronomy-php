@@ -5,3 +5,6 @@
 # Bodies fetched on demand. They are a cache, not source: whoever needs one
 # downloads it, and it must never be committed into the package.
 /resources/astro/downloads/
+
+# Instructions for whoever works on this repo. Local, not part of the package.
+CLAUDE.md

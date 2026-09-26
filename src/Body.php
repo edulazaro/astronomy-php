@@ -36,7 +36,7 @@ enum Body: string implements Translatable
        is no analytical theory of a small body, only numerical integration. It comes out off by
        default and behind the same checkbox as the four asteroids. Mind its uncertainty, which
        is the worst of the six tabulated ones: the JPL declares 14 arcseconds in 1600 (see
-       `GenerarTablaEfemerides`). */
+       `PositionTables`). */
     case Pholus = 'pholus';
 
     /* The nodes and Lilith are not bodies: they are elements of the Moon's ORBIT. The nodes,

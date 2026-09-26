@@ -499,7 +499,7 @@ readonly class Horizon
         $sine = sin($phi) * sin($delta) + cos($phi) * cos($delta) * cos($h);
         $altitude = rad2deg(asin(max(-1.0, min(1.0, $sine))));
 
-        // From north towards east. It is the same formula with which `CasasTest` measures the
+        // From north towards east. It is the same formula with which `HousePositionTest` measures the
         // azimuth of the vertex by an independent route.
         $azimuth = rad2deg(atan2(
             -cos($delta) * sin($h),

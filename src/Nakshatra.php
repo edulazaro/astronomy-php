@@ -113,7 +113,7 @@ enum Nakshatra: int implements Translatable
     /**
      * The nakshatra a sidereal longitude falls in.
      *
-     * @param float $siderealLongitude Grados.
+     * @param float $siderealLongitude Degrees.
      * @return self
      */
     public static function fromLongitude(float $siderealLongitude): self
@@ -124,7 +124,7 @@ enum Nakshatra: int implements Translatable
     /**
      * The pada of a sidereal longitude, from 1 to 4.
      *
-     * @param float $siderealLongitude Grados.
+     * @param float $siderealLongitude Degrees.
      * @return int
      */
     public static function padaOf(float $siderealLongitude): int

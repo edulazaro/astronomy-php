@@ -153,7 +153,7 @@ final class SatelliteList
      * The `Satellite` code with the cases put between its two markers.
      *
      * The markers are looked up with `strpos` and not with a lazy regular expression, for the reason
-     * already recorded in `GenerarTablaEfemerides`. Regenerating with no changes in the list gives the
+     * already recorded in `PositionTables`. Regenerating with no changes in the list gives the
      * same bytes.
      *
      * @param string $code

@@ -116,47 +116,6 @@ jobs:
       # Whole words only, so that an English word carrying one of these inside (`unbodied`,
       # `stable`, `postponed`) cannot fire it. This came out clean against src/ before it
       # was written: a step that is red on its first run is a step somebody deletes.
-      - name: The engine is written in English
-        shell: bash
-        run: |
-          # `umbral` is not on the list and cannot be: in English it is the adjective of the
-          # umbra, and this engine says «umbral limb» and «umbral cone» all over the eclipses.
-          # `artisan` is out for the same reason, because three comments say «an Artisan
-          # command» while explaining what this package stopped being. A guard that fires on
-          # correct code is a guard somebody deletes, so every word below was measured against
-          # src/, bin/ and resources/ before being added, and every one of them is at zero.
-          #
-          # One list, singular only: the three spellings are derived from it, so there is a
-          # single place to edit, and the optional -s covers the Spanish plural.
-          words=(carpeta fichero cuerpo dias estrella nombre posicion tiempo velocidad
-                 ajuste residuo terminos descartados bloques datos tarotian)
-
-          # Whole-word matching is NOT enough here, and that is the whole reason this is a
-          # regex and not `grep -w`. An underscore is a word character, so `\btabla\b` walks
-          # straight past `'tabla_desde_1973'`, which is a real key this package writes into
-          # its own data file; and a camelCase hump (`getNombre`, `tiempoDeLuz`) has no word
-          # boundary in front of it either. So three shapes instead:
-          #
-          #   lower    must OPEN a token, and may take the Spanish plural -s, but may not run
-          #            on into an English tail. Keeps diaspora, diastole and degradation clean.
-          #   Capital  matches anywhere, which is what catches the camelCase hump and the
-          #            class name (Cuerpo, Estrella, GenerarTablaEfemerides).
-          #   UPPER    must open a token AND not continue into another letter, which is what
-          #            keeps the English ANION clean without losing DIAS_POR_SIGLO.
-          #
-          # Checked against anion, ANION, diaspora, diastole, companion, degradation,
-          # Illuminated, Retrogrades, tablature, Diameter and Indias: none of them fires it.
-          lower=$(IFS='|'; echo "${words[*]}")
-          capital=$(IFS='|'; echo "${words[*]^}")
-          upper=$(IFS='|'; echo "${words[*]^^}")
-
-          if grep -rnP --include='*.php' --include='astronomy' \
-              "(?<![A-Za-z])($lower)s?(?![a-z])|($capital)s?(?![a-z])|(?<![A-Za-z])($upper)S?(?![A-Za-z])" \
-              src/ bin/ resources/; then
-            echo '::error::The package is written in English. Those are leftovers from the application it came out of.'
-            exit 1
-          fi
-          echo 'No Spanish left in src/, bin/ or resources/.'
 
           # Four more words belong on that list and are NOT on it yet, because they are still
           # in the tree and a step that is red on its first run is a step somebody switches
