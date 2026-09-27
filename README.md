@@ -200,7 +200,7 @@ composer install
 composer test
 ```
 
-147 tests and 3,168 assertions, and **the suite runs with no network**: the reference values,
+527 tests and 60,390 assertions, and **the suite runs with no network**: the reference values,
 from JPL Horizons and from other implementations, are written into the tests by hand, so a build
 does not fail because Pasadena is down.
 
