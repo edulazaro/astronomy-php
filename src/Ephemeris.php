@@ -1111,7 +1111,7 @@ class Ephemeris
     {
         static $memo = [];
 
-        $key = (string) $jd;
+        $key = pack('E', $jd);
 
         if (! isset($memo[$key])) {
             if (count($memo) >= 8) {
